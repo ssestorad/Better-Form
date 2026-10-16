@@ -48,7 +48,7 @@ export class DayService {
 	/** Uloží check-in do denní poznámky a obnoví souhrn. */
 	async saveCheckIn(values: CheckInValues): Promise<TFile> {
 		if (this.index.day(values.date)?.schemaStatus === "newer") {
-			throw new Error(t("Denní poznámka je z novější verze pluginu – aktualizuj plugin."));
+			throw new Error(t("The daily note is from a newer version of the plugin – update the plugin."));
 		}
 		const file = await this.ensureDayNote(values.date);
 		let saved: DayNote | null = null;
@@ -66,7 +66,7 @@ export class DayService {
 	 */
 	async updateSupplements(date: string, change: (list: string[]) => string[]): Promise<string[]> {
 		if (this.index.day(date)?.schemaStatus === "newer") {
-			throw new Error(t("Denní poznámka je z novější verze pluginu – aktualizuj plugin."));
+			throw new Error(t("The daily note is from a newer version of the plugin – update the plugin."));
 		}
 		const file = await this.ensureDayNote(date);
 		let saved: DayNote | null = null;
@@ -107,7 +107,7 @@ export class DayService {
 	/** Zapíše (nebo smaže) kroky za den a obnoví souhrn. */
 	async setSteps(date: string, steps: number | undefined): Promise<void> {
 		if (this.index.day(date)?.schemaStatus === "newer") {
-			throw new Error(t("Denní poznámka je z novější verze pluginu – aktualizuj plugin."));
+			throw new Error(t("The daily note is from a newer version of the plugin – update the plugin."));
 		}
 		if (steps === undefined && !this.findDayFile(date)) return;
 		const file = await this.ensureDayNote(date);

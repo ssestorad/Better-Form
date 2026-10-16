@@ -18,8 +18,8 @@ export const RECORD_DISTANCES: RecordDistance[] = translated([
 	{ key: "1k", label: "1 km", km: 1 },
 	{ key: "5k", label: "5 km", km: 5 },
 	{ key: "10k", label: "10 km", km: 10 },
-	{ key: "half", label: "Půlmaraton", km: 21.0975 },
-	{ key: "marathon", label: "Maraton", km: 42.195 },
+	{ key: "half", label: "Half marathon", km: 21.0975 },
+	{ key: "marathon", label: "Marathon", km: 42.195 },
 ]);
 
 /** Celý běh se počítá jako běh na danou trať, když se vzdálenost liší nejvýš o 2 %. */
@@ -99,7 +99,7 @@ export function resolveHrMax(measured: number | null, birthYear: number | null, 
 /** Hranice pěti zón jako podíl tepové rezervy (Karvonen): 50–60–70–80–90–100 %. */
 export const ZONE_BOUNDS = [0.5, 0.6, 0.7, 0.8, 0.9, 1] as const;
 
-export const ZONE_LABELS = translated(["Z1 – velmi lehká", "Z2 – lehká", "Z3 – střední", "Z4 – těžká", "Z5 – maximální"]);
+export const ZONE_LABELS = translated(["Z1 – very easy", "Z2 – easy", "Z3 – moderate", "Z4 – hard", "Z5 – maximal"]);
 
 export interface HrZone {
 	zone: number;

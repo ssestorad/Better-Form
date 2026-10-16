@@ -11,13 +11,13 @@ import { t, translated } from "../i18n";
 export type HistoryMetric = "oneRm" | "reps" | "sec";
 
 export const HISTORY_METRIC_LABELS: Record<HistoryMetric, string> = translated({
-	oneRm: "Odhad 1RM (kg)",
-	reps: "Nejvíc opakování v sérii",
-	sec: "Nejdelší výdrž (s)",
+	oneRm: "Estimated 1RM (kg)",
+	reps: "Most reps in a set",
+	sec: "Longest hold (s)",
 });
 
 /** Do věty „nejlepší …“. */
-export const HISTORY_BEST_LABELS: Record<HistoryMetric, string> = translated({ oneRm: "odhad 1RM", reps: "počet opakování v sérii", sec: "výdrž" });
+export const HISTORY_BEST_LABELS: Record<HistoryMetric, string> = translated({ oneRm: "estimated 1RM", reps: "reps in a set", sec: "hold" });
 
 export interface HistorySession {
 	date: string;
@@ -62,7 +62,7 @@ export function exerciseHistory(workouts: readonly WorkoutNote[], name: string, 
 			if (block.type === "sets" || block.type === "hold") {
 				const working = block.sets.filter((s) => !s.warmup);
 				day.sets += working.length;
-				day.texts.push(working.length > 0 ? formatSets(working, measure) : t("jen rozcvičovací série"));
+				day.texts.push(working.length > 0 ? formatSets(working, measure) : t("warm-up sets only"));
 			} else {
 				day.texts.push(BLOCK_LABELS[block.type]);
 			}

@@ -17,7 +17,7 @@
 	const plugin = usePlugin();
 
 	const ICONS: Record<RecommendationLevel, string> = { warn: "alert-triangle", suggest: "lightbulb", info: "info" };
-	const LEVEL_LABELS: Record<RecommendationLevel, string> = { warn: t("Upozornění"), suggest: t("Návrh"), info: t("Informace") };
+	const LEVEL_LABELS: Record<RecommendationLevel, string> = { warn: t("Warning"), suggest: t("Suggestion"), info: t("Info") };
 
 	const main = $derived(recommendations.slice(0, MAX_MAIN_RECOMMENDATIONS));
 	const rest = $derived(recommendations.slice(MAX_MAIN_RECOMMENDATIONS));
@@ -62,16 +62,16 @@
 {/snippet}
 
 <section class="bf-card">
-	<h4>{t("Doporučení na dnešek")}</h4>
+	<h4>{t("Recommendations for today")}</h4>
 	{#if recommendations.length === 0}
-		<p class="bf-muted">{t("Nic zvláštního – trénuj podle plánu. Doporučení se objeví, až bude z čeho počítat (check-in, tréninky s RPE, HRV).")}</p>
+		<p class="bf-muted">{t("Nothing special – train as planned. Recommendations appear once there's something to calculate from (check-in, workouts with RPE, HRV).")}</p>
 	{/if}
 	{#each main as rec (rec.ruleId)}
 		{@render card(rec)}
 	{/each}
 	{#if rest.length > 0}
 		<details class="bf-rec-more">
-			<summary>{t("Další doporučení ({rest_length})", { rest_length: rest.length })}</summary>
+			<summary>{t("More recommendations ({rest_length})", { rest_length: rest.length })}</summary>
 			<div class="bf-rec-rest">
 				{#each rest as rec (rec.ruleId)}
 					{@render card(rec)}
@@ -79,7 +79,7 @@
 			</div>
 		</details>
 	{/if}
-	<p class="bf-muted bf-rec-note">{t("Doporučení jsou orientační a nenahrazují trenéra, fyzioterapeuta ani lékaře.")}</p>
+	<p class="bf-muted bf-rec-note">{t("Recommendations are indicative and don't replace a coach, physiotherapist or doctor.")}</p>
 </section>
 
 <style>

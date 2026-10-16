@@ -30,9 +30,9 @@
 	let { workouts, days, byDate, ctx, thresholds, today }: Props = $props();
 
 	const RANGES = [
-		{ days: 42, label: t("6 týdnů") },
-		{ days: 91, label: t("3 měsíce") },
-		{ days: 365, label: t("Rok") },
+		{ days: 42, label: t("6 weeks") },
+		{ days: 91, label: t("3 months") },
+		{ days: 365, label: t("Year") },
 	] as const;
 	const COLORS = ["var(--interactive-accent)", "var(--color-orange)", "var(--color-green)", "var(--color-purple)"];
 
@@ -80,99 +80,99 @@
 	const kg = (v: number) => `${formatNumber(v, 0)} kg`;
 </script>
 
-<div class="bf-seg" role="tablist" aria-label={t("Období grafů")}>
+<div class="bf-seg" role="tablist" aria-label={t("Chart period")}>
 	{#each RANGES as r (r.days)}
 		<button type="button" role="tab" aria-selected={rangeDays === r.days} class:is-active={rangeDays === r.days} onclick={() => (rangeDays = r.days)}>{r.label}</button>
 	{/each}
 </div>
 
 <section class="bf-card">
-	<h4>{t("Zátěž, kondice, únava a forma")}</h4>
+	<h4>{t("Load, fitness, fatigue and form")}</h4>
 	{#if hasLoad}
 		<LineChart
 			{dates}
 			lines={modelReady
 				? [
-						{ label: t("Kondice"), color: COLORS[0]!, values: load.ctl },
-						{ label: t("Únava"), color: COLORS[1]!, values: load.atl },
-						{ label: t("Forma"), color: COLORS[2]!, values: load.tsb, dashed: true },
+						{ label: t("Fitness"), color: COLORS[0]!, values: load.ctl },
+						{ label: t("Fatigue"), color: COLORS[1]!, values: load.atl },
+						{ label: t("Form"), color: COLORS[2]!, values: load.tsb, dashed: true },
 					]
 				: []}
-			bars={{ label: t("Zátěž dne"), values: load.load }}
+			bars={{ label: t("Daily load"), values: load.load }}
 			zero
-			label={t("Zátěž, kondice, únava a forma")}
+			label={t("Load, fitness, fatigue and form")}
 		/>
 	{:else}
-		<p class="bf-muted">{t("V tomto období není trénink s RPE a délkou.")}</p>
+		<p class="bf-muted">{t("No workout with RPE and duration in this period.")}</p>
 	{/if}
 	{#if !modelReady}
-		<p class="bf-muted bf-ch-note">{t("Sbírám data pro model kondice ({dataDays} z {loadModelMinDays} dní).", { dataDays, loadModelMinDays: thresholds.loadModelMinDays })}</p>
+		<p class="bf-muted bf-ch-note">{t("Collecting data for the fitness model ({dataDays} of {loadModelMinDays} days).", { dataDays, loadModelMinDays: thresholds.loadModelMinDays })}</p>
 	{/if}
 	<p class="bf-muted bf-ch-note">
-		{t("Kondice = dlouhodobý průměr zátěže ({ctlDays} dní), únava = krátkodobý ({atlDays} dní), forma = kondice − únava.", { ctlDays: thresholds.ctlDays, atlDays: thresholds.atlDays })}
-		<BasisTag basis={FITNESS_BASIS} named /> {t("Je to model trendu, ne přesná předpověď výkonu.")}
+		{t("Fitness = long-term average load ({ctlDays} days), fatigue = short-term ({atlDays} days), form = fitness − fatigue.", { ctlDays: thresholds.ctlDays, atlDays: thresholds.atlDays })}
+		<BasisTag basis={FITNESS_BASIS} named /> {t("It's a trend model, not an exact performance prediction.")}
 	</p>
 </section>
 
 <section class="bf-card">
-	<h4>{t("Tempo běhu")}</h4>
+	<h4>{t("Running pace")}</h4>
 	{#if hasPace}
-		<LineChart {dates} lines={[{ label: "Tempo", color: COLORS[0]!, values: pace, connect: true, dots: true }]} format={formatPace} invert label={t("Tempo běhu")} />
-		<p class="bf-muted bf-ch-note">{t("Průměrné tempo běhů dne. Rychlejší tempo je v grafu výš; lehké a rychlé běhy se tu míchají.")}</p>
+		<LineChart {dates} lines={[{ label: "Tempo", color: COLORS[0]!, values: pace, connect: true, dots: true }]} format={formatPace} invert label={t("Running pace")} />
+		<p class="bf-muted bf-ch-note">{t("Average pace of the day's runs. A faster pace is higher on the chart; easy and fast runs are mixed here.")}</p>
 	{:else}
-		<p class="bf-muted">{t("V tomto období není běh se vzdáleností a časem.")}</p>
+		<p class="bf-muted">{t("No run with distance and time in this period.")}</p>
 	{/if}
 </section>
 
 <section class="bf-card">
-	<h4>{t("Odhad 1RM hlavních cviků")}</h4>
+	<h4>{t("Estimated 1RM of main exercises")}</h4>
 	{#if oneRm.length > 0}
-		<LineChart {dates} lines={oneRm.map((line, i) => ({ label: line.name, color: COLORS[i % COLORS.length]!, values: line.values, connect: true, dots: true }))} format={kg} label={t("Odhad 1RM")} />
+		<LineChart {dates} lines={oneRm.map((line, i) => ({ label: line.name, color: COLORS[i % COLORS.length]!, values: line.values, connect: true, dots: true }))} format={kg} label={t("Estimated 1RM")} />
 		<p class="bf-muted bf-ch-note">
-			{t("Nejčastěji cvičené cviky období, nejlepší série dne přepočtená vzorcem Epley (do 10 opakování).")} <BasisTag basis={EPLEY_BASIS} />
+			{t("The period's most frequent exercises, the day's best set converted with the Epley formula (up to 10 reps).")} <BasisTag basis={EPLEY_BASIS} />
 		</p>
 	{:else}
-		<p class="bf-muted">{t("Sbírám data – graf se objeví, až bude mít některý silový cvik v období aspoň dva tréninky se sérií do 10 opakování.")}</p>
+		<p class="bf-muted">{t("Collecting data – the chart appears once a strength exercise has at least two workouts in the period with a set of up to 10 reps.")}</p>
 	{/if}
 </section>
 
 <section class="bf-card">
-	<h4>{t("Spánek a zátěž")}</h4>
+	<h4>{t("Sleep and load")}</h4>
 	{#if hasSleep}
 		<LineChart
 			{dates}
-			lines={[{ label: t("Spánek"), color: COLORS[0]!, values: sleep, connect: true, dots: rangeDays <= 91 }]}
-			bars={{ label: t("Zátěž dne"), values: load.load }}
+			lines={[{ label: t("Sleep"), color: COLORS[0]!, values: sleep, connect: true, dots: rangeDays <= 91 }]}
+			bars={{ label: t("Daily load"), values: load.load }}
 			format={hours}
-			label={t("Délka spánku a denní zátěž")}
+			label={t("Sleep duration and daily load")}
 		/>
 	{:else}
-		<p class="bf-muted">{t("Sbírám data – délka spánku se bere z ranního check-inu.")}</p>
+		<p class="bf-muted">{t("Collecting data – sleep duration comes from the morning check-in.")}</p>
 	{/if}
 </section>
 
 <section class="bf-card">
-	<h4>{t("Váha")}</h4>
+	<h4>{t("Weight")}</h4>
 	{#if hasWeight}
 		<LineChart
 			{dates}
 			lines={[
-				{ label: t("Průměr 7 dní"), color: COLORS[0]!, values: weight.average, connect: true },
-				{ label: t("Vážení"), color: "var(--text-muted)", values: weight.value, pointsOnly: true },
+				{ label: t("7-day average"), color: COLORS[0]!, values: weight.average, connect: true },
+				{ label: t("Weigh-ins"), color: "var(--text-muted)", values: weight.value, pointsOnly: true },
 			]}
 			format={kg1}
-			label={t("Váha a klouzavý průměr")}
+			label={t("Weight and rolling average")}
 		/>
 		<p class="bf-muted bf-ch-note">
 			{#if weightNow.ready}
-				{t("Trend za {v} týdny: {v2} (1 kg ≈ 7 700 kcal).", { v: TREND_WINDOW_DAYS / 7, v2: trendText(weightNow) })} <BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
+				{t("Trend over {v} weeks: {v2} (1 kg ≈ 7,700 kcal).", { v: TREND_WINDOW_DAYS / 7, v2: trendText(weightNow) })} <BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
 			{:else}
-				{t("Sbírám data pro trend ({samples} z {TREND_MIN_SAMPLES} vážení za poslední {v} týdny).", { samples: weightNow.samples, TREND_MIN_SAMPLES, v: TREND_WINDOW_DAYS / 7 })}
+				{t("Collecting data for the trend ({samples} of {TREND_MIN_SAMPLES} weigh-ins in the last {v} weeks).", { samples: weightNow.samples, TREND_MIN_SAMPLES, v: TREND_WINDOW_DAYS / 7 })}
 			{/if}
-			{t("Průměr za 7 dní vyhlazuje denní výkyvy (voda, sůl, jídlo). Co trend znamená pro jídlo, je na kartě Výživa.")}
+			{t("The 7-day average smooths out daily swings (water, salt, food). What the trend means for your diet is on the Nutrition tab.")}
 		</p>
 	{:else}
-		<p class="bf-muted">{t("V tomto období není zapsaná váha – zapisuje se v ranním check-inu.")}</p>
+		<p class="bf-muted">{t("No weight logged in this period – it's logged in the morning check-in.")}</p>
 	{/if}
 </section>
 
@@ -182,25 +182,25 @@
 		<LineChart
 			{dates}
 			lines={[
-				{ label: t("Průměr 7 dní"), color: COLORS[0]!, values: hrv.current },
-				{ label: t("Měření"), color: "var(--text-muted)", values: hrv.value, pointsOnly: true },
+				{ label: t("7-day average"), color: COLORS[0]!, values: hrv.current },
+				{ label: t("Readings"), color: "var(--text-muted)", values: hrv.value, pointsOnly: true },
 			]}
-			band={{ label: t("normální pásmo"), low: hrv.low, high: hrv.high }}
+			band={{ label: t("normal range"), low: hrv.low, high: hrv.high }}
 			format={ms}
-			label={t("HRV s normálním pásmem")}
+			label={t("HRV with normal range")}
 		/>
 	{:else}
-		<p class="bf-muted">{t("V tomto období není zapsané HRV.")}</p>
+		<p class="bf-muted">{t("No HRV logged in this period.")}</p>
 	{/if}
 	{#if !hrvNow.ready}
 		<p class="bf-muted bf-ch-note">
 			{hrvNow.reason === "baseline"
-				? t("Sbírám data pro osobní normu ({have} z {need} měření za {hrvBaselineDays} dní).", { have: hrvNow.have, need: hrvNow.need, hrvBaselineDays: thresholds.hrvBaselineDays })
-				: t("Pro vyhodnocení jsou potřeba aspoň {need} měření za posledních {hrvWindowDays} dní (teď {have}).", { need: hrvNow.need, hrvWindowDays: thresholds.hrvWindowDays, have: hrvNow.have })}
+				? t("Collecting data for your personal baseline ({have} of {need} readings over {hrvBaselineDays} days).", { have: hrvNow.have, need: hrvNow.need, hrvBaselineDays: thresholds.hrvBaselineDays })
+				: t("At least {need} readings in the last {hrvWindowDays} days are needed for an assessment (now {have}).", { need: hrvNow.need, hrvWindowDays: thresholds.hrvWindowDays, have: hrvNow.have })}
 		</p>
 	{/if}
 	<p class="bf-muted bf-ch-note">
-		{t("Průměr za {hrvWindowDays} dní proti normě = průměr ± {v} SD za {hrvBaselineDays} dní, počítáno v logaritmu.", { hrvWindowDays: thresholds.hrvWindowDays, v: formatNumber(thresholds.hrvSdFactor, 2), hrvBaselineDays: thresholds.hrvBaselineDays })}
+		{t("{hrvWindowDays}-day average against the baseline = mean ± {v} SD over {hrvBaselineDays} days, calculated on a log scale.", { hrvWindowDays: thresholds.hrvWindowDays, v: formatNumber(thresholds.hrvSdFactor, 2), hrvBaselineDays: thresholds.hrvBaselineDays })}
 		<BasisTag basis={HRV_BASIS} named />
 	</p>
 	{#if researchTopic("hrv_training")}<ResearchCard topic={researchTopic("hrv_training")!} />{/if}

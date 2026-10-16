@@ -29,7 +29,7 @@
 <div class="bf-field">
 	<label class="bf-field-label" for={id}>
 		<span>{label}{unit ? ` (${unit})` : ""}</span>
-		{#if hint !== undefined}<span class="bf-hint">{t("minule {v}", { v: formatNumber(hint, 2) })}</span>{/if}
+		{#if hint !== undefined}<span class="bf-hint">{t("last time {v}", { v: formatNumber(hint, 2) })}</span>{/if}
 	</label>
 	<input
 		{id}

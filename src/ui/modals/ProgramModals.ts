@@ -21,7 +21,7 @@ export class ProgramEditorModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal", "bf-modal-wide");
-		this.titleEl.setText(this.entry ? t("Upravit program") : t("Nový program"));
+		this.titleEl.setText(this.entry ? t("Edit program") : t("New program"));
 		const initial: ProgramNote = this.entry?.note ?? {
 			forma: "program",
 			schema: SCHEMA_VERSION,
@@ -46,7 +46,7 @@ export class ProgramEditorModal extends Modal {
 				onSave: async (program: ProgramNote) => {
 					if (this.entry) await this.plugin.programs.update(this.entry, program);
 					else await this.plugin.programs.create(program);
-					new Notice(t("Program „{program_name}“ uložen.", { program_name: program.name }));
+					new Notice(t("Program “{program_name}” saved.", { program_name: program.name }));
 					this.close();
 				},
 				onCancel: () => this.close(),
@@ -71,10 +71,10 @@ export class ProgramImportModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal");
-		this.titleEl.setText(t("Importovat program"));
+		this.titleEl.setText(t("Import program"));
 		this.contentEl.createEl("p", {
 			cls: "bf-muted",
-			text: t("Vlož text programu: poznámku programu (včetně úvodního bloku mezi řádky ---), JSON, nebo obyčejný seznam s odrážkami „Cvik: 3×10“. Program se uloží jako vlastní a neaktivní."),
+			text: t("Paste the program text: a program note (including the front matter block between --- lines), JSON, or a plain bulleted list like “Exercise: 3×10”. The program is saved as your own and inactive."),
 		});
 		const area = this.contentEl.createEl("textarea", { cls: "bf-import-text" });
 		area.rows = 12;
@@ -82,18 +82,18 @@ export class ProgramImportModal extends Modal {
 
 		new Setting(this.contentEl)
 			.addButton((b) =>
-				b.setButtonText(t("Vložit ze schránky")).onClick(async () => {
+				b.setButtonText(t("Paste from clipboard")).onClick(async () => {
 					try {
 						area.value = await navigator.clipboard.readText();
 					} catch {
-						new Notice(t("Schránku nejde přečíst – vlož text ručně (Ctrl+V)."));
+						new Notice(t("Can't read the clipboard – paste the text manually (Ctrl+V)."));
 					}
 				}),
 			)
-			.addButton((b) => b.setButtonText(t("Zrušit")).onClick(() => this.close()))
+			.addButton((b) => b.setButtonText(t("Cancel")).onClick(() => this.close()))
 			.addButton((b) =>
 				b
-					.setButtonText(t("Importovat"))
+					.setButtonText(t("Import"))
 					.setCta()
 					.onClick(async () => {
 						try {

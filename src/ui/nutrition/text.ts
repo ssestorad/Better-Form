@@ -17,63 +17,63 @@ export function formatWhole(value: number): string {
 export function rangeText(range: Range, unit: string): string {
 	const min = formatWhole(range.min);
 	const max = formatWhole(range.max);
-	return `${min === max ? min : `${min}–${max}`} ${unit}`;
+	return `${min === max ? min : `${min}–${max}`}\u00a0${unit}`;
 }
 
 /** „−0,25 kg za týden (−0,4 % hmotnosti), tedy asi −275 kcal denně“. */
 export function trendText(trend: Extract<WeightTrend, { ready: true }>): string {
 	const kcal = Math.round(trend.kcalPerDay / 10) * 10;
 	const signed = (value: number, decimals: number) => `${value > 0 ? "+" : ""}${formatSigned(value, decimals)}`;
-	return t("{v} kg za týden ({v2} % hmotnosti), tedy bilance asi {v3}{v4} kcal denně", { v: signed(trend.kgPerWeek, 2), v2: signed(trend.pctPerWeek, 1), v3: kcal > 0 ? "+" : "", v4: formatWhole(kcal) });
+	return t("{v} kg per week ({v2} % of body weight), a balance of about {v3}{v4} kcal a day", { v: signed(trend.kgPerWeek, 2), v2: signed(trend.pctPerWeek, 1), v3: kcal > 0 ? "+" : "", v4: formatWhole(kcal) });
 }
 
 /** „přidej asi 250 kcal denně“ / „uber asi 250 kcal denně“; prázdné, když není co měnit. */
 export function adjustText(adjustKcal: number): string {
 	if (adjustKcal === 0) return "";
-	return t("{v} asi {v2} kcal denně", { v: adjustKcal > 0 ? t("přidej") : "uber", v2: formatWhole(Math.abs(adjustKcal)) });
+	return t("{v} about {v2} kcal a day", { v: adjustKcal > 0 ? t("add") : "uber", v2: formatWhole(Math.abs(adjustKcal)) });
 }
 
 /** Co trend váhy znamená vůči cíli (SPEC 11.6). */
 export function balanceText(check: BalanceCheck, goal: BodyGoal, lossRatePctMax: number): string {
 	const adjust = adjustText(check.adjustKcal);
-	const then = adjust ? t(" Pokud to není záměr, {adjust}.", { adjust }) : "";
-	const fix = adjust ? t(" Zkus to: {adjust}.", { adjust }) : "";
+	const then = adjust ? t(" If that's not intended, {adjust}.", { adjust }) : "";
+	const fix = adjust ? t(" Try this: {adjust}.", { adjust }) : "";
 	if (goal === "maintain") {
-		if (check.status === "on_track") return t("Váha drží – příjem odpovídá výdeji.");
+		if (check.status === "on_track") return t("Your weight is stable – intake matches expenditure.");
 		return check.direction === "down"
-			? t("Cíl je udržování, ale váha klesá – jíš méně, než vydáš.{then}", { then })
-			: t("Cíl je udržování, ale váha roste – jíš víc, než vydáš.{then}", { then });
+			? t("Your goal is to maintain, but your weight is dropping – you're eating less than you burn.{then}", { then })
+			: t("Your goal is to maintain, but your weight is rising – you're eating more than you burn.{then}", { then });
 	}
 	if (goal === "lose") {
 		switch (check.status) {
 			case "on_track":
-				return t("Hubneš tempem, které odpovídá cíli.");
+				return t("You're losing weight at a pace that matches your goal.");
 			case "fast":
-				return t("Hubneš rychleji než {v} % hmotnosti týdně – při takovém tempu se víc ztrácejí svaly a trpí výkon.{fix}", { v: formatNumber(lossRatePctMax), fix });
+				return t("You're losing more than {v} % of your body weight a week – at that pace you lose more muscle and performance suffers.{fix}", { v: formatNumber(lossRatePctMax), fix });
 			case "opposite":
-				return t("Cíl je hubnutí, ale váha roste.{fix}", { fix });
+				return t("Your goal is to lose weight, but your weight is rising.{fix}", { fix });
 			default:
-				return t("Hubneš pomaleji, než odpovídá cíli, nebo váha stojí.{fix}", { fix });
+				return t("You're losing weight more slowly than your goal, or your weight isn't moving.{fix}", { fix });
 		}
 	}
 	switch (check.status) {
 		case "on_track":
-			return t("Přibíráš tempem, které odpovídá zvolenému přebytku.");
+			return t("You're gaining at a pace that matches your chosen surplus.");
 		case "fast":
-			return t("Přibíráš rychleji, než odpovídá zvolenému přebytku.{fix}", { fix });
+			return t("You're gaining faster than your chosen surplus.{fix}", { fix });
 		case "opposite":
-			return t("Cíl je nabírání, ale váha klesá.{fix}", { fix });
+			return t("Your goal is to gain, but your weight is dropping.{fix}", { fix });
 		default:
-			return t("Přibíráš pomaleji, než odpovídá cíli, nebo váha stojí.{fix}", { fix });
+			return t("You're gaining more slowly than your goal, or your weight isn't moving.{fix}", { fix });
 	}
 }
 
 /** Řádek do generovaného bloku denní poznámky. */
 export function nutritionLine(plan: NutritionPlan): string {
 	return [
-		t("asi {v} kcal ({v2})", { v: formatWhole(plan.target), v2: rangeText(plan.intake, "kcal") }),
-		t("bílkoviny {v}", { v: rangeText(plan.protein, "g") }),
-		t("sacharidy {v}", { v: rangeText(plan.carbs, "g") }),
-		t("tuky {v}", { v: rangeText(plan.fat, "g") }),
+		t("about {v} kcal ({v2})", { v: formatWhole(plan.target), v2: rangeText(plan.intake, "kcal") }),
+		t("protein {v}", { v: rangeText(plan.protein, "g") }),
+		t("carbohydrates {v}", { v: rangeText(plan.carbs, "g") }),
+		t("fats {v}", { v: rangeText(plan.fat, "g") }),
 	].join(" · ");
 }

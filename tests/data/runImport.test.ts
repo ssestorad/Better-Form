@@ -9,12 +9,13 @@ import { WorkoutService } from "../../src/data/WorkoutService";
 import { parseWorkout } from "../../src/model/parse";
 import { workoutToFrontmatter } from "../../src/model/serialize";
 import type { WorkoutNote } from "../../src/model/types";
-import { mergeSettings } from "../../src/settings/settings";
+import { LEGACY_FOLDERS, mergeSettings } from "../../src/settings/settings";
 import { createFakeVault } from "../helpers/fakeVault";
 
 function createWorld() {
 	const vault = createFakeVault();
-	const settings = mergeSettings(null);
+	// Vault ze starší verze s českými složkami (výchozí jsou anglicky – hlídá paths.test.ts).
+	const settings = { ...mergeSettings(null), folders: { ...LEGACY_FOLDERS } };
 	const index = new FormaIndex(vault.app);
 	index.register(vault.plugin);
 	const writer = new NoteWriter(vault.app);

@@ -10,7 +10,7 @@ export function confirmAction(app: App, title: string, message: string, confirmT
 				this.titleEl.setText(title);
 				this.contentEl.createEl("p", { text: message });
 				new Setting(this.contentEl)
-					.addButton((b) => b.setButtonText(t("Zrušit")).onClick(() => this.close()))
+					.addButton((b) => b.setButtonText(t("Cancel")).onClick(() => this.close()))
 					.addButton((b) =>
 						b
 							.setButtonText(confirmText)

@@ -27,23 +27,23 @@
 	const missing = $derived(onboardingMissing(values));
 
 	const SEXES: { value: SettingsSex | ""; label: string }[] = [
-		{ value: "", label: t("nevyplněno") },
-		{ value: "male", label: t("muž") },
-		{ value: "female", label: t("žena") },
+		{ value: "", label: t("not set") },
+		{ value: "male", label: t("male") },
+		{ value: "female", label: t("female") },
 	];
 	const GOALS: { value: BodyGoal; label: string }[] = [
-		{ value: "lose", label: t("hubnutí") },
-		{ value: "maintain", label: t("udržování") },
-		{ value: "gain", label: t("nabírání") },
+		{ value: "lose", label: t("lose weight") },
+		{ value: "maintain", label: t("maintain") },
+		{ value: "gain", label: t("gain") },
 	];
 	const ACTIVITIES: { value: ActivityLevel; label: string }[] = [
-		{ value: "sedentary", label: t("sedavý – většinu dne sedím (škola, kancelář)") },
-		{ value: "light", label: t("lehce aktivní – část dne na nohou nebo hodně chodím") },
-		{ value: "active", label: t("aktivní – fyzická práce, většinu dne v pohybu") },
+		{ value: "sedentary", label: t("sedentary – I sit most of the day (school, office)") },
+		{ value: "light", label: t("lightly active – on my feet part of the day or walking a lot") },
+		{ value: "active", label: t("active – physical work, on the move most of the day") },
 	];
 	const MODES: { value: AppMode; label: string; help: string }[] = [
-		{ value: "full", label: t("Plný"), help: t("všechny karty: přehledy, tělo, dovednosti, programy, cíle, výživa, suplementy") },
-		{ value: "basic", label: t("Základ"), help: t("jen základní cviky a běh s rychlým zápisem; pokročilé karty jsou skryté") },
+		{ value: "full", label: t("Full"), help: t("all tabs: overviews, body, skills, programs, goals, nutrition, supplements") },
+		{ value: "basic", label: t("Basic"), help: t("only basic exercises and running with quick logging; advanced tabs are hidden") },
 	];
 
 	async function submit(event: SubmitEvent) {
@@ -63,53 +63,53 @@
 
 <form class="bf-onb" onsubmit={submit}>
 	<p class="bf-muted">
-		{t("{v} Zůstávají jen v tomto trezoru a všechno jde později změnit v nastavení.", { v: first ? t("Složky a knihovna cviků jsou připravené. Ještě pár údajů, podle kterých plugin počítá.") : t("Údaje, podle kterých plugin počítá.") })}
+		{t("{v} They stay only in this vault and you can change everything later in the settings.", { v: first ? t("The folders and exercise library are ready. Just a few details the plugin uses for its calculations.") : t("Details the plugin uses for its calculations.") })}
 	</p>
 
 	<fieldset>
-		<legend>{t("O tobě")}</legend>
+		<legend>{t("About you")}</legend>
 		<div class="bf-grid-3">
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Pohlaví")}</span>
+				<span class="bf-field-label">{t("Sex")}</span>
 				<select bind:value={values.sex}>
 					{#each SEXES as s (s.value)}<option value={s.value}>{s.label}</option>{/each}
 				</select>
 			</label>
-			<NumberField label={t("Rok narození")} bind:value={values.birthYear} error={errors.birthYear} />
-			<NumberField label={t("Výška")} unit="cm" decimals bind:value={values.heightCm} error={errors.heightCm} />
+			<NumberField label={t("Year of birth")} bind:value={values.birthYear} error={errors.birthYear} />
+			<NumberField label={t("Height")} unit="cm" decimals bind:value={values.heightCm} error={errors.heightCm} />
 		</div>
 		<div class="bf-grid-3">
-			<NumberField label={t("Hmotnost")} unit="kg" decimals bind:value={values.weightKg} error={errors.weightKg} />
-			<NumberField label={t("Podíl tuku")} unit="%" decimals bind:value={values.bodyFatPct} error={errors.bodyFatPct} />
+			<NumberField label={t("Weight")} unit="kg" decimals bind:value={values.weightKg} error={errors.weightKg} />
+			<NumberField label={t("Body fat")} unit="%" decimals bind:value={values.bodyFatPct} error={errors.bodyFatPct} />
 		</div>
 		<p class="bf-note">
-			{t("Pohlaví, věk, výška a hmotnost slouží pro výpočet výživy, věk i pro tepové zóny a normy. Hmotnost pak zapisuj v ranním check-inu – použije se ta poslední. Podíl tuku je nepovinný.")}
+			{t("Sex, age, height and weight are used to calculate nutrition; age also for heart rate zones and standards. Then log your weight in the morning check-in – the latest one is used. Body fat is optional.")}
 		</p>
 	</fieldset>
 
 	<fieldset>
-		<legend>{t("Cíl a běžný den")}</legend>
+		<legend>{t("Goal and a typical day")}</legend>
 		<div class="bf-grid-2">
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Cíl")}</span>
+				<span class="bf-field-label">{t("Goal")}</span>
 				<select bind:value={values.goal}>
 					{#each GOALS as g (g.value)}<option value={g.value}>{g.label}</option>{/each}
 				</select>
 			</label>
-			<NumberField label={t("Tréninků týdně")} bind:value={values.weeklyWorkoutGoal} error={errors.weeklyWorkoutGoal} />
+			<NumberField label={t("Workouts per week")} bind:value={values.weeklyWorkoutGoal} error={errors.weeklyWorkoutGoal} />
 		</div>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Běžný den mimo trénink")}</span>
+			<span class="bf-field-label">{t("Typical day outside training")}</span>
 			<select bind:value={values.activity}>
 				{#each ACTIVITIES as a (a.value)}<option value={a.value}>{a.label}</option>{/each}
 			</select>
 		</label>
-		<p class="bf-note">{t("Tréninky se ve výživě počítají zvlášť. Když budeš zapisovat kroky, určí se běžná aktivita podle nich.")}</p>
+		<p class="bf-note">{t("Workouts are counted separately in nutrition. If you log steps, your everyday activity is set from them.")}</p>
 	</fieldset>
 
 	<fieldset>
-		<legend>{t("Jak chceš plugin používat")}</legend>
-		<div class="bf-onb-modes" role="radiogroup" aria-label={t("Režim")}>
+		<legend>{t("How do you want to use the plugin")}</legend>
+		<div class="bf-onb-modes" role="radiogroup" aria-label={t("Mode")}>
 			{#each MODES as m (m.value)}
 				<label class="bf-onb-mode" class:is-active={values.mode === m.value}>
 					<input type="radio" name="bf-onb-mode" value={m.value} bind:group={values.mode} />
@@ -118,7 +118,7 @@
 			{/each}
 		</div>
 		<div class="bf-field">
-			<span class="bf-field-label">{t("Sporty")}</span>
+			<span class="bf-field-label">{t("Sports")}</span>
 			<div class="bf-onb-sports">
 				{#each SPORTS as sport (sport)}
 					<label><input type="checkbox" bind:checked={values.sports[sport]} /> {SPORT_LABELS[sport]}</label>
@@ -129,13 +129,13 @@
 	</fieldset>
 
 	{#if missing.length > 0}
-		<p class="bf-note">{t("Bez těchto údajů zatím nepůjde spočítat výživa: {v}. Dají se doplnit později.", { v: missing.join(", ") })}</p>
+		<p class="bf-note">{t("Without these details nutrition can't be calculated yet: {v}. You can add them later.", { v: missing.join(", ") })}</p>
 	{/if}
 	{#if saveError}<p class="bf-error">{saveError}</p>{/if}
 
 	<div class="bf-onb-buttons">
-		<button type="button" onclick={onCancel}>{t("Později")}</button>
-		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Ukládám…") : t("Uložit")}</button>
+		<button type="button" onclick={onCancel}>{t("Later")}</button>
+		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Saving…") : t("Save")}</button>
 	</div>
 </form>
 

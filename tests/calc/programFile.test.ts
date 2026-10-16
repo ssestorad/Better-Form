@@ -1,3 +1,4 @@
+import { t } from "../../src/i18n";
 import { describe, expect, it } from "vitest";
 import { PROGRAM_FILE_EXAMPLE, baseName, describeImport, parseDays, parseItemLine, parseTargetText, readProgramFile } from "../../src/calc/programFile";
 import { validateProgram } from "../../src/calc/programEdit";
@@ -64,7 +65,7 @@ describe("řádek seznamu", () => {
 
 describe("program ze souboru", () => {
 	it("seznam v Markdownu: název, délka, dny z nadpisů, položky podle dnů", () => {
-		const result = readProgramFile(PROGRAM_FILE_EXAMPLE, "sila.md", yaml);
+		const result = readProgramFile(t(PROGRAM_FILE_EXAMPLE), "sila.md", yaml);
 		expect(result.format).toBe("list");
 		expect(result.skipped).toEqual([]);
 		expect(result.defaultDays).toBe(false);
@@ -128,10 +129,10 @@ describe("program ze souboru", () => {
 
 	it("hláška po importu: co vzniklo a co zkontrolovat", () => {
 		const clean = { name: "Síla", items: 6, dropped: 0, skipped: [], unknownExercises: [], defaultDays: false };
-		expect(describeImport(clean)).toBe("Program „Síla“ vytvořen (položek: 6). Je v knihovně na kartě Programy, zatím neaktivní.");
+		expect(describeImport(clean)).toBe("Program „Síla“ vytvořen (položky: 6). Je v knihovně na kartě Programy, zatím neaktivní.");
 		const text = describeImport({ ...clean, dropped: 1, skipped: ["- a", "- b", "- c", "- d"], unknownExercises: ["Kliků"], defaultDays: true });
 		expect(text.split("\n")).toEqual([
-			"Program „Síla“ vytvořen (položek: 6). Je v knihovně na kartě Programy, zatím neaktivní.",
+			"Program „Síla“ vytvořen (položky: 6). Je v knihovně na kartě Programy, zatím neaktivní.",
 			"Dny v souboru chyběly – nastaveno po, st, pá.",
 			"Nenačtených položek: 1 (chybí cvik nebo cíl).",
 			"Nepřečtené řádky (4): - a; - b; - c…",

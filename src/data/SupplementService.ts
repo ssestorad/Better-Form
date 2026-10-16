@@ -131,8 +131,8 @@ export class SupplementService {
 	/** Založí suplement; fotka etikety se uloží vedle poznámky a vloží do jejího textu. */
 	async create(draft: SupplementDraft, today: string, photo?: LabelPhoto): Promise<TFile> {
 		const name = draft.name.trim();
-		if (!name) throw new Error(t("Chybí název suplementu."));
-		if (this.find(name)) throw new Error(t("Suplement „{name}“ už v seznamu je.", { name }));
+		if (!name) throw new Error(t("The supplement needs a name."));
+		if (this.find(name)) throw new Error(t("The supplement “{name}” is already in the list.", { name }));
 		const note: SupplementNote = {
 			forma: "supplement",
 			schema: SCHEMA_VERSION,
@@ -169,7 +169,7 @@ export class SupplementService {
 
 	private async write(entry: SupplementEntry, note: SupplementNote): Promise<void> {
 		if (entry.schemaStatus === "newer") {
-			throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
+			throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
 		}
 		const next = supplementToFrontmatter(note);
 		await this.writer.updateFrontmatter(entry.file, (frontmatter) => {

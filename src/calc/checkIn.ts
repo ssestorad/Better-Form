@@ -72,22 +72,22 @@ export type CheckInErrors = Partial<Record<CheckInNumberField | "date" | "sleep_
 /** Chyby podle pole; prázdný objekt = vše v pořádku. */
 export function validateCheckIn(values: CheckInValues): CheckInErrors {
 	const errors: CheckInErrors = {};
-	if (!isIsoDate(values.date)) errors.date = t("Neplatné datum.");
+	if (!isIsoDate(values.date)) errors.date = t("Invalid date.");
 	// Usnutí musí být mezi ulehnutím a vstáváním (časy mohou přecházet přes půlnoc).
 	if (values.bedtime && values.sleep_onset && values.wake) {
 		const latency = minutesBetween(values.bedtime, values.sleep_onset);
 		const inBed = minutesBetween(values.bedtime, values.wake);
 		if (latency !== null && inBed !== null && latency >= inBed) {
-			errors.sleep_onset = t("Usnutí musí být mezi ulehnutím a vstáváním.");
+			errors.sleep_onset = t("Falling asleep must be between going to bed and waking up.");
 		}
 	}
 	for (const field of NUMBER_FIELDS) {
 		const value = values[field];
 		if (value === undefined) continue;
 		const rule: NumberRule = CHECK_IN_NUMBERS[field];
-		if (Number.isNaN(value)) errors[field] = t("Není číslo.");
-		else if (rule.integer && !Number.isInteger(value)) errors[field] = t("Zadej celé číslo.");
-		else if (value < rule.min || value > rule.max) errors[field] = t("Rozsah {min}–{max}.", { min: rule.min, max: rule.max });
+		if (Number.isNaN(value)) errors[field] = t("Not a number.");
+		else if (rule.integer && !Number.isInteger(value)) errors[field] = t("Enter a whole number.");
+		else if (value < rule.min || value > rule.max) errors[field] = t("Range {min}–{max}.", { min: rule.min, max: rule.max });
 	}
 	return errors;
 }
@@ -124,7 +124,8 @@ export function applyCheckIn(frontmatter: Record<string, unknown>, values: Check
 	const fields: (CheckInNumberField | CheckInTimeField)[] = [...CHECK_IN_TIMES, ...NUMBER_FIELDS];
 	for (const field of fields) {
 		const group = groupOf(field);
-		const section: Record<string, unknown> = isRecord(frontmatter[group]) ? { ...frontmatter[group] } : {};
+		const stored: unknown = frontmatter[group];
+		const section: Record<string, unknown> = isRecord(stored) ? { ...stored } : {};
 		const value = values[field];
 		if (value === undefined || (typeof value === "number" && Number.isNaN(value))) delete section[field];
 		else section[field] = value;

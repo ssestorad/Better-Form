@@ -7,6 +7,7 @@ import type { Block, WorkoutNote } from "../model/types";
 import { sessionLoad } from "./load";
 import { setLoadKg } from "./oneRm";
 import { translated } from "../i18n";
+import { formatDateRange } from "../ui/format";
 
 // ---------- Období ----------
 
@@ -46,15 +47,14 @@ export function shiftPeriod(period: Period, steps: number): Period {
 	return periodOf("month", `${Math.floor(index / 12)}-${pad((index % 12) + 1)}-01`);
 }
 
-const MONTH_NAMES = translated(["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"]);
+const MONTH_NAMES = translated(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]);
 
-/** „29. 9. – 5. 10. 2026“, „říjen 2026“, „2026“. */
+/** „29 Sep – 5 Oct 2026“ / „29. 9. – 5. 10. 2026“, „October 2026“, „2026“. */
 export function periodLabel(period: Period): string {
-	const [fy, fm, fd] = period.from.split("-").map(Number) as [number, number, number];
-	const [ty, tm, td] = period.to.split("-").map(Number) as [number, number, number];
+	const [fy, fm] = period.from.split("-").map(Number) as [number, number, number];
 	if (period.kind === "year") return String(fy);
 	if (period.kind === "month") return `${MONTH_NAMES[fm - 1]} ${fy}`;
-	return `${fd}. ${fm}. – ${td}. ${tm}. ${ty}`;
+	return formatDateRange(period.from, period.to);
 }
 
 // ---------- Objem posilovny ----------

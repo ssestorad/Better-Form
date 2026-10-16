@@ -9,18 +9,18 @@ export interface TabDef {
 }
 
 export const TABS = translated([
-	{ id: "basic", label: "Základ", icon: "home" },
-	{ id: "today", label: "Dnes", icon: "sun" },
-	{ id: "log", label: "Zapsat", icon: "pencil" },
-	{ id: "plan", label: "Plán", icon: "calendar-days" },
-	{ id: "overview", label: "Přehled", icon: "activity" },
-	{ id: "body", label: "Tělo", icon: "user" },
-	{ id: "skills", label: "Dovednosti", icon: "award" },
-	{ id: "programs", label: "Programy", icon: "calendar" },
-	{ id: "goals", label: "Cíle", icon: "target" },
-	{ id: "nutrition", label: "Výživa", icon: "apple" },
-	{ id: "supplements", label: "Suplementy", icon: "pill" },
-	{ id: "settings", label: "Nastavení", icon: "settings" },
+	{ id: "basic", label: "Basic", icon: "home" },
+	{ id: "today", label: "Today", icon: "sun" },
+	{ id: "log", label: "Log", icon: "pencil" },
+	{ id: "plan", label: "Plan", icon: "calendar-days" },
+	{ id: "overview", label: "Overview", icon: "activity" },
+	{ id: "body", label: "Body", icon: "user" },
+	{ id: "skills", label: "Skills", icon: "award" },
+	{ id: "programs", label: "Programs", icon: "calendar" },
+	{ id: "goals", label: "Goals", icon: "target" },
+	{ id: "nutrition", label: "Nutrition", icon: "apple" },
+	{ id: "supplements", label: "Supplements", icon: "pill" },
+	{ id: "settings", label: "Settings", icon: "settings" },
 ] as const satisfies readonly TabDef[]);
 
 export type TabId = (typeof TABS)[number]["id"];

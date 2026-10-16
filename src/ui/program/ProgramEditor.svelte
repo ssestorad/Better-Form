@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Tvorba a úprava vlastního programu (SPEC 5.7). Týdenní plány a intervaly
 	// se upravují přímo v poznámce nebo importem – tady se jen zachovají.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { untrack } from "svelte";
 	import { parseLadderSteps } from "../../calc/performance";
 	import {
@@ -26,9 +26,9 @@
 	let { initial, options, onSave, onCancel }: Props = $props();
 
 	const RULE_LABELS: Record<ProgressionRule, string> = {
-		none: t("Bez automatické progrese"),
-		weekly_add: t("Každý týden přidat"),
-		retest_pct_of_max: t("Podle retestu maxima"),
+		none: t("No automatic progression"),
+		weekly_add: t("Add every week"),
+		retest_pct_of_max: t("Based on a max retest"),
 	};
 
 	let program = $state<ProgramNote>(untrack(() => structuredClone($state.snapshot(initial) as ProgramNote)));
@@ -62,12 +62,12 @@
 
 <div class="bf-editor">
 	<label class="bf-field">
-		<span class="bf-field-label">{t("Název programu")}</span>
+		<span class="bf-field-label">{t("Program name")}</span>
 		<input type="text" value={program.name} oninput={(e) => (program.name = e.currentTarget.value)} />
 	</label>
 
 	<div class="bf-field">
-		<span class="bf-field-label">{t("Dny")}</span>
+		<span class="bf-field-label">{t("Days")}</span>
 		<div class="bf-days">
 			{#each WEEKDAYS as day (day)}
 				<button type="button" class="bf-day" class:is-selected={program.days.includes(day)} aria-pressed={program.days.includes(day)} onclick={() => toggleDay(day)}>
@@ -79,30 +79,30 @@
 
 	<div class="bf-grid-3">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Délka (týdny)")}</span>
-			<NumInput bind:value={program.duration_weeks} label={t("Délka v týdnech")} placeholder={t("bez konce")} />
+			<span class="bf-field-label">{t("Duration (weeks)")}</span>
+			<NumInput bind:value={program.duration_weeks} label={t("Duration in weeks")} placeholder={t("no end")} />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Progrese")}</span>
+			<span class="bf-field-label">{t("Progression")}</span>
 			<select class="dropdown" value={program.progression.rule} onchange={(e) => (program.progression.rule = e.currentTarget.value as ProgressionRule)}>
 				{#each PROGRESSION_RULES as rule (rule)}<option value={rule}>{RULE_LABELS[rule]}</option>{/each}
 			</select>
 		</label>
 		{#if program.progression.rule === "weekly_add"}
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Přidat týdně")}</span>
-				<NumInput bind:value={program.progression.add} label={t("Přidat týdně")} decimals />
+				<span class="bf-field-label">{t("Add weekly")}</span>
+				<NumInput bind:value={program.progression.add} label={t("Add weekly")} decimals />
 			</label>
 		{:else if program.progression.rule === "retest_pct_of_max"}
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Retest každé (týdny)")}</span>
-				<NumInput bind:value={program.retest_every_weeks} label={t("Retest každé N týdnů")} />
+				<span class="bf-field-label">{t("Retest every (weeks)")}</span>
+				<NumInput bind:value={program.retest_every_weeks} label={t("Retest every N weeks")} />
 			</label>
 		{/if}
 	</div>
 
 	<div class="bf-editor-items">
-		<span class="bf-field-label">{t("Položky programu")}</span>
+		<span class="bf-field-label">{t("Program items")}</span>
 		{#each program.items as item, i (i)}
 			{@const target = item.target}
 			<div class="bf-editor-item">
@@ -113,60 +113,60 @@
 					{:else}
 						<select
 							class="dropdown"
-							aria-label={t("Typ cíle")}
+							aria-label={t("Goal type")}
 							value={target.kind}
 							onchange={(e) => (item.target = defaultTarget(e.currentTarget.value as EditableTargetKind))}
 						>
 							{#each EDITABLE_TARGETS as kind (kind)}<option value={kind}>{TARGET_LABELS[kind]}</option>{/each}
 						</select>
 					{/if}
-					<button type="button" class="clickable-icon" aria-label={t("Odebrat položku")} onclick={() => program.items.splice(i, 1)}>✕</button>
+					<button type="button" class="clickable-icon" aria-label={t("Remove item")} onclick={() => program.items.splice(i, 1)}>✕</button>
 				</div>
 				<div class="bf-editor-fields">
 					{#if target.kind === "sets_reps"}
-						<label class="bf-mini"><span>{t("Série")}</span><NumInput bind:value={target.sets} label={t("Série")} /></label>
-						<label class="bf-mini"><span>{t("Opakování")}</span><NumInput bind:value={target.reps} label={t("Opakování")} /></label>
+						<label class="bf-mini"><span>{t("Sets")}</span><NumInput bind:value={target.sets} label={t("Sets")} /></label>
+						<label class="bf-mini"><span>{t("Reps")}</span><NumInput bind:value={target.reps} label={t("Reps")} /></label>
 					{:else if target.kind === "daily_total"}
-						<label class="bf-mini"><span>{t("Za den")}</span><NumInput bind:value={target.daily_total} label={t("Denní součet")} /></label>
+						<label class="bf-mini"><span>{t("Per day")}</span><NumInput bind:value={target.daily_total} label={t("Daily total")} /></label>
 					{:else if target.kind === "pct_of_max"}
-						<label class="bf-mini"><span>{t("Série")}</span><NumInput bind:value={target.sets} label={t("Série")} /></label>
-						<label class="bf-mini"><span>{t("% maxima")}</span><NumInput bind:value={target.pct_of_max} label={t("Procento maxima")} decimals /></label>
+						<label class="bf-mini"><span>{t("Sets")}</span><NumInput bind:value={target.sets} label={t("Sets")} /></label>
+						<label class="bf-mini"><span>{t("% of max")}</span><NumInput bind:value={target.pct_of_max} label={t("Percentage of max")} decimals /></label>
 					{:else if target.kind === "max_sets"}
-						<label class="bf-mini"><span>{t("Série")}</span><NumInput bind:value={target.sets} label={t("Série")} /></label>
-						<label class="bf-mini"><span>{t("Pauza (s)")}</span><NumInput bind:value={target.rest_s} label={t("Pauza v sekundách")} /></label>
+						<label class="bf-mini"><span>{t("Sets")}</span><NumInput bind:value={target.sets} label={t("Sets")} /></label>
+						<label class="bf-mini"><span>{t("Rest (s)")}</span><NumInput bind:value={target.rest_s} label={t("Rest in seconds")} /></label>
 					{:else if target.kind === "emom"}
-						<label class="bf-mini"><span>{t("Opak./min")}</span><NumInput bind:value={target.reps} label={t("Opakování za minutu")} placeholder={t("nebo %")} /></label>
-						<label class="bf-mini"><span>{t("% maxima")}</span><NumInput bind:value={target.pct_of_max} label={t("Procento maxima")} decimals placeholder={t("nebo opak.")} /></label>
-						<label class="bf-mini"><span>{t("Minuty")}</span><NumInput bind:value={target.minutes} label={t("Minuty")} /></label>
+						<label class="bf-mini"><span>{t("Reps/min")}</span><NumInput bind:value={target.reps} label={t("Reps per minute")} placeholder={t("or %")} /></label>
+						<label class="bf-mini"><span>{t("% of max")}</span><NumInput bind:value={target.pct_of_max} label={t("Percentage of max")} decimals placeholder={t("or reps")} /></label>
+						<label class="bf-mini"><span>{t("Minutes")}</span><NumInput bind:value={target.minutes} label={t("Minutes")} /></label>
 						<label class="bf-mini bf-check">
 							<input type="checkbox" checked={target.until_failure === true} onchange={(e) => (target.until_failure = e.currentTarget.checked ? true : undefined)} />
-							<span>{t("do selhání")}</span>
+							<span>{t("to failure")}</span>
 						</label>
 						{#if target.until_failure}
-							<label class="bf-mini"><span>{t("Nejvýš min")}</span><NumInput bind:value={target.max_minutes} label={t("Nejvýš minut")} /></label>
+							<label class="bf-mini"><span>{t("Max min")}</span><NumInput bind:value={target.max_minutes} label={t("Max minutes")} /></label>
 						{/if}
 					{:else if target.kind === "ladder"}
 						<label class="bf-mini bf-mini-wide">
-							<span>{t("Příčky (1-5 nebo 1, 2, 3)")}</span>
+							<span>{t("Rungs (1-5 or 1, 2, 3)")}</span>
 							<input type="text" value={(target.steps ?? []).join(", ")} onchange={(e) => (target.steps = parseLadderSteps(e.currentTarget.value))} />
 						</label>
-						<label class="bf-mini"><span>{t("Kola")}</span><NumInput bind:value={target.rounds} label={t("Kola")} /></label>
-						<label class="bf-mini"><span>{t("Pauza s/opak.")}</span><NumInput bind:value={target.rest_per_rep_s} label={t("Pauza v sekundách na opakování")} decimals /></label>
+						<label class="bf-mini"><span>{t("Rounds")}</span><NumInput bind:value={target.rounds} label={t("Rounds")} /></label>
+						<label class="bf-mini"><span>{t("Rest s/rep")}</span><NumInput bind:value={target.rest_per_rep_s} label={t("Rest in seconds per rep")} decimals /></label>
 					{:else if target.kind === "time"}
-						<label class="bf-mini"><span>{t("Sekundy")}</span><NumInput bind:value={target.time_s} label={t("Sekundy")} /></label>
-						<label class="bf-mini"><span>{t("Série")}</span><NumInput bind:value={target.sets} label={t("Série")} /></label>
+						<label class="bf-mini"><span>{t("Seconds")}</span><NumInput bind:value={target.time_s} label={t("Seconds")} /></label>
+						<label class="bf-mini"><span>{t("Sets")}</span><NumInput bind:value={target.sets} label={t("Sets")} /></label>
 					{:else if target.kind === "distance"}
-						<label class="bf-mini"><span>km</span><NumInput bind:value={target.distance_km} label={t("Vzdálenost (km)")} decimals /></label>
+						<label class="bf-mini"><span>km</span><NumInput bind:value={target.distance_km} label={t("Distance (km)")} decimals /></label>
 					{:else}
-						<span class="bf-muted">{t("Intervaly se upravují přímo v poznámce programu.")}</span>
+						<span class="bf-muted">{t("Intervals are edited directly in the program note.")}</span>
 					{/if}
 				</div>
 				{#if item.schedule}
-					<div class="bf-hint">{t("Položka má plán po týdnech ({schedule_length} týdnů) – upravuje se v poznámce programu, tady zůstane zachovaný.", { schedule_length: item.schedule.length })}</div>
+					<div class="bf-hint">{tn(item.schedule.length, ["The item has a week-by-week plan ({n} week) – it's edited in the program note and stays unchanged here.", "The item has a week-by-week plan ({n} weeks) – it's edited in the program note and stays unchanged here."])}</div>
 				{/if}
 			</div>
 		{/each}
-		<ExercisePicker {options} placeholder={t("Přidat cvik do programu…")} onSelect={(name) => program.items.push({ exercise: name, target: defaultTarget("sets_reps") })} />
+		<ExercisePicker {options} placeholder={t("Add an exercise to the program…")} onSelect={(name) => program.items.push({ exercise: name, target: defaultTarget("sets_reps") })} />
 	</div>
 
 	{#if problems.length > 0}
@@ -176,12 +176,12 @@
 	{/if}
 	{#if error}<p class="bf-error">{error}</p>{/if}
 
-	<p class="bf-muted bf-editor-note">{t("Vlastní program má štítek „praxe“. Aktivuješ ho na kartě Programy.")}</p>
+	<p class="bf-muted bf-editor-note">{t("Your own program gets the “practice” label. Activate it on the Programs tab.")}</p>
 
 	<div class="bf-form-buttons">
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
 		<button type="button" class="mod-cta" disabled={problems.length > 0 || saving} onclick={() => void save()}>
-			{saving ? t("Ukládám…") : t("Uložit program")}
+			{saving ? t("Saving…") : t("Save program")}
 		</button>
 	</div>
 </div>

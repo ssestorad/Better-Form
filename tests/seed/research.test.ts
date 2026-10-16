@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getSource, isSourceId } from "../../src/evidence/sources";
 import { EVIDENCE_LEVELS } from "../../src/model/constants";
-import { SEED_EXERCISES } from "../../src/seed/exercises";
-import { SEED_PROGRAMS } from "../../src/seed/programs";
+import { EXERCISE_ROWS } from "../../src/seed/exerciseData";
+import { PROGRAM_DATA } from "../../src/seed/programData";
 import { EXERCISE_TOPICS, PROGRAM_TOPICS, RESEARCH_TOPICS, researchTopic, topicsForExercise, topicsForProgram } from "../../src/seed/research";
 
 describe("výzkum u cviků a programů", () => {
@@ -30,15 +30,15 @@ describe("výzkum u cviků a programů", () => {
 	});
 
 	it("přiřazené cviky a programy existují v knihovně", () => {
-		const exercises = new Set(SEED_EXERCISES.map((e) => e.name));
-		for (const [id, names] of Object.entries(EXERCISE_TOPICS)) {
+		const exercises = new Set(EXERCISE_ROWS.map((e) => e.id));
+		for (const [id, ids] of Object.entries(EXERCISE_TOPICS)) {
 			expect(researchTopic(id), id).toBeDefined();
-			for (const name of names) expect(exercises, `${id}: ${name}`).toContain(name);
+			for (const exercise of ids) expect(exercises, `${id}: ${exercise}`).toContain(exercise);
 		}
-		const programs = new Set(SEED_PROGRAMS.map((p) => p.note.name));
-		for (const [name, ids] of Object.entries(PROGRAM_TOPICS)) {
-			expect(programs, name).toContain(name);
-			for (const id of ids) expect(researchTopic(id), `${name}: ${id}`).toBeDefined();
+		const programs = new Set(PROGRAM_DATA.map((p) => p.id));
+		for (const [program, ids] of Object.entries(PROGRAM_TOPICS)) {
+			expect(programs, program).toContain(program);
+			for (const id of ids) expect(researchTopic(id), `${program}: ${id}`).toBeDefined();
 		}
 	});
 

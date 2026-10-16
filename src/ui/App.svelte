@@ -35,7 +35,7 @@
 </script>
 
 <div class="bf-app">
-	<nav class="bf-tabbar" aria-label={t("Karty Better Form")} style:grid-template-columns={`repeat(${visible.length}, minmax(0, 1fr))`}>
+	<nav class="bf-tabbar" aria-label={t("Better Form tabs")} style:grid-template-columns={`repeat(${visible.length}, minmax(0, 1fr))`}>
 		{#each visible as x (x.id)}
 			<button
 				type="button"

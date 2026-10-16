@@ -30,7 +30,7 @@ export class LibraryModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal", "bf-modal-wide");
-		this.titleEl.setText(t("Knihovna cviků"));
+		this.titleEl.setText(t("Exercise library"));
 		const entries = this.plugin.index.all("exercise");
 		const initial = this.options.exercise ? this.plugin.index.findExercise(this.options.exercise)?.note.name : undefined;
 		this.component = mount(LibraryBrowser, {

@@ -11,17 +11,17 @@ export class StravaCodeModal extends Modal {
 	}
 
 	override onOpen(): void {
-		this.titleEl.setText(t("Připojit Stravu ručně"));
+		this.titleEl.setText(t("Connect Strava manually"));
 		const steps = this.contentEl.createEl("ol");
-		steps.createEl("li", { text: t("V prohlížeči, který se právě otevřel, povol přístup (nech zaškrtnuté čtení aktivit).") });
+		steps.createEl("li", { text: t("In the browser that just opened, allow access (keep reading activities checked).") });
 		steps.createEl("li", {
-			text: t("Prohlížeč pak ukáže chybu „stránka nenalezena“ – to je v pořádku. Zkopíruj celou adresu z adresního řádku."),
+			text: t("The browser will then show a “page not found” error – that's fine. Copy the whole address from the address bar."),
 		});
-		steps.createEl("li", { text: t("Vlož ji sem a potvrď.") });
+		steps.createEl("li", { text: t("Paste it here and confirm.") });
 
 		const input = this.contentEl.createEl("textarea", {
 			cls: "bf-import-text",
-			attr: { rows: "3", placeholder: "http://localhost/better-form?state=…&code=…&scope=…", "aria-label": t("Adresa z prohlížeče nebo kód") },
+			attr: { rows: "3", placeholder: "http://localhost/better-form?state=…&code=…&scope=…", "aria-label": t("Address from the browser or code") },
 		});
 		const submit = () => {
 			const text = input.value;
@@ -29,8 +29,8 @@ export class StravaCodeModal extends Modal {
 			void this.onSubmit(text);
 		};
 		new Setting(this.contentEl)
-			.addButton((b) => b.setButtonText(t("Zrušit")).onClick(() => this.close()))
-			.addButton((b) => b.setButtonText(t("Připojit")).setCta().onClick(submit));
+			.addButton((b) => b.setButtonText(t("Cancel")).onClick(() => this.close()))
+			.addButton((b) => b.setButtonText(t("Connect")).setCta().onClick(submit));
 		input.focus();
 	}
 

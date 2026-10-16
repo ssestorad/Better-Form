@@ -56,7 +56,7 @@
 			await action();
 			if (done) new Notice(done);
 		} catch (err) {
-			new Notice(t("Nepodařilo se: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Failed: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 
@@ -69,22 +69,22 @@
 			trigger = "";
 			level = 3;
 			side = "";
-		}, t("Bolest zapsána."));
+		}, t("Pain logged."));
 	}
 
 	const record = (entry: PainEntryRef, value: number) =>
-		run(() => plugin.pains.record(entry, today, value), value === 0 ? t("Bolest označena jako vyřešená.") : t("Dnešní intenzita {value}/10 zapsána.", { value }));
+		run(() => plugin.pains.record(entry, today, value), value === 0 ? t("Pain marked as resolved.") : t("Today's intensity {value}/10 logged.", { value }));
 	const openNote = (entry: PainEntryRef) => void plugin.app.workspace.openLinkText(entry.file.path, "", false);
 </script>
 
 <section class="bf-card">
 	<header class="bf-pain-head">
-		<h4>{t("Bolesti a zranění")}</h4>
-		{#if !adding}<button type="button" onclick={startAdding}>{t("Zapsat bolest")}</button>{/if}
+		<h4>{t("Pain and injuries")}</h4>
+		{#if !adding}<button type="button" onclick={startAdding}>{t("Log pain")}</button>{/if}
 	</header>
 
 	{#if open.length === 0 && !adding}
-		<p class="bf-muted">{t("Žádná evidovaná bolest.")}</p>
+		<p class="bf-muted">{t("No pain logged.")}</p>
 	{/if}
 
 	{#each open as { entry, assessment } (entry.file.path)}
@@ -94,27 +94,27 @@
 				<span class="bf-tag" class:bf-tag-warn={assessment.seeProfessional}>{assessment.level}/10 · {PAIN_STATUS_LABELS[entry.note.status]}</span>
 			</div>
 			<div class="bf-muted bf-pain-small">
-				{t("{v}{v2} · od {v3} ({v4}){v5}", { v: MUSCLE_LABELS[entry.note.muscle], v2: entry.note.side ? ` ${BODY_SIDE_LABELS[entry.note.side]}` : "", v3: formatShortDate(entry.note.since), v4: formatDays(assessment.days), v5: entry.note.trigger
+				{t("{v}{v2} · since {v3} ({v4}){v5}", { v: MUSCLE_LABELS[entry.note.muscle], v2: entry.note.side ? ` ${BODY_SIDE_LABELS[entry.note.side]}` : "", v3: formatShortDate(entry.note.since), v4: formatDays(assessment.days), v5: entry.note.trigger
 					? ` · ${entry.note.trigger}`
 					: "" })}
 			</div>
 			{#if assessment.seeProfessional}
 				<p class="bf-pain-warn bf-pain-small">
-					{t("{v} – poraď se s fyzioterapeutem nebo lékařem.", { v: assessment.reason === "level"
-						? t("Intenzita {professionalLevel}/10 a víc", { professionalLevel: limits.professionalLevel })
-						: t("Trvá déle než {professionalDays} dní bez zlepšení", { professionalDays: limits.professionalDays }) })}
+					{t("{v} – see a physiotherapist or doctor.", { v: assessment.reason === "level"
+						? t("Intensity {professionalLevel}/10 or more", { professionalLevel: limits.professionalLevel })
+						: t("Lasting more than {professionalDays} days without improvement", { professionalDays: limits.professionalDays }) })}
 				</p>
 			{/if}
 			<label class="bf-pain-row bf-pain-small">
-				<span>{t("Dnešní intenzita")}</span>
+				<span>{t("Today's intensity")}</span>
 				<select value={String(entry.note.level)} onchange={(e) => void record(entry, Number(e.currentTarget.value))}>
 					{#each LEVELS as l (l)}
-						<option value={String(l)}>{l === 0 ? t("0 – nebolí (vyřešeno)") : `${l}/10`}</option>
+						<option value={String(l)}>{l === 0 ? t("0 – no pain (resolved)") : `${l}/10`}</option>
 					{/each}
 				</select>
 			</label>
 			<div class="bf-actions">
-				<button type="button" onclick={() => void plugin.trashNote(entry.file, "pain", entry.note.name)}>{t("Smazat záznam")}</button>
+				<button type="button" onclick={() => void plugin.trashNote(entry.file, "pain", entry.note.name)}>{t("Delete entry")}</button>
 			</div>
 		</div>
 	{/each}
@@ -122,12 +122,12 @@
 	{#if adding}
 		<form class="bf-pain-form" onsubmit={add}>
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Co bolí")}</span>
-				<input type="text" bind:value={name} placeholder={t("např. Pravé koleno")} />
+				<span class="bf-field-label">{t("What hurts")}</span>
+				<input type="text" bind:value={name} placeholder={t("e.g. right knee")} />
 			</label>
 			<div class="bf-grid-3">
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Nejbližší partie")}</span>
+					<span class="bf-field-label">{t("Nearest muscle group")}</span>
 					<select bind:value={newMuscle}>
 						{#each MUSCLES as m (m)}
 							<option value={m}>{MUSCLE_LABELS[m]}</option>
@@ -135,16 +135,16 @@
 					</select>
 				</label>
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Strana")}</span>
+					<span class="bf-field-label">{t("Side")}</span>
 					<select bind:value={side}>
-						<option value="">{t("neuvedeno")}</option>
+						<option value="">{t("not specified")}</option>
 						{#each BODY_SIDES as s (s)}
 							<option value={s}>{BODY_SIDE_LABELS[s]}</option>
 						{/each}
 					</select>
 				</label>
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Intenzita 0–10")}</span>
+					<span class="bf-field-label">{t("Intensity 0–10")}</span>
 					<select bind:value={level}>
 						{#each LEVELS.slice(1) as l (l)}
 							<option value={l}>{l}/10</option>
@@ -153,26 +153,26 @@
 				</label>
 			</div>
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Spouštěč")} <span class="bf-hint">{t("nepovinné")}</span></span>
-				<input type="text" bind:value={trigger} placeholder={t("např. běh z kopce")} />
+				<span class="bf-field-label">{t("Trigger")} <span class="bf-hint">{t("optional")}</span></span>
+				<input type="text" bind:value={trigger} placeholder={t("e.g. downhill running")} />
 			</label>
 			<div class="bf-actions">
-				<button type="submit" class="mod-cta" disabled={name.trim() === ""}>{t("Zapsat")}</button>
-				<button type="button" onclick={() => (adding = false)}>{t("Zrušit")}</button>
+				<button type="submit" class="mod-cta" disabled={name.trim() === ""}>{t("Log")}</button>
+				<button type="button" onclick={() => (adding = false)}>{t("Cancel")}</button>
 			</div>
 		</form>
 	{/if}
 
 	{#if resolved.length > 0}
 		<details class="bf-pain-resolved">
-			<summary>{t("Vyřešené ({resolved_length})", { resolved_length: resolved.length })}</summary>
+			<summary>{t("Resolved ({resolved_length})", { resolved_length: resolved.length })}</summary>
 			<ul>
 				{#each resolved as entry (entry.file.path)}
 					<li>
 						<button type="button" class="bf-link-button" onclick={() => openNote(entry)}>{entry.note.name}</button>
-						<span class="bf-muted"> {t("· {v} · od {v2}", { v: MUSCLE_LABELS[entry.note.muscle], v2: formatShortDate(entry.note.since) })}</span>
-						<button type="button" class="bf-link-button" onclick={() => void record(entry, 1)}>{t("bolí znovu")}</button>
-						<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "pain", entry.note.name)}>{t("smazat")}</button>
+						<span class="bf-muted"> {t("· {v} · since {v2}", { v: MUSCLE_LABELS[entry.note.muscle], v2: formatShortDate(entry.note.since) })}</span>
+						<button type="button" class="bf-link-button" onclick={() => void record(entry, 1)}>{t("hurts again")}</button>
+						<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "pain", entry.note.name)}>{t("delete")}</button>
 					</li>
 				{/each}
 			</ul>
@@ -180,7 +180,7 @@
 	{/if}
 
 	<p class="bf-muted bf-pain-small">
-		{t("Plugin nic nediagnostikuje – jen eviduje, co zapíšeš. Při bolesti {professionalLevel}/10 a víc, nebo když trvá déle než {professionalDays} dní bez zlepšení, se poraď s fyzioterapeutem nebo lékařem.", { professionalLevel: limits.professionalLevel, professionalDays: limits.professionalDays })} <BasisTag basis={PAIN_BASIS} />
+		{t("The plugin doesn't diagnose anything – it only records what you log. If the pain is {professionalLevel}/10 or more, or lasts more than {professionalDays} days without improvement, see a physiotherapist or doctor.", { professionalLevel: limits.professionalLevel, professionalDays: limits.professionalDays })} <BasisTag basis={PAIN_BASIS} />
 	</p>
 </section>
 

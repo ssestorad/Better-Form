@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Detail svalové partie (SPEC 5.5). Rozvržení je pevné: každá část má stálou
 	// výšku, aby při přejíždění mezi partiemi nic neposkakovalo.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import type { CardioLoad, MuscleExerciseRow, Recovery } from "../../calc/muscleVolume";
 	import { MUSCLE_LABELS, type MuscleId } from "../../model/constants";
 	import { formatNumber, formatShortDate } from "../format";
@@ -54,7 +54,7 @@
 <div class="bf-md">
 	<header class="bf-md-head">
 		<div>
-			<div class="bf-md-eyebrow">{pinned ? t("Připnuto · klikni znovu pro odepnutí") : t("Svalová partie")}</div>
+			<div class="bf-md-eyebrow">{pinned ? t("Pinned · click again to unpin") : t("Muscle group")}</div>
 			<h4>{MUSCLE_LABELS[muscle]}</h4>
 		</div>
 		<span class="bf-md-chip" style:background-color={VOLUME_COLORS[category]} class:is-strong={category >= 2}>{t(VOLUME_SHORT[category])}</span>
@@ -62,17 +62,17 @@
 
 	<div class="bf-md-tiles">
 		<div class="bf-md-tile">
-			<div class="bf-md-label">{t("Série za 7 dní")}</div>
+			<div class="bf-md-label">{t("Sets in 7 days")}</div>
 			<div class="bf-md-big">{formatSetCount(sets)}</div>
-			<div class="bf-md-label">{t("cíl {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })}</div>
+			<div class="bf-md-label">{t("target {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })}</div>
 		</div>
 		<div class="bf-md-tile">
-			<div class="bf-md-label">{t("Naposledy")}</div>
+			<div class="bf-md-label">{t("Last time")}</div>
 			<div class="bf-md-big">{lastTrainedText(recovery)}</div>
-			<div class="bf-md-label">{recovery.lastDate ? formatShortDate(recovery.lastDate) : t("bez tréninku partie")}</div>
+			<div class="bf-md-label">{recovery.lastDate ? formatShortDate(recovery.lastDate) : t("muscle group not trained")}</div>
 		</div>
 		<div class="bf-md-tile">
-			<div class="bf-md-label">{t("Regenerace")}</div>
+			<div class="bf-md-label">{t("Recovery")}</div>
 			<div class="bf-md-big">{recovery.percent} %</div>
 			<div class="bf-md-bar"><div class="bf-md-bar-fill" style:width={`${recovery.percent}%`} style:background-color={RECOVERY_COLORS[recovery.category]}></div></div>
 		</div>
@@ -80,61 +80,61 @@
 
 	<div class="bf-md-trend">
 		<div class="bf-md-row bf-md-label">
-			<span>{t("Série za týden, posledních {trend_length} týdnů", { trend_length: trend.length })}</span>
-			<span>{t("pás = doporučených {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })}</span>
+			<span>{tn(trend.length, ["Sets per week, last {n} week", "Sets per week, last {n} weeks"])}</span>
+			<span>{t("band = recommended {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })}</span>
 		</div>
-		<svg viewBox={`0 0 ${TREND_WIDTH} ${TREND_HEIGHT}`} role="img" aria-label={t("Vývoj týdenního objemu")}>
+		<svg viewBox={`0 0 ${TREND_WIDTH} ${TREND_HEIGHT}`} role="img" aria-label={t("Weekly volume trend")}>
 			<rect class="bf-md-band" x="0" y={geometry.bandY} width={TREND_WIDTH} height={geometry.bandHeight} />
 			<polyline class="bf-md-line" points={geometry.points} />
 			<circle class="bf-md-dot" cx={geometry.lastX} cy={geometry.lastY} r="5" />
 		</svg>
 		<div class="bf-md-row bf-md-weeks">
 			{#each trend as week, i (week.from)}
-				<span>{i === trend.length - 1 ? t("teď") : formatShortDate(week.from).replace(/^\S+\s/, "")}</span>
+				<span>{i === trend.length - 1 ? t("now") : formatShortDate(week.from).replace(/^\S+\s/, "")}</span>
 			{/each}
 		</div>
 	</div>
 
 	<div class="bf-md-table" role="table">
 		<div class="bf-md-tr bf-md-label" role="row">
-			<span role="columnheader">{t("Cvik")}</span>
-			<span role="columnheader">{t("Nejlepší série")}</span>
-			<span role="columnheader">{t("Odhad 1RM")}</span>
-			<span role="columnheader">{t("Za 4 týdny")}</span>
+			<span role="columnheader">{t("Exercise")}</span>
+			<span role="columnheader">{t("Best set")}</span>
+			<span role="columnheader">{t("Estimated 1RM")}</span>
+			<span role="columnheader">{t("In 4 weeks")}</span>
 		</div>
 		{#each rows as row (row.name)}
 			<div class="bf-md-tr" role="row">
-				<span role="cell" class="bf-md-name" class:bf-muted={!row.primary} title={row.primary ? t("Hlavní partie cviku") : t("Vedlejší partie cviku")}>{row.name}</span>
+				<span role="cell" class="bf-md-name" class:bf-muted={!row.primary} title={row.primary ? t("Primary muscle group of the exercise") : t("Secondary muscle group of the exercise")}>{row.name}</span>
 				<span role="cell">{bestSetText(row.best)}</span>
 				<span role="cell">{row.oneRm !== null ? `${formatNumber(row.oneRm, 0)} kg` : "—"}</span>
 				<span role="cell">{changeText(row.change)}</span>
 			</div>
 		{/each}
 		{#if rows.length === 0}
-			<div class="bf-md-empty bf-muted">{t("V posledních 4 týdnech žádný cvik na tuto partii.")}</div>
+			<div class="bf-md-empty bf-muted">{t("No exercise for this muscle group in the last 4 weeks.")}</div>
 		{/if}
 	</div>
 	<div class="bf-md-more">
-		{#if exercises.length > ROWS}<span class="bf-muted">{t("a dalších {ROWS}", { ROWS: exercises.length - ROWS })}</span>{/if}
-		<button type="button" class="bf-link-button" onclick={onShowExercises}>{t("Cviky na tuto partii v knihovně")}</button>
+		{#if exercises.length > ROWS}<span class="bf-muted">{t("and {ROWS} more", { ROWS: exercises.length - ROWS })}</span>{/if}
+		<button type="button" class="bf-link-button" onclick={onShowExercises}>{t("Exercises for this muscle group in the library")}</button>
 	</div>
 
 	<div class="bf-md-cardio">
 		{#if cardio.length > 0}
-			<div class="bf-md-cardio-box">{t("Kardio za 7 dní: {v} – zatěžuje partii, do sérií se nepočítá.", { v: cardioText(cardio) })}</div>
+			<div class="bf-md-cardio-box">{t("Cardio in 7 days: {v} – loads the muscle group but doesn't count as sets.", { v: cardioText(cardio) })}</div>
 		{:else}
-			<span class="bf-muted">{t("Bez kardia, které by partii zatěžovalo.")}</span>
+			<span class="bf-muted">{t("No cardio loading this muscle group.")}</span>
 		{/if}
 	</div>
 
 	<div class="bf-md-pain" class:is-active={pains.length > 0}>
-		<span class="bf-md-eyebrow">{t("Bolest")}</span>
+		<span class="bf-md-eyebrow">{t("Pain")}</span>
 		<span class="bf-md-pain-text">{painText(pains)}</span>
-		{#if pains.some((p) => p.seeProfessional)}<span class="bf-tag bf-tag-warn">{t("poraď se s odborníkem")}</span>{/if}
+		{#if pains.some((p) => p.seeProfessional)}<span class="bf-tag bf-tag-warn">{t("see a professional")}</span>{/if}
 	</div>
 
 	<div class="bf-md-advice">
-		<div class="bf-md-eyebrow">{t("Doporučení")}</div>
+		<div class="bf-md-eyebrow">{t("Recommendation")}</div>
 		{#each advice as line (line.source)}
 			<div class="bf-md-row">
 				<span>{line.text}</span>

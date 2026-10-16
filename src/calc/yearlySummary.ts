@@ -9,7 +9,7 @@ import { periodLabel, periodOf, periodStats, shiftPeriod, type PeriodStats, type
 import { allRecords, newRecords, type RecordContext } from "./records";
 import { sleepDurationMin } from "./sleep";
 import { mean } from "./stats";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 export interface YearMonthRow {
 	/** Měsíc ve tvaru YYYY-MM. */
@@ -43,7 +43,7 @@ export function isYear(value: number): boolean {
 }
 
 /** 1 trénink, 2–4 tréninky, 5 a víc tréninků. */
-const workoutsText = (n: number) => `${n} ${n === 1 ? "trénink" : n >= 2 && n <= 4 ? "tréninky" : "tréninků"}`;
+const workoutsText = (n: number) => tn(n, ["{n} workout", "{n} workouts"]);
 
 function row(label: string, current: string, previous: string, change: string): string {
 	return `| ${label} | ${current} | ${previous} | ${change} |`;
@@ -119,30 +119,30 @@ export function yearSummaryInput(
 /** Markdown ročního souhrnu: srovnání s loňskem, měsíce, nej roku a rekordy. */
 export function renderYearlySummary(input: YearSummaryInput): string {
 	const { stats, previous } = input;
-	const lines: string[] = [t("**Rok {year} v číslech**", { year: input.year }), ""];
+	const lines: string[] = [t("**{year} in numbers**", { year: input.year }), ""];
 	if (stats.workouts === 0) {
-		lines.push(t("V tomto roce není zapsaný žádný trénink."));
+		lines.push(t("No workout logged this year."));
 		return lines.join("\n");
 	}
 
-	lines.push(t("| | Letos | Loni | Změna |"), "| --- | ---: | ---: | ---: |");
-	lines.push(row(t("Tréninky"), String(stats.workouts), String(previous.workouts), percentChange(stats.workouts, previous.workouts)));
-	lines.push(row(t("Dny s tréninkem"), String(stats.activeDays), String(previous.activeDays), percentChange(stats.activeDays, previous.activeDays)));
-	lines.push(row(t("Čas"), formatDurationMin(stats.durationMin), formatDurationMin(previous.durationMin), percentChange(stats.durationMin, previous.durationMin)));
-	lines.push(row(t("Zátěž (sRPE)"), formatNumber(stats.load, 0), formatNumber(previous.load, 0), percentChange(stats.load, previous.load)));
+	lines.push(t("| | This year | Last year | Change |"), "| --- | ---: | ---: | ---: |");
+	lines.push(row(t("Workouts"), String(stats.workouts), String(previous.workouts), percentChange(stats.workouts, previous.workouts)));
+	lines.push(row(t("Training days"), String(stats.activeDays), String(previous.activeDays), percentChange(stats.activeDays, previous.activeDays)));
+	lines.push(row(t("Time"), formatDurationMin(stats.durationMin), formatDurationMin(previous.durationMin), percentChange(stats.durationMin, previous.durationMin)));
+	lines.push(row(t("Load (sRPE)"), formatNumber(stats.load, 0), formatNumber(previous.load, 0), percentChange(stats.load, previous.load)));
 	if (stats.runKm > 0 || previous.runKm > 0) {
-		lines.push(row(t("Běh"), `${formatNumber(stats.runKm, 1)} km`, `${formatNumber(previous.runKm, 1)} km`, percentChange(stats.runKm, previous.runKm)));
+		lines.push(row(t("Run"), `${formatNumber(stats.runKm, 1)} km`, `${formatNumber(previous.runKm, 1)} km`, percentChange(stats.runKm, previous.runKm)));
 	}
 	if (stats.swimM > 0 || previous.swimM > 0) {
-		lines.push(row(t("Plavání"), `${formatNumber(stats.swimM / 1000, 1)} km`, `${formatNumber(previous.swimM / 1000, 1)} km`, percentChange(stats.swimM, previous.swimM)));
+		lines.push(row(t("Swim"), `${formatNumber(stats.swimM / 1000, 1)} km`, `${formatNumber(previous.swimM / 1000, 1)} km`, percentChange(stats.swimM, previous.swimM)));
 	}
 	if (stats.tonnageKg > 0 || previous.tonnageKg > 0) {
-		lines.push(row(t("Zvednuto"), `${formatNumber(stats.tonnageKg / 1000, 1)} t`, `${formatNumber(previous.tonnageKg / 1000, 1)} t`, percentChange(stats.tonnageKg, previous.tonnageKg)));
+		lines.push(row(t("Lifted"), `${formatNumber(stats.tonnageKg / 1000, 1)} t`, `${formatNumber(previous.tonnageKg / 1000, 1)} t`, percentChange(stats.tonnageKg, previous.tonnageKg)));
 	}
 	if (input.sleepAvgMin !== null) {
 		lines.push(
 			row(
-				t("Spánek (průměr)"),
+				t("Sleep (average)"),
 				formatDurationMin(input.sleepAvgMin),
 				input.previousSleepAvgMin !== null ? formatDurationMin(input.previousSleepAvgMin) : "—",
 				input.previousSleepAvgMin !== null ? percentChange(input.sleepAvgMin, input.previousSleepAvgMin) : "—",
@@ -151,13 +151,13 @@ export function renderYearlySummary(input: YearSummaryInput): string {
 	}
 
 	const sports = SPORTS.filter((s) => (stats.bySport[s] ?? 0) > 0).map((s) => `${SPORT_LABELS[s].toLocaleLowerCase("cs")} ${stats.bySport[s]}×`);
-	lines.push("", t("**Podle sportu:** {v}", { v: sports.join(" · ") }));
+	lines.push("", t("**By sport:** {v}", { v: sports.join(" · ") }));
 	if (stats.missingLoad > 0) {
-		lines.push(t("*{missingLoad} {v} RPE nebo délku – do zátěže se nepočítá.*", { missingLoad: stats.missingLoad, v: stats.missingLoad === 1 ? t("trénink nemá") : t("tréninků nemá") }));
+		lines.push(tn(stats.missingLoad, ["*{n} workout is missing RPE or duration – not counted in load.*", "*{n} workouts are missing RPE or duration – not counted in load.*"]));
 	}
 
 	const showRun = stats.runKm > 0;
-	lines.push("", t("**Po měsících**"), "", t("| Měsíc | Tréninky | Čas |{v} Zátěž |", { v: showRun ? t(" Běh |") : "" }), `| --- | ---: | ---: |${showRun ? " ---: |" : ""} ---: |`);
+	lines.push("", t("**By month**"), "", t("| Month | Workouts | Time |{v} Load |", { v: showRun ? t(" Run |") : "" }), `| --- | ---: | ---: |${showRun ? " ---: |" : ""} ---: |`);
 	for (const { month, stats: m } of input.months) {
 		const name = periodLabel(periodOf("month", `${month}-01`)).replace(` ${input.year}`, "");
 		const run = showRun ? ` ${m.runKm > 0 ? `${formatNumber(m.runKm, 1)} km` : "—"} |` : "";
@@ -167,19 +167,19 @@ export function renderYearlySummary(input: YearSummaryInput): string {
 	const best: string[] = [];
 	const busiest = [...input.months].sort((a, b) => b.stats.workouts - a.stats.workouts || a.month.localeCompare(b.month))[0];
 	if (busiest && busiest.stats.workouts > 0) {
-		best.push(t("- Nejaktivnější měsíc: {v} ({v2})", { v: periodLabel(periodOf("month", `${busiest.month}-01`)).replace(` ${input.year}`, ""), v2: workoutsText(busiest.stats.workouts) }));
+		best.push(t("- Most active month: {v} ({v2})", { v: periodLabel(periodOf("month", `${busiest.month}-01`)).replace(` ${input.year}`, ""), v2: workoutsText(busiest.stats.workouts) }));
 	}
-	if (input.bestWeek) best.push(t("- Nejvíc tréninků za týden: {workouts} (týden od {v})", { workouts: input.bestWeek.workouts, v: formatShortDate(input.bestWeek.from) }));
-	if (input.longestRun) best.push(t("- Nejdelší běh: {v} km ({v2})", { v: formatNumber(input.longestRun.km, 1), v2: formatShortDate(input.longestRun.date) }));
-	if (input.longestWorkout) best.push(t("- Nejdelší trénink: {v} ({v2})", { v: formatDurationMin(input.longestWorkout.minutes), v2: formatShortDate(input.longestWorkout.date) }));
-	if (best.length > 0) lines.push("", t("**Nej roku**"), ...best);
+	if (input.bestWeek) best.push(t("- Most workouts in a week: {workouts} (week of {v})", { workouts: input.bestWeek.workouts, v: formatShortDate(input.bestWeek.from) }));
+	if (input.longestRun) best.push(t("- Longest run: {v} km ({v2})", { v: formatNumber(input.longestRun.km, 1), v2: formatShortDate(input.longestRun.date) }));
+	if (input.longestWorkout) best.push(t("- Longest workout: {v} ({v2})", { v: formatDurationMin(input.longestWorkout.minutes), v2: formatShortDate(input.longestWorkout.date) }));
+	if (best.length > 0) lines.push("", t("**Best of the year**"), ...best);
 
 	if (input.weightChangeKg !== null) {
 		const sign = input.weightChangeKg > 0 ? "+" : input.weightChangeKg < 0 ? "−" : "";
-		lines.push("", t("**Hmotnost:** {sign}{v} kg od prvního do posledního vážení v roce", { sign, v: formatNumber(Math.abs(input.weightChangeKg), 1) }));
+		lines.push("", t("**Weight:** {sign}{v} kg from the first to the last weigh-in of the year", { sign, v: formatNumber(Math.abs(input.weightChangeKg), 1) }));
 	}
-	lines.push("", t("**Nové rekordy**"));
-	if (input.records.length === 0) lines.push(t("V tomto roce žádný."));
+	lines.push("", t("**New records**"));
+	if (input.records.length === 0) lines.push(t("None this year."));
 	else for (const record of input.records) lines.push(`- ${record}`);
 	return lines.join("\n");
 }

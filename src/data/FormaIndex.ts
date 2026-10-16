@@ -5,6 +5,7 @@
 import { debounce, Events, TFile, type App, type EventRef, type Plugin, type TAbstractFile } from "obsidian";
 import type { FormaType } from "../model/constants";
 import { parseNote } from "../model/parse";
+import { allNames, exerciseId } from "../seed/localize";
 import type {
 	DayNote,
 	ExerciseNote,
@@ -143,6 +144,16 @@ export class FormaIndex extends Events {
 					if (!this.exerciseLookup.has(normalized)) this.exerciseLookup.set(normalized, entry);
 				}
 			}
+			// Vestavěný cvik najde i název v jiném jazyce, když ho poznámka nemá jako alias
+			// (knihovna založená v jednom jazyce, kód a jiné poznámky v druhém).
+			for (const entry of this.all("exercise")) {
+				const id = [entry.note.name, ...entry.note.aliases].map(exerciseId).find((x) => x !== undefined);
+				if (id === undefined) continue;
+				for (const key of allNames("exercise", id)) {
+					const normalized = key.trim().toLocaleLowerCase("cs");
+					if (!this.exerciseLookup.has(normalized)) this.exerciseLookup.set(normalized, entry);
+				}
+			}
 		}
 		// Výpočty se ptají na tentýž text z tréninků tisíckrát a toLocaleLowerCase je drahé,
 		// proto si výsledek (i „nenalezeno“) pamatujeme i pod textem tak, jak přišel.
@@ -175,7 +186,7 @@ export class FormaIndex extends Events {
 		if (!note) {
 			const type = frontmatter.forma as FormaType;
 			if (!isIndexedType(type)) return this.remove(file.path);
-			return this.setIssue(file.path, t("Chybí povinné údaje (např. datum nebo název)."));
+			return this.setIssue(file.path, t("Required details are missing (e.g. date or name)."));
 		}
 		this.issues.delete(file.path);
 		this.entries.set(file.path, { file, note, schemaStatus: migration.status });

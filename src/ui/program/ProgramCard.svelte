@@ -32,20 +32,20 @@
 		try {
 			await plugin.programs.setSession(today.entry, sessionMin, intensity);
 		} catch (err) {
-			new Notice(t("Nastavení se nepodařilo uložit: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Couldn't save the settings: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 	function saveMinutes(raw: string) {
 		const text = raw.trim();
 		const value = text === "" ? undefined : Number(text.replace(",", "."));
 		if (value !== undefined && !(Number.isFinite(value) && value > 0)) {
-			new Notice(t("Délka tréninku: zadej kladný počet minut, nebo pole nech prázdné."));
+			new Notice(t("Workout duration: enter a positive number of minutes, or leave the field empty."));
 			return;
 		}
 		void saveSession(value, note.intensity);
 	}
 
-	const weekText = $derived(note.duration_weeks !== undefined ? t("týden {week}/{duration_weeks}", { week: today.week, duration_weeks: note.duration_weeks }) : t("týden {week}", { week: today.week }));
+	const weekText = $derived(note.duration_weeks !== undefined ? t("week {week}/{duration_weeks}", { week: today.week, duration_weeks: note.duration_weeks }) : t("week {week}", { week: today.week }));
 </script>
 
 <section class="bf-card">
@@ -54,12 +54,12 @@
 			{note.name}
 		</button>
 		<span class="bf-muted">{weekText}</span>
-		<span class="bf-tag" title={t("Úroveň důkazu programu")}>{EVIDENCE_LABELS[note.evidence]}</span>
-		{#if allDone}<span class="bf-tag bf-tag-done">{t("dnes splněno")}</span>{/if}
+		<span class="bf-tag" title={t("Program evidence level")}>{EVIDENCE_LABELS[note.evidence]}</span>
+		{#if allDone}<span class="bf-tag bf-tag-done">{t("done today")}</span>{/if}
 	</header>
 
 	{#if today.tasks.length === 0}
-		<p class="bf-muted">{t("Dnes volno.")}</p>
+		<p class="bf-muted">{t("Rest day today.")}</p>
 	{:else}
 		<ul class="bf-tasks">
 			{#each today.tasks as task (task.itemIndex)}
@@ -77,9 +77,9 @@
 							<span class="bf-task-mark" aria-hidden="true">{task.done ? "✓" : "○"}</span>
 							<span><strong>{task.exercise}:</strong> {describeTarget(task.target)}</span>
 							{#if task.target.kind === "needs_test"}
-								<button type="button" onclick={() => plugin.openTest({ exercise: task.exercise, date })}>{t("Otestovat maximum")}</button>
+								<button type="button" onclick={() => plugin.openTest({ exercise: task.exercise, date })}>{t("Test your max")}</button>
 							{:else if task.retest}
-								<button type="button" title={t("Od posledního testu uběhla doba nastavená v programu; cíle se počítají ze starého maxima")} onclick={() => plugin.openTest({ exercise: task.exercise, date })}>{t("Je čas na nový test maxima")}</button>
+								<button type="button" title={t("The time set in the program has passed since your last test; targets are calculated from the old max")} onclick={() => plugin.openTest({ exercise: task.exercise, date })}>{t("Time for a new max test")}</button>
 							{/if}
 						</div>
 					{/if}
@@ -92,14 +92,14 @@
 
 	{#if manage}
 		<div class="bf-program-plan">
-			<span class="bf-muted bf-small">{t("Pro plán týdne:")}</span>
+			<span class="bf-muted bf-small">{t("For the weekly plan:")}</span>
 			<label class="bf-program-plan-field">
-				<span class="bf-small">{t("trénink trvá")}</span>
+				<span class="bf-small">{t("workout takes")}</span>
 				<input
 					type="text"
 					inputmode="numeric"
 					class="bf-program-plan-min"
-					aria-label={t("Obvyklá délka tréninku v minutách")}
+					aria-label={t("Usual workout duration in minutes")}
 					placeholder="–"
 					value={note.session_min ?? ""}
 					onchange={(e) => saveMinutes(e.currentTarget.value)}
@@ -107,15 +107,15 @@
 				<span class="bf-small">min</span>
 			</label>
 			<label class="bf-program-plan-field">
-				<span class="bf-small">{t("intenzita")}</span>
-				<select class="dropdown" aria-label={t("Obvyklá intenzita tréninku")} value={note.intensity ?? "mid"} onchange={(e) => void saveSession(note.session_min, e.currentTarget.value as PlanIntensity)}>
+				<span class="bf-small">{t("intensity")}</span>
+				<select class="dropdown" aria-label={t("Usual workout intensity")} value={note.intensity ?? "mid"} onchange={(e) => void saveSession(note.session_min, e.currentTarget.value as PlanIntensity)}>
 					{#each PLAN_INTENSITIES as level (level)}<option value={level}>{PLAN_INTENSITY_LABELS[level]}</option>{/each}
 				</select>
 			</label>
 			<span class="bf-muted bf-small bf-program-plan-note">
 				{note.session_min !== undefined
-					? t("Dny programu se počítají do plánu týdne, zátěže a výživy (denní počítadlo ne).")
-					: t("S vyplněnou délkou se dny programu počítají do plánu týdne, zátěže a výživy.")}
+					? t("Program days count towards the weekly plan, load and nutrition (the daily counter doesn't).")
+					: t("With a duration filled in, program days count towards the weekly plan, load and nutrition.")}
 			</span>
 		</div>
 	{/if}
@@ -123,14 +123,14 @@
 	<div class="bf-actions">
 		{#if loggable.length > 0}
 			<button type="button" class:mod-cta={!allDone} onclick={() => plugin.openWorkout({ program: today.entry.file, date })}>
-				{t("Zapsat trénink z programu")}
+				{t("Log workout from the program")}
 			</button>
 		{/if}
 		{#if manage}
 			{#if !note.builtin}
-				<button type="button" onclick={() => plugin.openProgramEditor(today.entry)}>{t("Upravit")}</button>
+				<button type="button" onclick={() => plugin.openProgramEditor(today.entry)}>{t("Edit")}</button>
 			{/if}
-			<button type="button" onclick={() => void plugin.programs.deactivate(today.entry)}>{t("Pozastavit")}</button>
+			<button type="button" onclick={() => void plugin.programs.deactivate(today.entry)}>{t("Pause")}</button>
 		{/if}
 	</div>
 </section>

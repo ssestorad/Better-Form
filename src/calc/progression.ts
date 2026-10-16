@@ -4,7 +4,7 @@
 import type { ExerciseCategory, ExerciseMeasure, MuscleId } from "../model/constants";
 import type { SetEntry } from "../model/types";
 import type { Basis } from "../evidence/sources";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 export const PROGRESSION_BASIS: Basis = { sourceIds: ["helms2016", "practice"], evidence: "practice" };
 
@@ -54,10 +54,10 @@ export function suggestProgression(
 	targetReps?: number,
 ): ProgressionSuggestion {
 	if (exercise.measure !== "reps_kg" && exercise.measure !== "reps_bw") {
-		return { action: "none", reason: t("Návrh navýšení je jen u cviků na opakování.") };
+		return { action: "none", reason: t("Increase suggestions are only for rep-based exercises.") };
 	}
 	const withReps = lastSets.filter((s) => !s.warmup && s.reps !== undefined && s.reps > 0);
-	if (withReps.length === 0) return { action: "none", reason: t("Chybí poslední výkon.") };
+	if (withReps.length === 0) return { action: "none", reason: t("No last result.") };
 
 	const weight = Math.max(...withReps.map((s) => workingWeight(s, exercise.measure)));
 	const working = withReps.filter((s) => workingWeight(s, exercise.measure) === weight);
@@ -69,22 +69,22 @@ export function suggestProgression(
 		exercise.measure === "reps_kg" ? { kg: weight } : weight !== 0 ? { added_kg: weight } : {};
 	const same = (reason: string): ProgressionSuggestion => ({ action: "same", reps: goal, ...weightFields, reason });
 
-	if (!completed) return same(t("Minule nebyly splněny všechny série – zopakuj stejnou váhu."));
+	if (!completed) return same(t("Not all sets were completed last time – repeat the same weight."));
 	const rirs = working.map((s) => s.rir);
 	if (rirs.some((r) => r === undefined)) {
-		return same(t("Chybí RIR (kolik opakování zbývalo) – nelze posoudit, zopakuj stejnou váhu."));
+		return same(t("RIR (reps left) is missing – can't assess, repeat the same weight."));
 	}
 	const minRir = Math.min(...(rirs as number[]));
 	if (minRir < options.rirMin) {
 		return same(
 			minRir === 0
-				? t("Minule šla série do selhání (RIR 0) – zopakuj stejnou váhu.")
-				: t("Minule RIR {minRir} – zopakuj stejnou váhu.", { minRir }),
+				? t("Last time a set went to failure (RIR 0) – repeat the same weight.")
+				: t("Last time RIR {minRir} – repeat the same weight.", { minRir }),
 		);
 	}
 
 	const repsStep = minRir > options.rirMin ? 2 : 1;
-	const repsReason = t("Všechny série splněny s RIR ≥ {rirMin} – přidej {repsStep} opak.", { rirMin: options.rirMin, repsStep });
+	const repsReason = tn(repsStep, ["All sets completed with RIR ≥ {rirMin} – add {n} rep.", "All sets completed with RIR ≥ {rirMin} – add {n} reps."], { rirMin: options.rirMin });
 
 	if (exercise.category === "kettlebell" && exercise.measure === "reps_kg") {
 		const next = options.kettlebellsKg.filter((kg) => kg > weight).sort((a, b) => a - b)[0];
@@ -93,7 +93,7 @@ export function suggestProgression(
 				action: "increase_weight",
 				kg: next,
 				reps: goal,
-				reason: t("Všechny série splněny s RIR ≥ {rirMin} – zkus těžší zvon.", { rirMin: options.rirMin }),
+				reason: t("All sets completed with RIR ≥ {rirMin} – try a heavier kettlebell.", { rirMin: options.rirMin }),
 			};
 		}
 		return { action: "increase_reps", reps: reps + repsStep, kg: weight, reason: repsReason };
@@ -105,7 +105,7 @@ export function suggestProgression(
 			action: "increase_weight",
 			kg: weight + increment,
 			reps: goal,
-			reason: t("Všechny série splněny s RIR ≥ {rirMin} – přidej {v} kg.", { rirMin: options.rirMin, v: formatKg(increment) }),
+			reason: t("All sets completed with RIR ≥ {rirMin} – add {v} kg.", { rirMin: options.rirMin, v: formatKg(increment) }),
 		};
 	}
 

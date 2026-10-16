@@ -2,20 +2,23 @@ import { describe, expect, it } from "vitest";
 import { MUSCLES } from "../../src/model/constants";
 import { parseExercise, parseProgram, parseTemplate } from "../../src/model/parse";
 import { exerciseToFrontmatter, programToFrontmatter, templateToFrontmatter } from "../../src/model/serialize";
-import { SEED_TEMPLATES } from "../../src/seed/templates";
+import { seedTemplates } from "../../src/seed/templates";
 import { sanitizeFileName } from "../../src/data/paths";
-import { SEED_EXERCISES } from "../../src/seed/exercises";
-import { MORE_EXERCISES } from "../../src/seed/exercisesMore";
-import { COUCH_TO_5K_SCHEDULE, ROPE_FITNESS, ROPE_START, SEED_PROGRAMS } from "../../src/seed/programs";
+import { seedExercises } from "../../src/seed/exercises";
+import { EXERCISE_ROWS } from "../../src/seed/exerciseData";
+import { COUCH_TO_5K_SCHEDULE, ROPE_FITNESS, ROPE_START, seedPrograms } from "../../src/seed/programs";
 import { resolveTarget } from "../../src/calc/programs";
 import type { ProgramTarget } from "../../src/model/types";
-import { EXERCISE_TEXTS } from "../../src/seed/exerciseTexts";
 import { builtinExercise, bulletLines, missingTexts, withBuiltinTexts } from "../../src/seed/lookup";
 import type { ExerciseNote } from "../../src/model/types";
 import { intervalTotalSeconds, intervalWorkSeconds } from "../../src/calc/programs";
 import { DEFAULT_SETTINGS } from "../../src/settings/settings";
 import { getSource } from "../../src/evidence/sources";
 
+// Knihovna v češtině (testy běží česky); anglický zdroj a úplnost překladu hlídá english.test.ts.
+const SEED_EXERCISES = seedExercises("cs");
+const SEED_PROGRAMS = seedPrograms("cs");
+const SEED_TEMPLATES = seedTemplates("cs");
 const lower = (s: string) => s.toLocaleLowerCase("cs");
 const exerciseKeys = new Set(SEED_EXERCISES.flatMap((e) => [e.name, ...e.aliases].map(lower)));
 
@@ -28,17 +31,15 @@ describe("knihovna cviků", () => {
 		}
 	});
 
-	it("rozšíření knihovny je její součástí, s texty a ve všech kategoriích včetně mobility", () => {
-		expect(MORE_EXERCISES.length).toBeGreaterThanOrEqual(70);
-		expect(SEED_EXERCISES.length).toBeGreaterThanOrEqual(190);
-		const names = new Set(SEED_EXERCISES.map((e) => e.name));
-		for (const e of MORE_EXERCISES) {
-			expect(names, e.name).toContain(e.name);
-			expect(EXERCISE_TEXTS[e.name], e.name).toBe(e.text);
-			expect(e.text.how.length, e.name).toBeGreaterThanOrEqual(3);
-			expect(e.text.mistakes.length, e.name).toBeGreaterThanOrEqual(2);
+	it("knihovna má texty u každého cviku, jedinečná id a všechny kategorie včetně mobility", () => {
+		expect(EXERCISE_ROWS.length).toBeGreaterThanOrEqual(260);
+		expect(new Set(EXERCISE_ROWS.map((e) => e.id)).size).toBe(EXERCISE_ROWS.length);
+		for (const e of EXERCISE_ROWS) {
+			expect(e.id, e.name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+			expect(e.text?.how.length ?? 0, e.name).toBeGreaterThanOrEqual(2);
+			expect(e.text?.mistakes.length ?? 0, e.name).toBeGreaterThanOrEqual(1);
 		}
-		expect(new Set(MORE_EXERCISES.map((e) => e.category))).toEqual(new Set(["strength", "calisthenics", "kettlebell", "cardio", "mobility"]));
+		expect(new Set(EXERCISE_ROWS.map((e) => e.category))).toEqual(new Set(["strength", "calisthenics", "kettlebell", "cardio", "mobility"]));
 	});
 
 	it("názvy a aliasy jsou jednoznačné (bez ohledu na velikost písmen)", () => {
@@ -100,8 +101,6 @@ describe("knihovna cviků", () => {
 			expect(e.mistakes, e.name).toMatch(/^- .+/);
 			expect(e.description?.length ?? 0, e.name).toBeGreaterThan(20);
 		}
-		const names = new Set(SEED_EXERCISES.map((e) => e.name));
-		for (const key of Object.keys(EXERCISE_TEXTS)) expect(names, key).toContain(key);
 	});
 
 	it("zápis a načtení vrátí stejná data", () => {

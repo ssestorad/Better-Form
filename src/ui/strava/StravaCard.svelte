@@ -5,7 +5,8 @@
 	import { formatClockDuration, formatPace, paceSecondsPerKm } from "../../calc/performance";
 	import { pendingImports } from "../../calc/running";
 	import { usePlugin } from "../context";
-	import { formatNumber, formatShortDate } from "../format";
+	import { formatDayMonth, formatNumber, formatShortDate } from "../format";
+	import { toIsoDate } from "../../model/dates";
 
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
@@ -46,7 +47,7 @@
 	}
 
 	function lastSyncText(date: Date): string {
-		const day = `${date.getDate()}. ${date.getMonth() + 1}.`;
+		const day = formatDayMonth(toIsoDate(date));
 		return `${day} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 	}
 </script>
@@ -54,23 +55,23 @@
 {#if runner || connected || pending.length > 0}
 	<section class="bf-card">
 		<header class="bf-strava-head">
-			<h4>{t("Import běhů")}</h4>
+			<h4>{t("Run import")}</h4>
 			<span class="bf-strava-buttons">
-				<button type="button" title={t("Soubor GPX ze Stravy, TCX z MapMyRun nebo FIT z hodinek; jde vybrat víc souborů najednou")} onclick={() => plugin.pickRunFiles()}>{t("Ze souboru")}</button>
+				<button type="button" title={t("A GPX file from Strava, TCX from MapMyRun or FIT from a watch; you can pick several files at once")} onclick={() => plugin.pickRunFiles()}>{t("From file")}</button>
 				{#if connected}
 					<button type="button" disabled={$stravaBusy} onclick={() => void plugin.syncStrava()}>
-						{$stravaBusy ? t("Synchronizuji…") : t("Synchronizovat Stravu")}
+						{$stravaBusy ? t("Syncing…") : t("Sync Strava")}
 					</button>
 				{/if}
 			</span>
 		</header>
 		{#if connected}
 			<p class="bf-muted bf-small">
-				{lastSync ? t("Strava: poslední synchronizace {v}.", { v: lastSyncText(lastSync) }) : t("Strava: zatím nesynchronizováno – první stažení vezme posledních pár měsíců.")}
+				{lastSync ? t("Strava: last sync {v}.", { v: lastSyncText(lastSync) }) : t("Strava: not synced yet – the first download takes the last few months.")}
 			</p>
 		{/if}
 		{#if pending.length > 0}
-			<p class="bf-small">{t("Běhy k doplnění ({pending_length}) – chybí RPE, typ běhu a boty:", { pending_length: pending.length })}</p>
+			<p class="bf-small">{t("Runs to complete ({pending_length}) – missing RPE, run type and shoes:", { pending_length: pending.length })}</p>
 			<ul class="bf-strava-list">
 				{#each visible as entry (entry.file.path)}
 					<li>
@@ -83,13 +84,13 @@
 			</ul>
 			{#if pending.length > VISIBLE}
 				<button type="button" class="bf-link-button bf-small" onclick={() => (showAll = !showAll)}>
-					{showAll ? t("Zobrazit méně") : t("Zobrazit všech {pending_length}", { pending_length: pending.length })}
+					{showAll ? t("Show less") : t("Show all {pending_length}", { pending_length: pending.length })}
 				</button>
 			{/if}
 		{:else if connected}
-			<p class="bf-muted bf-small">{t("Všechny importované běhy jsou doplněné.")}</p>
+			<p class="bf-muted bf-small">{t("All imported runs are complete.")}</p>
 		{:else}
-			<p class="bf-muted bf-small">{t("Běh nahraješ ze souboru GPX (Strava), TCX (MapMyRun) nebo FIT (hodinky) – návod je v nastavení. Jinak ho zapiš ručně.")}</p>
+			<p class="bf-muted bf-small">{t("Import a run from a GPX (Strava), TCX (MapMyRun) or FIT (watch) file – the guide is in the settings. Otherwise log it manually.")}</p>
 		{/if}
 	</section>
 {/if}

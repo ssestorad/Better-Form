@@ -42,7 +42,7 @@
 		if (amino.requirementMgPerKg === undefined) {
 			// Cystein a tyrosin mají potřebu společnou s methioninem / fenylalaninem.
 			const partner = amino.sharedWith ? byId.get(amino.sharedWith) : undefined;
-			return partner ? t("společně s {abbr}", { abbr: partner.abbr }) : "—";
+			return partner ? t("together with {abbr}", { abbr: partner.abbr }) : "—";
 		}
 		const shared = amino.sharedWith ? ` (+ ${byId.get(amino.sharedWith)?.abbr})` : "";
 		const perKg = `${formatNumber(amino.requirementMgPerKg, 0)} mg/kg`;
@@ -52,16 +52,16 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Aminokyseliny")}</h4>
+	<h4>{t("Amino acids")}</h4>
 	<p class="bf-muted bf-small">
-		{t("Bílkoviny se skládají z 20 aminokyselin. Devět esenciálních si tělo neumí vyrobit a musí je dostat z jídla. Denní potřeba je průměr pro zdravého dospělého{v} – běžná strava s dostatkem bílkovin ji pokryje s velkou rezervou.", { v: hasWeight ? t(" (přepočteno na tvých {v} kg)", { v: formatNumber(weightKg!, 1) }) : "" })}
+		{t("Proteins are made of 20 amino acids. Nine essential ones can't be made by the body and must come from food. The daily requirement is an average for a healthy adult{v} – a normal diet with enough protein covers it with a large margin.", { v: hasWeight ? t(" (converted for your {v} kg)", { v: formatNumber(weightKg!, 1) }) : "" })}
 	</p>
 	<div class="bf-amino" role="table">
 		<div class="bf-amino-tr bf-muted" role="row">
-			<span role="columnheader">{t("Aminokyselina")}</span>
-			<span role="columnheader">{t("Denní potřeba")}</span>
-			<span role="columnheader">{t("K čemu je")}</span>
-			<span role="columnheader">{t("V tvých suplementech")}</span>
+			<span role="columnheader">{t("Amino acid")}</span>
+			<span role="columnheader">{t("Daily requirement")}</span>
+			<span role="columnheader">{t("What it's for")}</span>
+			<span role="columnheader">{t("In your supplements")}</span>
 		</div>
 		{#each CATEGORIES as category (category)}
 			<div class="bf-amino-group" role="row">
@@ -71,7 +71,7 @@
 				<div class="bf-amino-tr" role="row">
 					<span role="cell">
 						{amino.name} <span class="bf-muted">({amino.abbr})</span>
-						{#if amino.bcaa}<span class="bf-tag" title={t("Větvená aminokyselina")}>{t("BCAA")}</span>{/if}
+						{#if amino.bcaa}<span class="bf-tag" title={t("Branched-chain amino acid")}>{t("BCAA")}</span>{/if}
 					</span>
 					<span role="cell" class="bf-amino-num">{requirement(amino)}</span>
 					<span role="cell" class="bf-muted">{amino.role}</span>
@@ -81,17 +81,17 @@
 		{/each}
 	</div>
 	<p class="bf-small">
-		{t("Esenciální celkem: {v} mg/kg denně{v2}.", { v: formatNumber(totalEssentialMgPerKg(), 0), v2: hasWeight
+		{t("Essential total: {v} mg/kg a day{v2}.", { v: formatNumber(totalEssentialMgPerKg(), 0), v2: hasWeight
 			? ` = ${formatAmount(totalEssentialMgPerKg() * weightKg!)}`
 			: "" })}
 		<span class="bf-tag">{EVIDENCE_LABELS[AMINO_BASIS.evidence]}</span>
 		<span class="bf-muted">{source.citation}</span>
 	</p>
 	<p class="bf-muted bf-small">
-		{t("Jde o potřebu, která brání nedostatku, ne o doporučení pro sportovce – ti se řídí celkovým příjmem bílkovin (viz Protein). Sloupec „V tvých suplementech“ říká jen, že ji suplement obsahuje; přesné množství záleží na výrobku. {NON_PROTEIN_AMINO_NOTE}", { NON_PROTEIN_AMINO_NOTE: t(NON_PROTEIN_AMINO_NOTE) })}
+		{t("This is the requirement that prevents deficiency, not a recommendation for athletes – they go by total protein intake (see Protein). The “In your supplements” column only says a supplement contains it; the exact amount depends on the product. {NON_PROTEIN_AMINO_NOTE}", { NON_PROTEIN_AMINO_NOTE: t(NON_PROTEIN_AMINO_NOTE) })}
 	</p>
 	{#if !hasWeight}
-		<p class="bf-muted bf-small">{t("Přepočet na gramy se doplní, až zapíšeš váhu v check-inu nebo v profilu.")}</p>
+		<p class="bf-muted bf-small">{t("Conversion to grams appears once you log your weight in the check-in or profile.")}</p>
 	{/if}
 </section>
 

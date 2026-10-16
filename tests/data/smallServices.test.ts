@@ -8,12 +8,13 @@ import { NoteWriter } from "../../src/data/NoteWriter";
 import { PainService } from "../../src/data/PainService";
 import { SupplementService } from "../../src/data/SupplementService";
 import { WorkoutService } from "../../src/data/WorkoutService";
-import { mergeSettings } from "../../src/settings/settings";
+import { LEGACY_FOLDERS, mergeSettings } from "../../src/settings/settings";
 import { createFakeVault } from "../helpers/fakeVault";
 
 function createWorld() {
 	const vault = createFakeVault();
-	const settings = mergeSettings(null);
+	// Vault ze starší verze s českými složkami (výchozí jsou anglicky – hlídá paths.test.ts).
+	const settings = { ...mergeSettings(null), folders: { ...LEGACY_FOLDERS } };
 	const index = new FormaIndex(vault.app);
 	index.register(vault.plugin);
 	const writer = new NoteWriter(vault.app);

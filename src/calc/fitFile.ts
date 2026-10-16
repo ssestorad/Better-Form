@@ -76,7 +76,7 @@ function readInt(view: DataView, pos: number, field: FieldDef, little: boolean):
 
 /** Přečte soubor FIT. Chyby vrací česky. */
 export function parseFit(data: ArrayBuffer): ParsedRunFile {
-	if (!isFit(data)) throw new Error(t("Soubor není ve formátu FIT."));
+	if (!isFit(data)) throw new Error(t("The file isn't in FIT format."));
 	const view = new DataView(data);
 	const points: TrackPoint[] = [];
 	const file: ParsedRunFile = { format: "fit", points };
@@ -151,7 +151,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 			}
 		}
 	} catch (err) {
-		if (err instanceof RangeError) throw new Error(t("Soubor FIT je poškozený nebo neúplný."));
+		if (err instanceof RangeError) throw new Error(t("The FIT file is damaged or incomplete."));
 		throw err;
 	}
 	return file;

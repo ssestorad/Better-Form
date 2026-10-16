@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { builtinName } from "../../seed/localize";
 	// Tabulka normy zadaná uživatelem (SPEC 4.6): disciplíny a požadované hodnoty
 	// podle pohlaví a věku. Plugin žádné normy nepředvyplňuje.
 	import { t } from "../../i18n";
@@ -75,18 +76,18 @@
 	/** Převod formuláře na disciplíny; při chybě vrátí její popis. */
 	const parsed = $derived.by((): { items: NormItem[]; error: string } => {
 		const out: NormItem[] = [];
-		if (name.trim() === "") return { items: out, error: t("Zadej název normy.") };
+		if (name.trim() === "") return { items: out, error: t("Enter a name for the standard.") };
 		for (const [i, item] of items.entries()) {
-			const label = t("Disciplína {v}", { v: i + 1 });
-			const exercise = item.kind === "run_time" ? item.exercise.trim() || "Běh" : (plugin.exerciseInfo(item.exercise)?.name ?? ""); // i18n-ignore: název cviku (data)
-			if (!exercise) return { items: out, error: t("{label}: vyber cvik z knihovny.", { label }) };
+			const label = t("Event {v}", { v: i + 1 });
+			const exercise = item.kind === "run_time" ? item.exercise.trim() || builtinName("exercise", "running") : (plugin.exerciseInfo(item.exercise)?.name ?? "");
+			if (!exercise) return { items: out, error: t("{label}: choose an exercise from the library.", { label }) };
 			const distance = parseNumber(item.distance);
-			if (item.kind === "run_time" && distance === undefined) return { items: out, error: t("{label}: zadej trať v km.", { label }) };
+			if (item.kind === "run_time" && distance === undefined) return { items: out, error: t("{label}: enter the distance in km.", { label }) };
 			const rows = [];
 			for (const row of item.rows) {
 				const value = parseGoalTarget(row.value, item.kind === "run_time" ? "time" : "reps");
 				if (value === null) {
-					return { items: out, error: t("{label}: zadej požadovanou hodnotu{v}.", { label, v: item.kind === "run_time" ? t(" jako mm:ss") : item.kind === "hold" ? t(" v sekundách") : "" }) };
+					return { items: out, error: t("{label}: enter the required value{v}.", { label, v: item.kind === "run_time" ? t(" as mm:ss") : item.kind === "hold" ? t(" in seconds") : "" }) };
 				}
 				rows.push({ sex: row.sex || undefined, age_from: parseNumber(row.ageFrom), age_to: parseNumber(row.ageTo), value });
 			}
@@ -118,16 +119,16 @@
 
 <form class="bf-norm-form" onsubmit={submit}>
 	<label class="bf-field">
-		<span class="bf-field-label">{t("Název normy")}</span>
-		<input type="text" bind:value={name} placeholder={t("např. Fyzické testy")} disabled={initial !== undefined} />
+		<span class="bf-field-label">{t("Standard name")}</span>
+		<input type="text" bind:value={name} placeholder={t("e.g. Fitness tests")} disabled={initial !== undefined} />
 	</label>
 
 	{#each items as item, i (item.id)}
 		<fieldset class="bf-norm-item">
-			<legend>{t("Disciplína {v}", { v: i + 1 })}</legend>
+			<legend>{t("Event {v}", { v: i + 1 })}</legend>
 			<div class="bf-grid-2">
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Co se měří")}</span>
+					<span class="bf-field-label">{t("What's measured")}</span>
 					<select bind:value={item.kind}>
 						{#each NORM_KINDS as kind (kind)}
 							<option value={kind}>{NORM_KIND_LABELS[kind]}</option>
@@ -136,44 +137,44 @@
 				</label>
 				{#if item.kind === "run_time"}
 					<label class="bf-field">
-						<span class="bf-field-label">{t("Trať (km)")}</span>
+						<span class="bf-field-label">{t("Distance (km)")}</span>
 						<input type="text" inputmode="decimal" bind:value={item.distance} placeholder="3" />
 					</label>
 				{:else}
 					<label class="bf-field">
-						<span class="bf-field-label">{t("Cvik")}</span>
-						<input type="text" list="bf-norm-exercises" bind:value={item.exercise} placeholder={t("začni psát název cviku")} />
+						<span class="bf-field-label">{t("Exercise")}</span>
+						<input type="text" list="bf-norm-exercises" bind:value={item.exercise} placeholder={t("start typing an exercise name")} />
 					</label>
 				{/if}
 			</div>
 			{#if item.kind === "reps"}
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Časový limit (s)")} <span class="bf-hint">{t("nepovinný, např. 120")}</span></span>
+					<span class="bf-field-label">{t("Time limit (s)")} <span class="bf-hint">{t("optional, e.g. 120")}</span></span>
 					<input type="text" inputmode="numeric" bind:value={item.limit} />
 				</label>
 			{/if}
 
 			<div class="bf-norm-rows">
 				<div class="bf-norm-row bf-muted bf-norm-small">
-					<span>{t("Pohlaví")}</span><span>{t("Věk od")}</span><span>{t("Věk do")}</span><span>{item.kind === "run_time" ? t("Čas (mm:ss)") : item.kind === "hold" ? t("Sekundy") : t("Opakování")}</span><span></span>
+					<span>{t("Sex")}</span><span>{t("Age from")}</span><span>{t("Age to")}</span><span>{item.kind === "run_time" ? t("Time (mm:ss)") : item.kind === "hold" ? t("Seconds") : t("Reps")}</span><span></span>
 				</div>
 				{#each item.rows as row (row.id)}
 					<div class="bf-norm-row">
-						<select bind:value={row.sex} aria-label={t("Pohlaví")}>
-							<option value="">{t("všichni")}</option>
-							<option value="male">{t("muži")}</option>
-							<option value="female">{t("ženy")}</option>
+						<select bind:value={row.sex} aria-label={t("Sex")}>
+							<option value="">{t("everyone")}</option>
+							<option value="male">{t("men")}</option>
+							<option value="female">{t("women")}</option>
 						</select>
-						<input type="text" inputmode="numeric" bind:value={row.ageFrom} aria-label={t("Věk od")} />
-						<input type="text" inputmode="numeric" bind:value={row.ageTo} aria-label={t("Věk do")} />
-						<input type="text" bind:value={row.value} aria-label={t("Požadovaná hodnota")} />
-						<button type="button" aria-label={t("Odebrat řádek")} disabled={item.rows.length === 1} onclick={() => (item.rows = item.rows.filter((r) => r.id !== row.id))}>×</button>
+						<input type="text" inputmode="numeric" bind:value={row.ageFrom} aria-label={t("Age from")} />
+						<input type="text" inputmode="numeric" bind:value={row.ageTo} aria-label={t("Age to")} />
+						<input type="text" bind:value={row.value} aria-label={t("Required value")} />
+						<button type="button" aria-label={t("Remove row")} disabled={item.rows.length === 1} onclick={() => (item.rows = item.rows.filter((r) => r.id !== row.id))}>×</button>
 					</div>
 				{/each}
 			</div>
 			<div class="bf-actions">
-				<button type="button" onclick={() => item.rows.push(emptyRow())}>{t("Přidat řádek")}</button>
-				<button type="button" disabled={items.length === 1} onclick={() => (items = items.filter((it) => it.id !== item.id))}>{t("Odebrat disciplínu")}</button>
+				<button type="button" onclick={() => item.rows.push(emptyRow())}>{t("Add row")}</button>
+				<button type="button" disabled={items.length === 1} onclick={() => (items = items.filter((it) => it.id !== item.id))}>{t("Remove event")}</button>
 			</div>
 		</fieldset>
 	{/each}
@@ -184,14 +185,14 @@
 	</datalist>
 
 	<p class="bf-muted bf-norm-small">
-		{t("Řádek bez pohlaví a věku platí pro všechny; když jich odpovídá víc, použije se ten přesnější. Pohlaví a rok narození se berou z profilu v nastavení.")}
+		{t("A row without sex and age applies to everyone; when several match, the more specific one is used. Sex and year of birth come from your profile in the settings.")}
 	</p>
 	{#if parsed.error}<div class="bf-error">{parsed.error}</div>{/if}
 	{#if saveError}<div class="bf-error">{saveError}</div>{/if}
 	<div class="bf-actions">
-		<button type="button" onclick={() => items.push(emptyItem())}>{t("Přidat disciplínu")}</button>
-		<button type="submit" class="mod-cta" disabled={!!parsed.error || saving}>{initial ? t("Uložit normu") : t("Založit normu")}</button>
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
+		<button type="button" onclick={() => items.push(emptyItem())}>{t("Add event")}</button>
+		<button type="submit" class="mod-cta" disabled={!!parsed.error || saving}>{initial ? t("Save standard") : t("Create standard")}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
 	</div>
 </form>
 

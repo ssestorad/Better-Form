@@ -1,6 +1,6 @@
 import { Modal, Notice } from "obsidian";
 import { mount, unmount } from "svelte";
-import { hasCheckIn, initialCheckIn, lastValues } from "../../calc/checkIn";
+import { hasCheckIn, initialCheckIn, lastValues, type CheckInValues } from "../../calc/checkIn";
 import { addDays } from "../../model/dates";
 import type BetterFormPlugin from "../../main";
 import CheckIn from "./CheckIn.svelte";
@@ -18,18 +18,18 @@ export class CheckInModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal");
-		this.titleEl.setText(t("Ranní check-in"));
+		this.titleEl.setText(t("Morning check-in"));
 		this.component = mount(CheckIn, {
 			target: this.contentEl,
 			props: {
 				initialDate: this.date,
 				load: (date: string) => this.load(date),
-				onSave: async (values, stepsYesterday) => {
+				onSave: async (values: CheckInValues, stepsYesterday: number | undefined) => {
 					await this.plugin.days.saveCheckIn(values);
 					// Kroky patří k předchozímu dni; zapisují se jen při změně.
 					const yesterday = addDays(values.date, -1);
 					if (stepsYesterday !== this.plugin.index.day(yesterday)?.note.steps) await this.plugin.days.setSteps(yesterday, stepsYesterday);
-					new Notice(t("Check-in uložen."));
+					new Notice(t("Check-in saved."));
 					this.close();
 				},
 				onCancel: () => this.close(),

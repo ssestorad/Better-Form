@@ -19,11 +19,11 @@ export const READINESS_WEIGHTS: Record<ReadinessPartId, number> = { hrv: 25, rhr
 export const NORM_SCORES = { bad: 30, within: 80, good: 90 } as const;
 
 const PART_LABELS: Record<ReadinessPartId, string> = translated({
-	hrv: "HRV (7 dní vs. norma)",
-	rhr: "Klidový tep (7 dní vs. norma)",
-	sleep: "Spánek",
-	feel: "Pocity z check-inu",
-	form: "Forma (kondice − únava)",
+	hrv: "HRV (7 days vs baseline)",
+	rhr: "Resting heart rate (7 days vs baseline)",
+	sleep: "Sleep",
+	feel: "How you feel (check-in)",
+	form: "Form (fitness − fatigue)",
 });
 
 const PART_BASIS: Record<ReadinessPartId, Basis> = {
@@ -106,7 +106,7 @@ export function formScore(ctl: number, tsb: number): number | null {
 	return clamp(60 + 100 * (tsb / ctl), 0, 100);
 }
 
-const STATUS_TEXT = translated({ below: "pod normou", within: "v normě", above: "nad normou" } as const);
+const STATUS_TEXT = translated({ below: "below baseline", within: "within baseline", above: "above baseline" } as const);
 
 // ---------- Trend připravenosti ----------
 
@@ -179,9 +179,9 @@ export function readiness(input: ReadinessInput): Readiness | null {
 	if (input.sleep) {
 		const parts: string[] = [];
 		if (input.sleep.durationMin !== undefined) {
-			parts.push(t("{v} (cíl {v2} h)", { v: formatDurationMin(input.sleep.durationMin), v2: formatNumber(input.sleepTargetHours, 2) }));
+			parts.push(t("{v} (target {v2} h)", { v: formatDurationMin(input.sleep.durationMin), v2: formatNumber(input.sleepTargetHours, 2) }));
 		}
-		if (input.sleep.quality !== undefined) parts.push(t("kvalita {quality}/5", { quality: input.sleep.quality }));
+		if (input.sleep.quality !== undefined) parts.push(t("quality {quality}/5", { quality: input.sleep.quality }));
 		add("sleep", sleepScore(input.sleep, input.sleepTargetHours), parts.join(" · "));
 	} else add("sleep", null, "");
 
@@ -190,11 +190,11 @@ export function readiness(input: ReadinessInput): Readiness | null {
 			(v): v is number => v !== undefined,
 		);
 		const avg = mean(values);
-		add("feel", feelScore(input.checkIn), avg === null ? "" : t("průměr {v}/5", { v: formatNumber(avg, 1) }));
+		add("feel", feelScore(input.checkIn), avg === null ? "" : t("average {v}/5", { v: formatNumber(avg, 1) }));
 	} else add("feel", null, "");
 
 	if (input.form) {
-		add("form", formScore(input.form.ctl, input.form.tsb), t("forma {v}, kondice {v2}", { v: formatSigned(input.form.tsb, 0), v2: formatNumber(input.form.ctl, 0) }));
+		add("form", formScore(input.form.ctl, input.form.tsb), t("form {v}, fitness {v2}", { v: formatSigned(input.form.tsb, 0), v2: formatNumber(input.form.ctl, 0) }));
 	} else add("form", null, "");
 
 	if (scored.length === 0) return null;

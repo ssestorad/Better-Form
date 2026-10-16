@@ -120,7 +120,7 @@ describe("drobnosti k fázi 4", () => {
 	});
 
 	it("řádek bolesti v detailu partie", () => {
-		expect(painText([])).toBe("Bez evidované bolesti.");
+		expect(painText([])).toBe("Žádná evidovaná bolest.");
 		expect(painText([{ name: "Koleno", level: 3, days: 10, seeProfessional: true }, { name: "Stehno", level: 1, days: 1, seeProfessional: false }])).toBe("Koleno 3/10 (10 dní) · Stehno 1/10 (1 den)");
 	});
 

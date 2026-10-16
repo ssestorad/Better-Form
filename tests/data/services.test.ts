@@ -9,7 +9,7 @@ import { ProgramService } from "../../src/data/ProgramService";
 import { WorkoutService } from "../../src/data/WorkoutService";
 import { crc32 } from "../../src/data/zip";
 import type { WorkoutNote } from "../../src/model/types";
-import { mergeSettings, type BetterFormSettings } from "../../src/settings/settings";
+import { LEGACY_FOLDERS, mergeSettings, type BetterFormSettings } from "../../src/settings/settings";
 import { createFakeVault, type FakeVault } from "../helpers/fakeVault";
 
 const START = "<!-- forma:start -->";
@@ -28,7 +28,8 @@ interface World {
 
 function createWorld(): World {
 	const vault = createFakeVault();
-	const settings = mergeSettings(null);
+	// Vault ze starší verze s českými složkami (výchozí jsou anglicky – hlídá paths.test.ts).
+	const settings = { ...mergeSettings(null), folders: { ...LEGACY_FOLDERS } };
 	const index = new FormaIndex(vault.app);
 	index.register(vault.plugin);
 	const writer = new NoteWriter(vault.app);
@@ -229,7 +230,7 @@ describe("ExportService", () => {
 		await w.days.saveCheckIn({ date: "2026-10-03", quality: 4 });
 		w.vault.write("Jiné/poznámka.md", "nepatří do zálohy");
 		const result = await w.exporter.backup(new Date(2026, 9, 3, 14, 5));
-		expect(result.path).toBe("Forma zálohy/Forma 2026-10-03 14-05.zip");
+		expect(result.path).toBe("Better Form backups/Forma 2026-10-03 14-05.zip");
 		expect(result.files).toBe(1);
 		const zip = new Uint8Array(await w.vault.app.vault.readBinary(w.vault.app.vault.getAbstractFileByPath(result.path) as never));
 		expect(zip.length).toBe(result.bytes);
@@ -240,7 +241,7 @@ describe("ExportService", () => {
 		expect(view.getUint32(14, true)).toBe(crc32(new TextEncoder().encode(w.vault.text("Forma/Deník/2026/2026-10-03.md"))));
 		// Další záloha tu předchozí nezahrne (je mimo kořen) a nepřepíše ji.
 		const again = await w.exporter.backup(new Date(2026, 9, 3, 14, 5));
-		expect(again.path).toBe("Forma zálohy/Forma 2026-10-03 14-05 (2).zip");
+		expect(again.path).toBe("Better Form backups/Forma 2026-10-03 14-05 (2).zip");
 		expect(again.files).toBe(1);
 	});
 

@@ -48,43 +48,43 @@ function sweat(ion: keyof typeof ION, avg: number, min: number, max: number): Ra
 export const ELECTROLYTES: Electrolyte[] = translated([
 	{
 		id: "sodium",
-		name: "Sodík",
+		name: "Sodium",
 		symbol: "Na",
 		referenceMg: { male: 2000, female: 2000 },
 		sweatMgPerL: sweat("na", 35, 10, 70),
-		note: "2 g sodíku = 5 g soli. Běžná strava ho obvykle obsahuje víc; doplňovat cíleně má smysl u tréninků nad 2 hodiny, v horku nebo při silném pocení.",
+		note: "2 g of sodium = 5 g of salt. A normal diet usually contains more; adding it on purpose makes sense for sessions over 2 hours, in the heat or with heavy sweating.",
 	},
 	{
 		id: "chloride",
-		name: "Chlorid",
+		name: "Chloride",
 		symbol: "Cl",
 		referenceMg: { male: 3100, female: 3100 },
 		sweatMgPerL: sweat("cl", 30, 5, 60),
-		note: "Přijímá se spolu se sodíkem jako sůl – zvlášť ho řešit není potřeba.",
+		note: "It comes together with sodium as salt – no need to manage it separately.",
 	},
 	{
 		id: "potassium",
-		name: "Draslík",
+		name: "Potassium",
 		symbol: "K",
 		referenceMg: { male: 3500, female: 3500 },
 		sweatMgPerL: sweat("k", 5, 3, 15),
-		note: "Ztráty potem jsou proti dennímu příjmu malé. Zdroje: brambory, luštěniny, banány, zelenina.",
+		note: "Sweat losses are small compared with daily intake. Sources: potatoes, legumes, bananas, vegetables.",
 	},
 	{
 		id: "calcium",
-		name: "Vápník",
+		name: "Calcium",
 		symbol: "Ca",
 		referenceMg: { male: 950, female: 950 },
 		sweatMgPerL: sweat("ca", 1, 0.3, 2),
-		note: "Hodnota platí od 25 let (18–24 let: 1000 mg). Ztráty potem jsou malé.",
+		note: "The value applies from age 25 (18–24: 1000 mg). Sweat losses are small.",
 	},
 	{
 		id: "magnesium",
-		name: "Hořčík",
+		name: "Magnesium",
 		symbol: "Mg",
 		referenceMg: { male: 350, female: 300 },
 		sweatMgPerL: sweat("mg", 0.8, 0.2, 1.5),
-		note: "Ztráty potem jsou velmi malé – trénink sám o sobě potřebu skoro nezvyšuje.",
+		note: "Sweat losses are very small – training by itself barely raises the requirement.",
 	},
 ]);
 
@@ -95,9 +95,9 @@ export const SWEAT_RATES = { low: 0.5, medium: 1.0, high: 1.5 } as const;
 export type SweatLevel = keyof typeof SWEAT_RATES;
 
 export const SWEAT_LEVEL_LABELS: Record<SweatLevel, string> = translated({
-	low: "malé (0,5 l/h) – chladno, lehká zátěž",
-	medium: "střední (1 l/h)",
-	high: "velké (1,5 l/h) – horko, vysoká intenzita",
+	low: "low (0.5 l/h) – cool, light effort",
+	medium: "medium (1 l/h)",
+	high: "high (1.5 l/h) – heat, high intensity",
 });
 
 /** Odhad ztráty potu v litrech za trénink. */

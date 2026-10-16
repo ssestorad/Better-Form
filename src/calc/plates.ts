@@ -106,5 +106,5 @@ export function plateColor(kg: number): string {
 
 /** „25 + 15 + 2,5“ – kotouče na jednu stranu jako text; bez kotoučů „jen osa“. */
 export function plateText(load: PlateLoad, format: (kg: number) => string): string {
-	return load.perSide.length > 0 ? load.perSide.map(format).join(" + ") : t("jen osa");
+	return load.perSide.length > 0 ? load.perSide.map(format).join(" + ") : t("bar only");
 }

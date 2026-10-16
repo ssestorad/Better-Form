@@ -31,11 +31,11 @@ export function migrateFrontmatter(
 ): MigrationResult {
 	const raw = asRecord(input);
 	const type = formaTypeOf(raw);
-	if (!type) return { status: "invalid", reason: t("Neznámý nebo chybějící typ `forma`.") };
+	if (!type) return { status: "invalid", reason: t("Unknown or missing `forma` type.") };
 
 	const version = raw.schema === undefined || raw.schema === null ? 1 : raw.schema;
 	if (typeof version !== "number" || !Number.isInteger(version) || version < 1) {
-		return { status: "invalid", reason: t("Neplatná verze schématu: {v}.", { v: String(raw.schema) }) };
+		return { status: "invalid", reason: t("Invalid schema version: {v}.", { v: String(raw.schema) }) };
 	}
 	if (version > target) return { status: "newer", data: raw, version };
 	if (version === target) return { status: "current", data: raw };
@@ -44,7 +44,7 @@ export function migrateFrontmatter(
 	for (let v = version; v < target; v++) {
 		const step = migrations[type]?.[v];
 		if (!step) {
-			return { status: "invalid", reason: t("Chybí migrace typu „{type}“ z verze {v}.", { type, v }) };
+			return { status: "invalid", reason: t("Missing migration of type “{type}” from version {v}.", { type, v }) };
 		}
 		data = step(data);
 		data.schema = v + 1;

@@ -10,7 +10,7 @@ import { WorkoutService } from "../../src/data/WorkoutService";
 import { parsePlan } from "../../src/model/parse";
 import { planItemToFrontmatter } from "../../src/model/serialize";
 import type { PlanItem } from "../../src/model/types";
-import { mergeSettings } from "../../src/settings/settings";
+import { LEGACY_FOLDERS, mergeSettings } from "../../src/settings/settings";
 import { createFakeVault } from "../helpers/fakeVault";
 
 // Týden od pondělí 5. 10. 2026; „dnes“ je středa 7. 10.
@@ -20,7 +20,8 @@ const PATH = "Forma/Plán/2026/Týden 2026-10-05.md";
 
 function createWorld() {
 	const vault = createFakeVault();
-	const settings = mergeSettings(null);
+	// Vault ze starší verze s českými složkami (výchozí jsou anglicky – hlídá paths.test.ts).
+	const settings = { ...mergeSettings(null), folders: { ...LEGACY_FOLDERS } };
 	const index = new FormaIndex(vault.app);
 	index.register(vault.plugin);
 	const writer = new NoteWriter(vault.app);

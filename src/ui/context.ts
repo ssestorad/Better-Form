@@ -15,5 +15,5 @@ export function createContext(plugin: BetterFormPlugin): Map<unknown, unknown> {
 }
 
 export function usePlugin(): BetterFormPlugin {
-	return (getContext(CONTEXT_KEY) as BetterFormContext).plugin;
+	return getContext<BetterFormContext>(CONTEXT_KEY).plugin;
 }

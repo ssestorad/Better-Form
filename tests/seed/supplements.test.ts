@@ -11,7 +11,7 @@ import {
 	totalEssentialMgPerKg,
 } from "../../src/seed/aminoAcids";
 import { supplementToFrontmatter } from "../../src/model/serialize";
-import { MIN_STUDIES, SUPPLEMENT_CATALOG, catalogSupplement, findCatalogSupplement, matchesCatalogQuery } from "../../src/seed/supplements";
+import { MIN_STUDIES, SUPPLEMENT_CATALOG, catalog, catalogSupplement, findCatalogSupplement, matchesCatalogQuery } from "../../src/seed/supplements";
 import { CAFFEINE_EVENING_WARNING, adherenceLabel, doseLabel, formatAmount, limitMessage, personalDose } from "../../src/ui/supplements/text";
 import {
 	BENEFIT_AREAS,
@@ -88,7 +88,7 @@ describe("katalog suplementů", () => {
 	});
 
 	it("hledání v knihovně: část názvu nebo aliasu bez ohledu na diakritiku", () => {
-		const find = (q: string) => SUPPLEMENT_CATALOG.filter((s) => matchesCatalogQuery(s, q)).map((s) => s.id);
+		const find = (q: string) => catalog("cs").filter((s) => matchesCatalogQuery(s, q)).map((s) => s.id);
 		expect(find("horcik")).toEqual(["magnesium"]);
 		expect(find("LION")).toEqual(["lions_mane"]);
 		expect(find("chondroitin")).toEqual(["glucosamine"]);

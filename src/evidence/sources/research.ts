@@ -26,7 +26,7 @@ export const RESEARCH_SOURCES = {
 		url: "https://doi.org/10.1007/s40279-022-01784-y",
 	},
 	schoenfeld2017load: {
-		short: "Schoenfeld 2017 (zátěž)",
+		short: "Schoenfeld 2017 (load)",
 		citation: "Schoenfeld B. J., Grgic J., Ogborn D., Krieger J. W. (2017) Strength and hypertrophy adaptations between low- vs. high-load resistance training: a systematic review and meta-analysis. J Strength Cond Res 31(12):3508–3523.",
 		evidence: "research",
 		kind: "meta",

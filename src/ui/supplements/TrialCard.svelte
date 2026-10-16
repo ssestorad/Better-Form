@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Osobní test (N-of-1): ukazatel z ranního check-inu za 4 týdny před začátkem
 	// užívání proti období užívání (nejvýš 8 týdnů). Jen orientačně – bez placeba.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { TRIAL_DAYS, TRIAL_METRICS, TRIAL_METRIC_LABELS, TRIAL_MIN_SAMPLES, personalTrial, type TrialMetric } from "../../calc/supplements";
 	import { sleepDurationMin } from "../../calc/sleep";
 	import type { SupplementEntry } from "../../data/SupplementService";
@@ -32,23 +32,23 @@
 	/** Vyšší hodnota je u všech ukazatelů lepší (škály 5 = nejlepší, délka spánku). */
 	function verdict(diff: number): string {
 		const threshold = metric === "sleep_duration" ? 0.25 : 0.3;
-		if (Math.abs(diff) < threshold) return t("beze zřetelné změny");
-		return diff > 0 ? t("zlepšení") : t("zhoršení");
+		if (Math.abs(diff) < threshold) return t("no clear change");
+		return diff > 0 ? t("improvement") : t("worse");
 	}
 	const unit = $derived(metric === "sleep_duration" ? " h" : "");
 </script>
 
 <section class="bf-card">
-	<h4>{t("Osobní test")}</h4>
+	<h4>{t("Personal test")}</h4>
 	<p class="bf-muted bf-trial-small">
-		{t("Porovná ukazatel z ranního check-inu za {v} týdny před začátkem užívání se stejným obdobím během něj (nejvýš 8 týdnů). Začátek je datum přidání nebo opětovného zapnutí suplementu.", { v: TRIAL_DAYS / 7 })}
+		{t("Compares a morning check-in measure over the {v} weeks before you started taking it with the same period while taking it (at most 8 weeks). The start is the date it was added or turned back on.", { v: TRIAL_DAYS / 7 })}
 	</p>
 	{#if candidates.length === 0}
-		<p class="bf-muted">{t("Zatím nemáš aktivní suplement s datem začátku.")}</p>
+		<p class="bf-muted">{t("You don't have an active supplement with a start date yet.")}</p>
 	{:else}
 		<div class="bf-grid-2">
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Suplement")}</span>
+				<span class="bf-field-label">{t("Supplement")}</span>
 				<select value={entry?.file.path ?? ""} onchange={(e) => (chosen = e.currentTarget.value)}>
 					{#each candidates as c (c.file.path)}
 						<option value={c.file.path}>{c.note.name}</option>
@@ -56,7 +56,7 @@
 				</select>
 			</label>
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Co sledovat")}</span>
+				<span class="bf-field-label">{t("What to track")}</span>
 				<select bind:value={metric}>
 					{#each TRIAL_METRICS as m (m)}
 						<option value={m}>{TRIAL_METRIC_LABELS[m]}</option>
@@ -65,21 +65,21 @@
 			</label>
 		</div>
 		{#if entry && result}
-			<p class="bf-trial-small">{t("Užíváš od {v}.", { v: formatCzechDate(entry.note.since!, false) })}</p>
+			<p class="bf-trial-small">{t("Taking it since {v}.", { v: formatCzechDate(entry.note.since!, false) })}</p>
 			{#if result.ready}
 				<div class="bf-trial-row">
-					<span>{t("Před:")} <strong>{formatNumber(result.before, 2)}{unit}</strong> <span class="bf-muted">{t("({samplesBefore} měření)", { samplesBefore: result.samplesBefore })}</span></span>
-					<span>{t("Během:")} <strong>{formatNumber(result.during, 2)}{unit}</strong> <span class="bf-muted">{t("({samplesDuring} měření)", { samplesDuring: result.samplesDuring })}</span></span>
+					<span>{t("Before:")} <strong>{formatNumber(result.before, 2)}{unit}</strong> <span class="bf-muted">{tn(result.samplesBefore, ["({n} reading)", "({n} readings)"])}</span></span>
+					<span>{t("During:")} <strong>{formatNumber(result.during, 2)}{unit}</strong> <span class="bf-muted">{tn(result.samplesDuring, ["({n} reading)", "({n} readings)"])}</span></span>
 					<span><strong>{verdict(result.diff)}</strong> ({result.diff > 0 ? "+" : "−"}{formatNumber(Math.abs(result.diff), 2)}{unit})</span>
 				</div>
 			{:else}
 				<p class="bf-muted">
-					{t("Sbírám data – užívání {v} z {TRIAL_DAYS} dní; měření před {samplesBefore} a během {samplesDuring} (potřeba aspoň {TRIAL_MIN_SAMPLES} v každém období).", { v: Math.min(result.daysDuring, TRIAL_DAYS), TRIAL_DAYS, samplesBefore: result.samplesBefore, samplesDuring: result.samplesDuring, TRIAL_MIN_SAMPLES })}
+					{t("Collecting data – taking it {v} of {TRIAL_DAYS} days; readings before {samplesBefore} and during {samplesDuring} (at least {TRIAL_MIN_SAMPLES} needed in each period).", { v: Math.min(result.daysDuring, TRIAL_DAYS), TRIAL_DAYS, samplesBefore: result.samplesBefore, samplesDuring: result.samplesDuring, TRIAL_MIN_SAMPLES })}
 				</p>
 			{/if}
 		{/if}
 		<p class="bf-muted bf-trial-small">
-			{t("Bez placeba je to jen orientační: výsledek ovlivní i očekávání, roční období, trénink a stres.")} <span class="bf-tag">{t("praxe")}</span>
+			{t("Without a placebo this is only indicative: expectations, season, training and stress also affect the result.")} <span class="bf-tag">{t("practice")}</span>
 		</p>
 	{/if}
 </section>

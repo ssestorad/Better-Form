@@ -36,7 +36,7 @@
 		{#each bells as bell (bell)}
 			<option value={String(bell)}>{formatNumber(bell, 2)} kg</option>
 		{/each}
-		<option value="other">{t("jiná…")}</option>
+		<option value="other">{t("other…")}</option>
 	</select>
 {:else}
 	<NumInput bind:value {label} {error} decimals {signed} {placeholder} {onkeydown} />

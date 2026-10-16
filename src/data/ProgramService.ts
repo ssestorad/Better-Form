@@ -29,7 +29,7 @@ import type { NoteWriter } from "./NoteWriter";
 import { namedNotePath } from "./paths";
 import type { PlanProgram } from "./PlanService";
 import type { WorkoutService } from "./WorkoutService";
-import { t, translated } from "../i18n";
+import { LANGUAGES, t, tIn, translated } from "../i18n";
 
 export type ProgramEntry = IndexEntry<ProgramNote>;
 
@@ -78,11 +78,11 @@ const PROGRAM_KEYS = [
 ] as const;
 
 const TEST_LABELS: Record<TestNote["test_type"], string> = translated({
-	max_reps: "max opakování",
-	max_reps_timed: "max opakování na čas",
-	max_hold: "max výdrž",
+	max_reps: "max reps",
+	max_reps_timed: "max reps for time",
+	max_hold: "max hold",
 	"1rm": "1RM",
-	run_time: "čas běhu",
+	run_time: "run time",
 });
 
 /** Právě zapsaný trénink počítadla – index se aktualizuje se zpožděním. */
@@ -94,7 +94,9 @@ interface FreshCounter {
 const FRESH_MS = 5000;
 
 /** Název denního tréninku z rychlého zápisu bez programu (režim Základ). */
-export const BASIC_TITLE = "Základ"; // i18n-ignore: název tréninku, podle kterého se páruje (data)
+/** Název tréninku režimu Základ (data jsou anglicky); páruje se i s názvem v jiném jazyce ze starších vaultů. */
+export const BASIC_TITLE = "Basic";
+const BASIC_TITLES = new Set(LANGUAGES.map((language) => tIn(language, BASIC_TITLE)));
 
 export class ProgramService {
 	private readonly fresh = new Map<string, FreshCounter>();
@@ -201,7 +203,7 @@ export class ProgramService {
 			const linked = this.linkedWorkouts(entry, date);
 			const workout = linked.find((w) => w.note.duration_min !== undefined) ?? linked[0];
 			if (!workout) continue;
-			const day: PlanProgram = { name: entry.note.name, file: entry.file, sport: workout.note.sport, done: true, text: t("zapsaný trénink"), loggable: true, workoutFile: workout.file };
+			const day: PlanProgram = { name: entry.note.name, file: entry.file, sport: workout.note.sport, done: true, text: t("logged workout"), loggable: true, workoutFile: workout.file };
 			if (entry.note.session_min !== undefined) day.sessionMin = entry.note.session_min;
 			if (entry.note.intensity !== undefined) day.intensity = entry.note.intensity;
 			days.push(day);
@@ -266,8 +268,8 @@ export class ProgramService {
 	 * programu počítají do plánu týdne (SPEC 5.16). Prázdná délka = nepočítat.
 	 */
 	async setSession(entry: ProgramEntry, sessionMin: number | undefined, intensity: PlanIntensity | undefined): Promise<void> {
-		if (entry.schemaStatus === "newer") throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
-		if (sessionMin !== undefined && !(sessionMin > 0 && sessionMin <= MAX_PLAN_MINUTES)) throw new Error(t("Délka tréninku musí být kladná, nejvýš 24 hodin."));
+		if (entry.schemaStatus === "newer") throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
+		if (sessionMin !== undefined && !(sessionMin > 0 && sessionMin <= MAX_PLAN_MINUTES)) throw new Error(t("The workout duration must be positive, at most 24 hours."));
 		await this.writer.updateFrontmatter(entry.file, (fm) => {
 			if (sessionMin === undefined) delete fm.session_min;
 			else fm.session_min = Math.round(sessionMin);
@@ -357,12 +359,12 @@ export class ProgramService {
 		const rawItems = Array.isArray(read.raw.items) ? read.raw.items.length : 0;
 		const migration = migrateFrontmatter({ schema: SCHEMA_VERSION, ...read.raw });
 		const parsed = migration.status === "invalid" ? null : parseProgram(migration.data);
-		if (!parsed) throw new Error(t("Soubor není platný program – chybí název nebo je z novější verze pluginu."));
+		if (!parsed) throw new Error(t("The file isn't a valid program – it's missing a name or is from a newer version of the plugin."));
 		if (parsed.items.length === 0) {
 			throw new Error(
 				read.format === "list"
-					? t("V souboru jsem nenašel žádnou položku. Piš je jako odrážky, např. „- Kliky: 3×10“ nebo „- Běh: 5 km“.")
-					: t("Program v souboru nemá žádnou platnou položku (items s exercise a target)."),
+					? t("I didn't find any item in the file. Write them as bullets, e.g. “- Push-up: 3×10” or “- Run: 5 km”.")
+					: t("The program in the file has no valid item (items with exercise and target)."),
 			);
 		}
 		// Názvy cviků podle knihovny (alias → název); neznámé se ohlásí.
@@ -459,7 +461,7 @@ export class ProgramService {
 		if (fresh && Date.now() - fresh.at < FRESH_MS) return { key, current: { file: fresh.file, note: fresh.note } };
 		const found = this.index
 			.workouts()
-			.find((w) => w.note.date === date && !w.note.program && w.note.title === BASIC_TITLE);
+			.find((w) => w.note.date === date && !w.note.program && w.note.title !== undefined && BASIC_TITLES.has(w.note.title));
 		return found ? { key, current: { file: found.file, note: found.note } } : { key };
 	}
 

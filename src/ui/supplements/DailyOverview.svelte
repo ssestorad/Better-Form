@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Denní přehled: co všechno a kolik toho uživatel za den bere, se součty.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import {
 		checkUpperLimit,
 		combinedWarnings,
@@ -74,24 +74,24 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Denní přehled")}</h4>
+	<h4>{t("Daily overview")}</h4>
 	<div class="bf-daily" role="table">
 		<div class="bf-daily-tr bf-muted" role="row">
-			<span role="columnheader">{t("Suplement")}</span>
-			<span role="columnheader">{t("Dávka")}</span>
-			<span role="columnheader" class="bf-daily-num">{t("Za den")}</span>
-			<span role="columnheader">{t("Kdy")}</span>
+			<span role="columnheader">{t("Supplement")}</span>
+			<span role="columnheader">{t("Dose")}</span>
+			<span role="columnheader" class="bf-daily-num">{t("Per day")}</span>
+			<span role="columnheader">{t("When")}</span>
 		</div>
 		{#each rows as row (row.entry.file.path)}
 			<div class="bf-daily-tr" role="row">
 				<span role="cell">
 					{row.entry.note.name}
-					{#if row.amino}<span class="bf-tag" title={t("Počítá se do součtu aminokyselin")}>{t("AK")}</span>{/if}
+					{#if row.amino}<span class="bf-tag" title={t("Counted in the amino acid total")}>{t("AA")}</span>{/if}
 				</span>
 				<span role="cell">{doseLabel(row.entry.note.dose, row.entry.note.unit) || "—"}</span>
 				<span role="cell" class="bf-daily-num">{row.mg === null ? "—" : formatAmount(row.mg)}</span>
 				<span role="cell" class="bf-muted">
-					{SUPPLEMENT_TIMING_LABELS[row.entry.note.timing]}{row.entry.note.training_days_only ? t(", jen s tréninkem") : ""}
+					{SUPPLEMENT_TIMING_LABELS[row.entry.note.timing]}{row.entry.note.training_days_only ? t(", training days only") : ""}
 				</span>
 			</div>
 			{#if row.warning}<div class="bf-daily-warning">{row.warning}</div>{/if}
@@ -100,19 +100,19 @@
 
 	<dl class="bf-daily-totals">
 		{#if sameDays}
-			<dt>{t("Celkem denně")}</dt>
-			<dd>{t("{v} · {trainingDayCount} suplementů", { v: withPerKg(totals.trainingDayMg), trainingDayCount: totals.trainingDayCount })}</dd>
+			<dt>{t("Daily total")}</dt>
+			<dd>{tn(totals.trainingDayCount, ["{v} · {n} supplement", "{v} · {n} supplements"], { v: withPerKg(totals.trainingDayMg) })}</dd>
 		{:else}
-			<dt>{t("Tréninkový den")}</dt>
-			<dd>{t("{v} · {trainingDayCount} suplementů", { v: withPerKg(totals.trainingDayMg), trainingDayCount: totals.trainingDayCount })}</dd>
-			<dt>{t("Den volna")}</dt>
-			<dd>{t("{v} · {restDayCount} suplementů", { v: withPerKg(totals.restDayMg), restDayCount: totals.restDayCount })}</dd>
+			<dt>{t("Training day")}</dt>
+			<dd>{tn(totals.trainingDayCount, ["{v} · {n} supplement", "{v} · {n} supplements"], { v: withPerKg(totals.trainingDayMg) })}</dd>
+			<dt>{t("Rest day")}</dt>
+			<dd>{tn(totals.restDayCount, ["{v} · {n} supplement", "{v} · {n} supplements"], { v: withPerKg(totals.restDayMg) })}</dd>
 		{/if}
 		{#if totals.aminoTrainingDayMg > 0}
-			<dt>{t("Z toho aminokyseliny")}</dt>
+			<dt>{t("Of which amino acids")}</dt>
 			<dd>
 				{withPerKg(totals.aminoTrainingDayMg)}{#if totals.aminoRestDayMg !== totals.aminoTrainingDayMg}
-					{t("{v}v tréninkový den, {v2} v den volna", { v: " ", v2: formatAmount(totals.aminoRestDayMg) })}{/if}
+					{t("{v}on a training day, {v2} on a rest day", { v: " ", v2: formatAmount(totals.aminoRestDayMg) })}{/if}
 			</dd>
 		{/if}
 	</dl>
@@ -121,11 +121,11 @@
 	{/each}
 	{#if totals.unconverted > 0}
 		<p class="bf-muted bf-small">
-			{t("Do součtu se nepočítá {unconverted} {v} bez dávky nebo s jednotkou, kterou nejde převést na gramy (kapsle, tableta). Zadej dávku v g, mg nebo µg.", { unconverted: totals.unconverted, v: totals.unconverted === 1 ? "suplement" : t("suplementů") })}
+			{tn(totals.unconverted, ["Not counted in the total: {n} supplement without a dose or with a unit that can't be converted to grams (capsule, tablet). Enter the dose in g, mg or µg.", "Not counted in the total: {n} supplements without a dose or with a unit that can't be converted to grams (capsule, tablet). Enter the dose in g, mg or µg."])}
 		</p>
 	{/if}
 	<p class="bf-muted bf-small">
-		{t("Součet je hmotnost všech dávek dohromady – slouží pro přehled, ne jako doporučení. AK = aminokyseliny (BCAA, EAA, glutamin, citrulin, beta-alanin); protein se mezi ně nepočítá, patří do celkového příjmu bílkovin.")}
+		{t("The total is the weight of all doses together – it's an overview, not a recommendation. AA = amino acids (BCAA, EAA, glutamine, citrulline, beta-alanine); protein isn't counted among them, it belongs to your total protein intake.")}
 	</p>
 </section>
 

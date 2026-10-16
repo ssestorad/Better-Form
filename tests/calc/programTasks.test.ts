@@ -16,7 +16,7 @@ import {
 	tasksForDate,
 } from "../../src/calc/programTasks";
 import { describeDays, describeTarget, programOverview } from "../../src/calc/programText";
-import { SEED_PROGRAMS } from "../../src/seed/programs";
+import { seedPrograms } from "../../src/seed/programs";
 import {
 	exerciseForWeek,
 	ladderTotalReps,
@@ -130,7 +130,7 @@ describe("přehled programu po týdnech", () => {
 	});
 
 	it("Kliky a shyby – 6 týdnů: pátek střídá varianty, 3. a 6. týden test", () => {
-		const p = SEED_PROGRAMS.find((s) => s.note.name === "Kliky a shyby – 6 týdnů")!.note;
+		const p = seedPrograms("cs").find((s) => s.note.name === "Kliky a shyby – 6 týdnů")!.note;
 		const overview = programOverview(p);
 		expect(overview.map((w) => [w.from, w.to])).toEqual([[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]]);
 		expect(overview[0]!.lines).toEqual([
@@ -142,7 +142,7 @@ describe("přehled programu po týdnech", () => {
 	});
 
 	it("Od gauče k 5 km: týdny 5 a 6 mají různé tréninky", () => {
-		const p = SEED_PROGRAMS.find((s) => s.note.name === "Od gauče k 5 km")!.note;
+		const p = seedPrograms("cs").find((s) => s.note.name === "Od gauče k 5 km")!.note;
 		const overview = programOverview(p);
 		expect(overview).toHaveLength(9);
 		expect(overview[0]!.lines).toEqual([

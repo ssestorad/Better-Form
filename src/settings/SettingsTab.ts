@@ -8,6 +8,7 @@ import { StravaCodeModal } from "../ui/modals/StravaCodeModal";
 import {
 	DEFAULT_FOLDERS,
 	DEFAULT_NUTRITION,
+	DEFAULT_SETTINGS,
 	DEFAULT_THRESHOLDS,
 	RMR_FORMULAS,
 	parseNumberList,
@@ -33,19 +34,19 @@ interface NumberOptions {
 }
 
 const FOLDER_LABELS: Record<Exclude<keyof FolderSettings, "root">, string> = translated({
-	days: "Deník (denní poznámky)",
-	workouts: "Tréninky",
-	exercises: "Knihovna cviků",
-	templates: "Šablony tréninků",
-	programs: "Programy",
-	supplements: "Suplementy",
-	goals: "Cíle",
-	pains: "Bolesti a zranění",
-	gear: "Vybavení",
-	tests: "Testy maxim",
-	summaries: "Měsíční souhrny",
-	exports: "Export do CSV",
-	plans: "Plány týdne",
+	days: "Journal (daily notes)",
+	workouts: "Workouts",
+	exercises: "Exercise library",
+	templates: "Workout templates",
+	programs: "Programs",
+	supplements: "Supplements",
+	goals: "Goals",
+	pains: "Pain and injuries",
+	gear: "Equipment",
+	tests: "Max tests",
+	summaries: "Summaries",
+	exports: "CSV export",
+	plans: "Weekly plans",
 });
 
 export class BetterFormSettingTab extends PluginSettingTab {
@@ -87,8 +88,9 @@ export class BetterFormSettingTab extends PluginSettingTab {
 	/** Jazyk: vždy dvojjazyčně, ať ho najde i ten, kdo druhému jazyku nerozumí. */
 	private displayLanguage(el: HTMLElement): void {
 		new Setting(el)
-			.setName("Language / Jazyk")
-			.setDesc(t("Interface and newly created notes. Command names change after the plugin restarts. / Rozhraní a nově zakládané poznámky. Názvy příkazů se změní po restartu pluginu."))
+			// Anglický název zůstane i v jiném jazyce, aby přepínač našel každý.
+			.setName(this.settings.language === "en" ? "Language" : `Language / ${t("Language")}`)
+			.setDesc(t("Interface language. Notes created earlier (library, texts generated in notes) switch over with Translate notes. Command names change after the plugin restarts."))
 			.addDropdown((d) => {
 				for (const language of LANGUAGES) d.addOption(language, LANGUAGE_LABELS[language]);
 				d.setValue(this.settings.language).onChange(async (value) => {
@@ -96,54 +98,58 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					await this.plugin.setLanguage(value);
 					this.display();
 				});
+			})
+			// Knihovnu a texty v poznámkách z dřívějška převede do zvoleného jazyka (s potvrzením).
+			.addButton((b) => {
+				b.setButtonText(t("Translate notes")).onClick(() => void this.plugin.renameBuiltinToLanguage());
 			});
 	}
 
 	private displayProfile(el: HTMLElement): void {
 		const profile = this.settings.profile;
 		new Setting(el)
-			.setName(t("Profil"))
-			.setDesc(t("Údaje pro výpočty (tepové zóny, výživa). Nic se neodesílá mimo vault."))
+			.setName(t("Profile"))
+			.setDesc(t("Data for calculations (heart rate zones, nutrition). Nothing leaves the vault."))
 			.setHeading();
 		new Setting(el)
-			.setName(t("Průvodce nastavením"))
-			.setDesc(t("Profil, cíl, režim a sporty v jednom krátkém formuláři."))
-			.addButton((b) => b.setButtonText(t("Spustit průvodce")).onClick(() => this.plugin.openOnboarding()));
+			.setName(t("Setup guide"))
+			.setDesc(t("Profile, goal, mode and sports in one short form."))
+			.addButton((b) => b.setButtonText(t("Start guide")).onClick(() => this.plugin.openOnboarding()));
 
-		new Setting(el).setName(t("Jméno")).setDesc(t("Volitelné.")).addText((t) =>
+		new Setting(el).setName(t("Name", undefined, "person")).setDesc(t("Optional.")).addText((t) =>
 			t.setValue(profile.name).onChange((v) => {
 				profile.name = v.trim();
 				this.save();
 			}),
 		);
-		new Setting(el).setName(t("Pohlaví")).setDesc(t("Používá se ve vzorci klidového výdeje.")).addDropdown((d) =>
+		new Setting(el).setName(t("Sex")).setDesc(t("Used in the resting energy equation.")).addDropdown((d) =>
 			d
-				.addOptions({ "": t("Nevyplněno"), male: t("Muž"), female: t("Žena") })
+				.addOptions({ "": t("Not set"), male: t("Male"), female: t("Female") })
 				.setValue(profile.sex ?? "")
 				.onChange((v) => {
 					profile.sex = v === "" ? null : (v as SettingsSex);
 					this.save();
 				}),
 		);
-		this.numberSetting(el, t("Rok narození"), "", profile.birthYear, (v) => (profile.birthYear = v), {
+		this.numberSetting(el, t("Year of birth"), "", profile.birthYear, (v) => (profile.birthYear = v), {
 			min: 1900,
 			max: new Date().getFullYear(),
 			optional: true,
 		});
-		this.numberSetting(el, t("Výška"), "cm", profile.heightCm, (v) => (profile.heightCm = v), {
+		this.numberSetting(el, t("Height"), "cm", profile.heightCm, (v) => (profile.heightCm = v), {
 			min: 100,
 			max: 250,
 			optional: true,
 		});
 		this.numberSetting(
 			el,
-			t("Výchozí hmotnost"),
-			t("kg – používá se, dokud nezapíšeš hmotnost v ranním check-inu."),
+			t("Default body weight"),
+			t("kg – used until you log your weight in the morning check-in."),
 			profile.weightKg,
 			(v) => (profile.weightKg = v),
 			{ min: 30, max: 250, step: 0.1, optional: true },
 		);
-		this.numberSetting(el, t("Podíl tuku"), t("% – volitelně."), profile.bodyFatPct, (v) => (profile.bodyFatPct = v), {
+		this.numberSetting(el, t("Body fat"), t("% – optional."), profile.bodyFatPct, (v) => (profile.bodyFatPct = v), {
 			min: 3,
 			max: 60,
 			step: 0.1,
@@ -151,27 +157,27 @@ export class BetterFormSettingTab extends PluginSettingTab {
 		});
 		this.numberSetting(
 			el,
-			t("Maximální tep (HRmax)"),
-			t("Změřená hodnota; když chybí, odhadne se z věku (Tanaka 2001)."),
+			t("Maximum heart rate (HRmax)"),
+			t("Measured value; if missing, it's estimated from age (Tanaka 2001)."),
 			profile.hrMax,
 			(v) => (profile.hrMax = v),
 			{ min: 120, max: 230, optional: true },
 		);
 		new Setting(el)
-			.setName(t("Aktivita mimo trénink"))
-			.setDesc(t("Běžný den bez tréninku – tréninky se ve výživě počítají zvlášť. Sedavá = většinu dne sedíš (škola, kancelář); lehce aktivní = část dne na nohou nebo hodně chodíš; aktivní = fyzická práce."))
+			.setName(t("Activity outside training"))
+			.setDesc(t("A normal day without training – workouts are counted separately in nutrition. Sedentary = you sit most of the day (school, office); lightly active = on your feet part of the day or walking a lot; active = physical work."))
 			.addDropdown((d) =>
 			d
-				.addOptions({ sedentary: t("Sedavá"), light: t("Lehce aktivní"), active: t("Aktivní práce") })
+				.addOptions({ sedentary: t("Sedentary"), light: t("Lightly active"), active: t("Active job") })
 				.setValue(profile.activity)
 				.onChange((v) => {
 					profile.activity = v as ActivityLevel;
 					this.save();
 				}),
 		);
-		new Setting(el).setName(t("Cíl")).addDropdown((d) =>
+		new Setting(el).setName(t("Goal")).addDropdown((d) =>
 			d
-				.addOptions({ lose: t("Hubnutí"), maintain: t("Udržování"), gain: t("Nabírání") })
+				.addOptions({ lose: t("Lose weight"), maintain: t("Maintain"), gain: t("Gain") })
 				.setValue(profile.goal)
 				.onChange((v) => {
 					profile.goal = v as BodyGoal;
@@ -183,12 +189,12 @@ export class BetterFormSettingTab extends PluginSettingTab {
 	private displayNutrition(el: HTMLElement): void {
 		const nutrition = this.settings.nutrition;
 		new Setting(el)
-			.setName(t("Výživa"))
-			.setDesc(t("Výpočet doporučeného příjmu (karta Výživa). Výchozí hodnoty podle zdrojů uvedených na kartě."))
+			.setName(t("Nutrition"))
+			.setDesc(t("How the recommended intake is calculated (Nutrition tab). Defaults follow the sources listed on the tab."))
 			.setHeading();
 		new Setting(el)
-			.setName(t("Rovnice klidového výdeje"))
-			.setDesc(t("ten Haaf vznikl na sportovcích 18–35 let trénujících aspoň 3 h týdně a u nich je nejpřesnější; pro ostatní je spolehlivější Mifflin–St Jeor. Rovnice z beztukové hmoty potřebují vyplněný podíl tuku; bez něj se použije ten Haaf z hmotnosti. Karta Výživa napíše, když se k tvému profilu hodí jiná rovnice, a nabídne přepnutí."))
+			.setName(t("Resting energy equation"))
+			.setDesc(t("ten Haaf was developed in athletes aged 18–35 training at least 3 h a week and is the most accurate for them; for everyone else Mifflin–St Jeor is more reliable. The fat-free mass equations need your body fat filled in; without it, ten Haaf by weight is used. The Nutrition tab tells you when a different equation suits your profile and offers to switch."))
 			.addDropdown((d) =>
 				d
 					.addOptions(Object.fromEntries(RMR_FORMULAS.map((f) => [f, RMR_FORMULA_LABELS[f]])))
@@ -199,15 +205,15 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					}),
 			);
 		const factors: [ActivityLevel, string][] = [
-			["sedentary", t("Koeficient – sedavá")],
-			["light", t("Koeficient – lehce aktivní")],
-			["active", t("Koeficient – aktivní práce")],
+			["sedentary", t("Factor – sedentary")],
+			["light", t("Factor – lightly active")],
+			["active", t("Factor – active job")],
 		];
 		for (const [level, label] of factors) {
 			this.numberSetting(
 				el,
 				label,
-				t("Násobek klidového výdeje za běžnou aktivitu mimo trénink (odhad – praxe). Výchozí: {v}.", { v: DEFAULT_NUTRITION.activityFactors[level] }),
+				t("Multiple of resting expenditure for everyday activity outside training (estimate – practice). Default: {v}.", { v: DEFAULT_NUTRITION.activityFactors[level] }),
 				nutrition.activityFactors[level],
 				(v) => {
 					if (v !== null) nutrition.activityFactors[level] = v;
@@ -215,22 +221,22 @@ export class BetterFormSettingTab extends PluginSettingTab {
 				{ min: 1, max: 2.5, step: 0.05 },
 			);
 		}
-		this.numberSetting(el, t("Hubnutí – nejpomalejší tempo"), t("% hmotnosti za týden (Helms 2014). Výchozí: 0,5."), nutrition.lossRatePctMin, (v) => {
+		this.numberSetting(el, t("Weight loss – slowest pace"), t("% of body weight per week (Helms 2014). Default: 0.5."), nutrition.lossRatePctMin, (v) => {
 			if (v !== null) nutrition.lossRatePctMin = v;
 		}, { min: 0.1, max: 1.5, step: 0.1 });
-		this.numberSetting(el, t("Hubnutí – nejrychlejší tempo"), t("% hmotnosti za týden (Helms 2014). Výchozí: 1."), nutrition.lossRatePctMax, (v) => {
+		this.numberSetting(el, t("Weight loss – fastest pace"), t("% of body weight per week (Helms 2014). Default: 1."), nutrition.lossRatePctMax, (v) => {
 			if (v !== null) nutrition.lossRatePctMax = v;
 		}, { min: 0.1, max: 1.5, step: 0.1 });
-		this.numberSetting(el, t("Nabírání – přebytek od"), t("% výdeje (praxe). Výchozí: 5."), nutrition.gainSurplusPctMin, (v) => {
+		this.numberSetting(el, t("Gaining – surplus from"), t("% of expenditure (practice). Default: 5."), nutrition.gainSurplusPctMin, (v) => {
 			if (v !== null) nutrition.gainSurplusPctMin = v;
 		}, { min: 0, max: 25 });
-		this.numberSetting(el, t("Nabírání – přebytek do"), t("% výdeje (praxe). Výchozí: 10."), nutrition.gainSurplusPctMax, (v) => {
+		this.numberSetting(el, t("Gaining – surplus up to"), t("% of expenditure (practice). Default: 10."), nutrition.gainSurplusPctMax, (v) => {
 			if (v !== null) nutrition.gainSurplusPctMax = v;
 		}, { min: 0, max: 25 });
 		this.numberSetting(
 			el,
-			t("Bílkoviny"),
-			t("g na kg hmotnosti – horní hranice doporučení (rozsah 1,6–2,2; Morton 2018). Výchozí: 2."),
+			t("Protein"),
+			t("g per kg of body weight – upper end of the recommendation (range 1.6–2.2; Morton 2018). Default: 2."),
 			nutrition.proteinGPerKg,
 			(v) => {
 				if (v !== null) nutrition.proteinGPerKg = v;
@@ -240,51 +246,51 @@ export class BetterFormSettingTab extends PluginSettingTab {
 	}
 
 	private displayPrograms(el: HTMLElement): void {
-		new Setting(el).setName(t("Programy")).setHeading();
+		new Setting(el).setName(t("Programs")).setHeading();
 		new Setting(el)
-			.setName(t("Program ze souboru"))
-			.setDesc(t("Vyber soubor .md, .txt, .json nebo .yaml – vznikne z něj vlastní program v knihovně (neaktivní). Soubor zůstává v počítači, nikam se neodesílá."))
-			.addButton((b) => b.setButtonText(t("Vybrat soubor")).setCta().onClick(() => this.plugin.pickProgramFile()));
+			.setName(t("Program from file"))
+			.setDesc(t("Choose an .md, .txt, .json or .yaml file – it becomes your own program in the library (inactive). The file stays on your computer and isn't sent anywhere."))
+			.addButton((b) => b.setButtonText(t("Choose file")).setCta().onClick(() => this.plugin.pickProgramFile()));
 		new Setting(el)
-			.setName(t("Program z vloženého textu"))
-			.setDesc(t("Stejné formáty jako u souboru – hodí se pro text zkopírovaný od kamaráda."))
-			.addButton((b) => b.setButtonText(t("Vložit text")).onClick(() => this.plugin.openProgramImport()));
+			.setName(t("Program from pasted text"))
+			.setDesc(t("Same formats as the file – handy for text copied from a friend."))
+			.addButton((b) => b.setButtonText(t("Paste text")).onClick(() => this.plugin.openProgramImport()));
 
 		const help = el.createEl("details", { cls: "bf-settings-details" });
-		help.createEl("summary", { text: t("Jak má soubor vypadat") });
+		help.createEl("summary", { text: t("What the file should look like") });
 		help.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Nejjednodušší je obyčejný seznam: nadpis = název programu, nadpis se dny (např. „Pondělí a pátek“) platí pro odrážky pod ním, každá odrážka je „Cvik: cíl“. Dny jde napsat i řádkem „Dny: po, st, pá“ nebo do závorky za položku."),
+			text: t("The simplest is a plain list: the heading is the program name, a heading with days (e.g. “Monday and Friday”) applies to the bullets below it, and each bullet is “Exercise: target”. You can also write days as a line “Days: Mon, Wed, Fri” or in brackets after an item."),
 		});
 		help.createEl("pre", { text: PROGRAM_FILE_EXAMPLE });
 		const targets = help.createEl("ul", { cls: "setting-item-description" });
 		for (const line of [
-			t("3×10 – série × opakování"),
-			t("3×45 s, 2 min – výdrž nebo čas"),
-			t("5 km, 800 m – vzdálenost"),
-			t("100 denně – denní součet (počítadlo)"),
-			t("3× max – série na maximum"),
-			t("3×60 % – série s procentem z testu maxima"),
-			t("EMOM 10 min × 5 – každou minutu 5 opakování"),
-			t("žebřík 1-2-3-4-5 – žebřík"),
+			t("3×10 – sets × reps"),
+			t("3×45 s, 2 min – hold or time"),
+			t("5 km, 800 m – distance"),
+			t("100 daily – daily total (counter)"),
+			t("3× max – max-rep sets"),
+			t("3×60 % – sets at a percentage of your max test"),
+			t("EMOM 10 min × 5 – 5 reps every minute"),
+			t("ladder 1-2-3-4-5 – ladder"),
 		]) {
 			targets.createEl("li", { text: line });
 		}
 		help.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Čte se i poznámka programu z tohoto pluginu (s úvodním blokem mezi řádky ---) a JSON nebo YAML se stejnými klíči: name, days, duration_weeks, items (exercise, target). Řádky, kterým plugin neporozumí, vypíše po importu. Cviky, které nejsou v knihovně, se uloží pod zadaným názvem."),
+			text: t("It also reads a program note from this plugin (with a front matter block between --- lines) and JSON or YAML with the same keys: name, days, duration_weeks, items (exercise, target). Lines the plugin doesn't understand are listed after the import. Exercises that aren't in the library are saved under the given name."),
 		});
 	}
 
 	private displayBackup(el: HTMLElement): void {
-		new Setting(el).setName(t("Export a záloha")).setHeading();
+		new Setting(el).setName(t("Export and backup")).setHeading();
 		new Setting(el)
 			.setName("Export do CSV")
-			.setDesc(t("Uloží tréninky a denní data jako CSV (oddělovač středník, desetinná čárka – otevře se v Excelu) do složky {root}/{exports}.", { root: this.settings.folders.root, exports: this.settings.folders.exports }))
-			.addButton((b) => b.setButtonText(t("Exportovat")).onClick(() => void this.plugin.exportCsv()));
+			.setDesc(t("Saves workouts and daily data as CSV (semicolon separator, decimal comma – opens in Excel) to the folder {root}/{exports}.", { root: this.settings.folders.root, exports: this.settings.folders.exports }))
+			.addButton((b) => b.setButtonText(t("Export", undefined, "action")).onClick(() => void this.plugin.exportCsv()));
 		new Setting(el)
-			.setName(t("Složka záloh"))
-			.setDesc(t("Cesta ve vaultu mimo kořenovou složku. Výchozí: Forma zálohy."))
+			.setName(t("Backup folder"))
+			.setDesc(t("A path in the vault outside the root folder. Default: {v}.", { v: DEFAULT_SETTINGS.backupFolder }))
 			.addText((t) =>
 				t.setValue(this.settings.backupFolder).onChange((v) => {
 					const path = normalizeVaultPath(v);
@@ -298,19 +304,19 @@ export class BetterFormSettingTab extends PluginSettingTab {
 				}),
 			);
 		new Setting(el)
-			.setName(t("Zálohovat"))
-			.setDesc(t("Zabalí celou kořenovou složku do jednoho souboru .zip ve složce záloh."))
-			.addButton((b) => b.setButtonText(t("Zálohovat")).onClick(() => void this.plugin.backup()));
+			.setName(t("Back up"))
+			.setDesc(t("Packs the whole root folder into one .zip file in the backup folder."))
+			.addButton((b) => b.setButtonText(t("Back up")).onClick(() => void this.plugin.backup()));
 	}
 
 	private displayMode(el: HTMLElement): void {
-		new Setting(el).setName(t("Režim")).setHeading();
+		new Setting(el).setName(t("Mode")).setHeading();
 		new Setting(el)
-			.setName(t("Režim zobrazení"))
-			.setDesc(t("Základ = karty základních cviků a běhu s rychlým zápisem; pokročilé karty jsou skryté. Data zůstávají stejná."))
+			.setName(t("Display mode"))
+			.setDesc(t("Basic = cards for basic exercises and running with quick logging; advanced tabs are hidden. The data stays the same."))
 			.addDropdown((d) =>
 				d
-					.addOptions({ full: t("Plný"), basic: t("Základ") })
+					.addOptions({ full: t("Full"), basic: t("Basic") })
 					.setValue(this.settings.mode)
 					.onChange((v) => {
 						this.settings.mode = v as AppMode;
@@ -318,8 +324,8 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					}),
 			);
 		new Setting(el)
-			.setName(t("Cviky v režimu Základ"))
-			.setDesc(t("Názvy cviků z knihovny oddělené čárkou; kardio cviky (Běh, Švihadlo) dostanou kartu s přehledem."))
+			.setName(t("Exercises in Basic mode"))
+			.setDesc(t("Exercise names from the library, separated by commas; cardio exercises (running, jump rope) get a summary card."))
 			.addText((t) =>
 				t.setValue(this.settings.basicExercises.join(", ")).onChange((v) => {
 					this.settings.basicExercises = v
@@ -332,7 +338,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 	}
 
 	private displayTraining(el: HTMLElement): void {
-		new Setting(el).setName(t("Trénink a vybavení")).setHeading();
+		new Setting(el).setName(t("Training and equipment")).setHeading();
 
 		for (const sport of SPORTS) {
 			new Setting(el).setName(`Sport: ${SPORT_LABELS[sport]}`).addToggle((t) =>
@@ -345,16 +351,16 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 		this.numberSetting(
 			el,
-			t("Týdenní cíl tréninků"),
-			t("Počet tréninků za týden (pro série splněných týdnů)."),
+			t("Weekly workout goal"),
+			t("Number of workouts per week (for streaks of completed weeks)."),
 			this.settings.weeklyWorkoutGoal,
 			(v) => (this.settings.weeklyWorkoutGoal = v ?? 3),
 			{ min: 1, max: 21 },
 		);
 
 		new Setting(el)
-			.setName(t("Série a odznaky"))
-			.setDesc(t("Zobrazovat série splněných týdnů a dnů programu a odznaky na kartě Přehled. Nemoc a dovolená zapsané v plánu týdne sérii nepřeruší."))
+			.setName(t("Streaks and badges"))
+			.setDesc(t("Show streaks of completed weeks and program days, and badges on the Overview tab. Illness and vacation logged in the weekly plan don't break a streak."))
 			.addToggle((t) =>
 				t.setValue(this.settings.showStreaks).onChange((v) => {
 					this.settings.showStreaks = v;
@@ -364,7 +370,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 		new Setting(el)
 			.setName("Kettlebelly")
-			.setDesc(t("Hmotnosti tvých zvonů v kg, oddělené čárkou (např. 12, 16, 24)."))
+			.setDesc(t("Your kettlebell weights in kg, separated by commas (e.g. 12, 16, 24)."))
 			.addText((t) =>
 				t.setValue(this.settings.kettlebellsKg.join(", ")).onChange((v) => {
 					this.settings.kettlebellsKg = parseNumberList(v);
@@ -374,15 +380,15 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 		this.numberSetting(
 			el,
-			t("Osa velké činky (kg)"),
-			t("Pro kalkulačku kotoučů a rozcvičovacích sérií v zápisu tréninku. Olympijská osa má 20 kg, dámská 15 kg."),
+			t("Barbell (kg)"),
+			t("For the plate and warm-up set calculator in workout logging. An Olympic bar weighs 20 kg, a women's bar 15 kg."),
 			this.settings.barbellKg,
 			(v) => (this.settings.barbellKg = v ?? 20),
 			{ min: 1, max: 60, step: 0.5 },
 		);
 		new Setting(el)
-			.setName(t("Kotouče"))
-			.setDesc(t("Hmotnosti kotoučů, které máš k dispozici, v kg oddělené čárkou nebo mezerou (desetinná tečka: 2.5)."))
+			.setName(t("Plates"))
+			.setDesc(t("Plate weights you have available, in kg, separated by commas or spaces (decimal point: 2.5)."))
 			.addText((t) =>
 				t.setValue(this.settings.platesKg.join(", ")).onChange((v) => {
 					const plates = parseNumberList(v);
@@ -394,8 +400,8 @@ export class BetterFormSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(el)
-			.setName(t("Tlačítka denního počítadla"))
-			.setDesc(t("Kolik opakování přidávají rychlá tlačítka, např. 5, 10, 15."))
+			.setName(t("Daily counter buttons"))
+			.setDesc(t("How many reps the quick buttons add, e.g. 5, 10, 15."))
 			.addText((t) =>
 				t.setValue(this.settings.counterSteps.join(", ")).onChange((v) => {
 					const steps = parseNumberList(v).filter(Number.isInteger);
@@ -408,11 +414,11 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 		const muscles = el.createEl("details", { cls: "bf-settings-details" });
 		muscles.createEl("summary", {
-			text: t("Partie, které cíleně trénuji ({focusMuscles_length})", { focusMuscles_length: this.settings.focusMuscles.length }),
+			text: t("Muscle groups I'm focusing on ({focusMuscles_length})", { focusMuscles_length: this.settings.focusMuscles.length }),
 		});
 		muscles.createEl("p", {
 			cls: "setting-item-description",
-			text: t("U těchto partií plugin upozorní na nízký týdenní objem."),
+			text: t("For these muscle groups the plugin warns about low weekly volume."),
 		});
 		for (const muscle of MUSCLES) {
 			new Setting(muscles).setName(MUSCLE_LABELS[muscle]).addToggle((toggle) =>
@@ -422,7 +428,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					else set.delete(muscle);
 					this.settings.focusMuscles = MUSCLES.filter((m) => set.has(m));
 					muscles.querySelector("summary")?.setText(
-						t("Partie, které cíleně trénuji ({focusMuscles_length})", { focusMuscles_length: this.settings.focusMuscles.length }),
+						t("Muscle groups I'm focusing on ({focusMuscles_length})", { focusMuscles_length: this.settings.focusMuscles.length }),
 					);
 					this.save();
 				}),
@@ -432,82 +438,82 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 	private displayRunImport(el: HTMLElement): void {
 		new Setting(el)
-			.setName(t("Import běhu ze souboru"))
-			.setDesc(t("Běh ze souboru GPX, TCX nebo FIT – funguje bez předplatného Stravy. Soubor se čte jen v tomto zařízení a nikam se neposílá."))
+			.setName(t("Import run from file"))
+			.setDesc(t("A run from a GPX, TCX or FIT file – works without a Strava subscription. The file is read only on this device and isn't sent anywhere."))
 			.setHeading();
 		const guide = el.createEl("details", { cls: "bf-settings-details" });
-		guide.createEl("summary", { text: t("Návod: kde soubor vzít") });
+		guide.createEl("summary", { text: t("Guide: where to get the file") });
 		const list = guide.createEl("ul");
 		const strava = list.createEl("li");
 		strava.createEl("strong", { text: "Strava: " });
-		strava.appendText(t("na webu strava.com otevři svou aktivitu, klikni na tři tečky (Více) a zvol Export GPX. V mobilní aplikaci export není."));
+		strava.appendText(t("on strava.com, open your activity, click the three dots (More) and choose Export GPX. The mobile app has no export."));
 		const mapMyRun = list.createEl("li");
 		mapMyRun.createEl("strong", { text: "MapMyRun: " });
-		mapMyRun.appendText(t("na webu mapmyrun.com otevři trénink, klikni na tři tečky a zvol Download as TCX."));
+		mapMyRun.appendText(t("on mapmyrun.com, open the workout, click the three dots and choose Download as TCX."));
 		const watch = list.createEl("li");
-		watch.createEl("strong", { text: t("Hodinky a jiné aplikace: ") });
-		watch.appendText(t("většina umí export do GPX, TCX nebo FIT (Garmin Connect, Polar Flow, Suunto, Coros). FIT z hodinek obsahuje i tep."));
+		watch.createEl("strong", { text: t("Watches and other apps: ") });
+		watch.appendText(t("most can export to GPX, TCX or FIT (Garmin Connect, Polar Flow, Suunto, Coros). A FIT file from a watch includes heart rate too."));
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Z běhu se načte datum a čas, vzdálenost, čas v pohybu, tep, převýšení a nejrychlejší úseky. Vzdálenost z poloh a převýšení jsou odhad – od čísel v aplikaci se můžou o pár procent lišit. RPE, typ běhu a boty doplníš potom v seznamu běhů k doplnění. Tentýž soubor podruhé se přeskočí; ručně zapsaný běh ze stejného dne se stejnou vzdáleností se doplní o měřené údaje."),
+			text: t("The run's date and time, distance, moving time, heart rate, elevation gain and fastest splits are read. Distance from GPS positions and elevation gain are estimates – they can differ from the app's numbers by a few percent. You add RPE, run type and shoes afterwards in the list of runs to complete. The same file a second time is skipped; a manually logged run on the same day with the same distance gets the measured data added."),
 		});
 		new Setting(el)
-			.setName(t("Importovat běhy"))
-			.setDesc(t("Vyber jeden nebo víc souborů .gpx, .tcx nebo .fit."))
-			.addButton((b) => b.setButtonText(t("Vybrat soubory")).onClick(() => this.plugin.pickRunFiles()));
+			.setName(t("Import runs"))
+			.setDesc(t("Choose one or more .gpx, .tcx or .fit files."))
+			.addButton((b) => b.setButtonText(t("Choose files")).onClick(() => this.plugin.pickRunFiles()));
 	}
 
 	private displayDailyImport(el: HTMLElement): void {
 		new Setting(el)
-			.setName(t("Import denních dat z CSV"))
-			.setDesc(t("Kroky, délka spánku, HRV, klidový tep a váha z exportu hodinek nebo aplikace. Doplní jen hodnoty, které v deníku chybí; zapsané nepřepíše. Soubor se čte jen v tomto zařízení."))
+			.setName(t("Import daily data from CSV"))
+			.setDesc(t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export. Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."))
 			.setHeading();
 		const guide = el.createEl("details", { cls: "bf-settings-details" });
-		guide.createEl("summary", { text: t("Jaký soubor to přečte") });
+		guide.createEl("summary", { text: t("Which files it reads") });
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("CSV se sloupcem s datem a aspoň jedním sloupcem, který se pozná podle názvu (česky nebo anglicky): kroky (Steps, Step count), délka spánku (Sleep duration – hodiny, minuty, sekundy nebo 7:45), HRV (HRV, rMSSD), klidový tep (Resting heart rate) nebo váha (Weight). Skóre, cíle a fáze spánku se přeskočí. Víc řádků jednoho dne se sloučí."),
+			text: t("A CSV with a date column and at least one column recognized by its name (Czech or English): steps (Steps, Step count), sleep duration (Sleep duration – hours, minutes, seconds or 7:45), HRV (HRV, rMSSD), resting heart rate (Resting heart rate) or weight (Weight). Scores, goals and sleep stages are skipped. Several rows for one day are merged."),
 		});
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Příklad: Google Fit přes Google Takeout – soubor Daily activity metrics.csv obsahuje kroky. Elonga export nenabízí, HRV z ní se dál opisuje ručně. Vyzkoušeno jen na ručně sestavených souborech; před zápisem se ukáže, co se doplní."),
+			text: t("Example: Google Fit via Google Takeout – the file Daily activity metrics.csv contains steps. Elonga has no export, so its HRV is still copied by hand. Tested only on hand-built files; before writing you'll see what will be added."),
 		});
 		new Setting(el)
-			.setName(t("Importovat denní data"))
-			.setDesc(t("Vyber soubor .csv."))
-			.addButton((b) => b.setButtonText(t("Vybrat soubor")).onClick(() => this.plugin.pickDailyFile()));
+			.setName(t("Import daily data"))
+			.setDesc(t("Choose a .csv file."))
+			.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => this.plugin.pickDailyFile()));
 	}
 
 	private displayHistoryImport(el: HTMLElement): void {
 		new Setting(el)
-			.setName(t("Import historie ze Strong a Hevy"))
-			.setDesc(t("Přenese silové tréninky z exportu CSV: cviky, série, váhy, rozcvičovací a drop série, supersety. Soubor se čte jen v tomto zařízení."))
+			.setName(t("History import from Strong and Hevy"))
+			.setDesc(t("Brings over strength workouts from a CSV export: exercises, sets, weights, warm-up and drop sets, supersets. The file is read only on this device."))
 			.setHeading();
 		const guide = el.createEl("details", { cls: "bf-settings-details" });
-		guide.createEl("summary", { text: t("Návod: kde export vzít a co čekat") });
+		guide.createEl("summary", { text: t("Guide: where to get the export and what to expect") });
 		const list = guide.createEl("ul");
 		const strong = list.createEl("li");
 		strong.createEl("strong", { text: "Strong: " });
-		strong.appendText(t("v aplikaci otevři Nastavení a zvol Export Workouts (v části Data Management). Jednotku váhy soubor neobsahuje – vyber ji níže podle toho, v čem v aplikaci zapisuješ."));
+		strong.appendText(t("in the app, open Settings and choose Export Workouts (under Data Management). The file doesn't include the weight unit – pick it below according to what you log in the app."));
 		const hevy = list.createEl("li");
 		hevy.createEl("strong", { text: "Hevy: " });
-		hevy.appendText(t("v nastavení aplikace najdi export dat a stáhni soubor s tréninky (workout data, CSV). Jednotku má soubor v sobě."));
+		hevy.appendText(t("in the app settings, find the data export and download the workout file (workout data, CSV). The file includes the unit."));
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Názvy cviků se sjednotí s knihovnou (i přes anglické názvy); neznámé cviky zůstanou pod původním názvem. RPE série se převede na RIR (10 − RPE). Běh a jiné kardio se přeskočí – běhy nahraj ze souboru GPX nebo TCX. Před importem uvidíš souhrn a import potvrdíš; tréninky, které v deníku už jsou, se přeskočí. Import je ověřený jen na souborech sestavených podle nápovědy obou aplikací – nejdřív si ho vyzkoušej na záloze."),
+			text: t("Exercise names are matched with the library (English names too); unknown exercises keep their original name. Set RPE is converted to RIR (10 − RPE). Runs and other cardio are skipped – import runs from a GPX or TCX file. Before the import you'll see a summary and confirm it; workouts already in the journal are skipped. The import has only been tested on files built according to both apps' help pages – try it on a backup first."),
 		});
 		let unit: WeightUnit = "kg";
 		new Setting(el)
-			.setName(t("Importovat historii"))
-			.setDesc(t("Vyber soubor CSV. Jednotka platí jen pro export ze Strong."))
+			.setName(t("Import history"))
+			.setDesc(t("Choose a CSV file. The unit only applies to a Strong export."))
 			.addDropdown((d) =>
 				d
 					.addOption("kg", "Strong v kilogramech")
-					.addOption("lb", t("Strong v librách"))
+					.addOption("lb", t("Strong in pounds"))
 					.setValue(unit)
 					.onChange((v) => (unit = v === "lb" ? "lb" : "kg")),
 			)
-			.addButton((b) => b.setButtonText(t("Vybrat soubor")).onClick(() => this.plugin.pickHistoryFile(unit)));
+			.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => this.plugin.pickHistoryFile(unit)));
 	}
 
 	private displayStrava(el: HTMLElement): void {
@@ -515,26 +521,26 @@ export class BetterFormSettingTab extends PluginSettingTab {
 		const auth = this.plugin.strava;
 		new Setting(el)
 			.setName("Strava")
-			.setDesc(t("Import běhů ze Stravy. Každý uživatel používá vlastní API aplikaci – údaje zůstávají jen v tomto vaultu."))
+			.setDesc(t("Import runs from Strava. Each user uses their own API application – the credentials stay in this vault only."))
 			.setHeading();
 
 		const guide = el.createEl("details", { cls: "bf-settings-details" });
-		guide.createEl("summary", { text: t("Návod: jak založit API aplikaci na Stravě") });
+		guide.createEl("summary", { text: t("Guide: how to create an API application on Strava") });
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Od června 2026 Strava dovoluje založit API aplikaci jen účtům s placeným předplatným. Bez něj propojení nejde nastavit – běhy pak nahrávej ze souboru (viz výše) nebo zapisuj ručně."),
+			text: t("Since June 2026, Strava only lets accounts with a paid subscription create an API application. Without one the connection can't be set up – import runs from a file instead (see above) or log them by hand."),
 		});
 		const steps = guide.createEl("ol");
-		const first = steps.createEl("li", { text: t("Přihlas se na Stravě a otevři ") });
+		const first = steps.createEl("li", { text: t("Sign in to Strava and open ") });
 		first.createEl("a", { text: "strava.com/settings/api", href: "https://www.strava.com/settings/api" });
 		first.appendText(".");
-		steps.createEl("li", { text: t("Vyplň název aplikace (libovolný, např. „Můj deník“), kategorii a web (stačí http://localhost).") });
-		steps.createEl("li", { text: t("Do pole Authorization Callback Domain napiš přesně: localhost") });
-		steps.createEl("li", { text: t("Nahraj libovolný obrázek jako ikonu – Strava ho vyžaduje.") });
-		steps.createEl("li", { text: t("Zkopíruj Client ID a Client Secret do polí níže a klikni na Připojit.") });
+		steps.createEl("li", { text: t("Fill in the application name (anything, e.g. “My journal”), the category and the website (http://localhost is enough).") });
+		steps.createEl("li", { text: t("In the Authorization Callback Domain field, enter exactly: localhost") });
+		steps.createEl("li", { text: t("Upload any image as the icon – Strava requires one.") });
+		steps.createEl("li", { text: t("Copy the Client ID and Client Secret into the fields below and click Connect.") });
 		guide.createEl("p", {
 			cls: "setting-item-description",
-			text: t("Client Secret nikomu neposílej. Nová aplikace smí připojit jen tebe – to pro osobní deník stačí."),
+			text: t("Never share the Client Secret. A new application can only connect you – that's enough for a personal journal."),
 		});
 
 		new Setting(el).setName("Client ID").addText((t) =>
@@ -545,7 +551,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 		);
 		new Setting(el)
 			.setName("Client Secret")
-			.setDesc(t("Ukládá se jen do souboru data.json tohoto pluginu."))
+			.setDesc(t("Stored only in this plugin's data.json file."))
 			.addText((t) => {
 				t.inputEl.type = "password";
 				t.inputEl.autocomplete = "off";
@@ -568,8 +574,8 @@ export class BetterFormSettingTab extends PluginSettingTab {
 		};
 
 		new Setting(el)
-			.setName(t("Typy aktivit"))
-			.setDesc(t("Které typy aktivit Stravy se importují jako běh, oddělené čárkou. Výchozí: Run, TrailRun, VirtualRun."))
+			.setName(t("Activity types"))
+			.setDesc(t("Which Strava activity types are imported as runs, separated by commas. Default: Run, TrailRun, VirtualRun."))
 			.addText((t) =>
 				t.setValue(strava.activityTypes.join(", ")).onChange((v) => {
 					const types = v
@@ -584,18 +590,18 @@ export class BetterFormSettingTab extends PluginSettingTab {
 			);
 		this.numberSetting(
 			el,
-			t("První synchronizace"),
-			t("Kolik dnů zpět stáhnout při první synchronizaci."),
+			t("First sync"),
+			t("How many days back to download on the first sync."),
 			strava.initialDays,
 			(v) => (strava.initialDays = v ?? 90),
 			{ min: 1, max: 3650 },
 		);
 
 		if (auth.isConnected) {
-			const last = strava.lastSyncAt > 0 ? new Date(strava.lastSyncAt * 1000).toLocaleString("cs-CZ") : t("zatím neproběhla");
+			const last = strava.lastSyncAt > 0 ? new Date(strava.lastSyncAt * 1000).toLocaleString("cs-CZ") : t("not yet");
 			new Setting(el)
-				.setName(t("Synchronizace"))
-				.setDesc(t("Stáhne nové běhy; spouští se jen ručně. Poslední: {last}.", { last }))
+				.setName(t("Sync"))
+				.setDesc(t("Downloads new runs; only runs when you start it. Last: {last}.", { last }))
 				.addButton((b) =>
 					b.setButtonText("Synchronizovat").onClick(async () => {
 						b.setDisabled(true);
@@ -604,29 +610,29 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					}),
 				);
 			new Setting(el)
-				.setName(strava.athleteName ? t("Připojeno: {athleteName}", { athleteName: strava.athleteName }) : t("Připojeno"))
-				.setDesc(t("Odpojení smaže přihlášení jen v tomto zařízení. Přístup aplikace zrušíš na Stravě v Nastavení → Moje aplikace."))
+				.setName(strava.athleteName ? t("Connected: {athleteName}", { athleteName: strava.athleteName }) : t("Connected"))
+				.setDesc(t("Disconnecting removes the sign-in on this device only. Revoke the app's access on Strava under Settings → My Apps."))
 				.addButton((b) => b.setButtonText("Odpojit").onClick(() => void run(() => auth.disconnect(), "Strava odpojena.")));
 		} else {
 			if (auth.canUseLocalServer) {
 				new Setting(el)
-					.setName(t("Připojit"))
-					.setDesc(t("Otevře Stravu v prohlížeči a po povolení se vrátí sama (dočasný server na localhost:{LOCAL_AUTH_PORT}).", { LOCAL_AUTH_PORT }))
+					.setName(t("Connect"))
+					.setDesc(t("Opens Strava in the browser and returns by itself after you allow access (temporary server on localhost:{LOCAL_AUTH_PORT}).", { LOCAL_AUTH_PORT }))
 					.addButton((b) =>
 						b
-							.setButtonText(t("Připojit"))
+							.setButtonText(t("Connect"))
 							.setCta()
 							.onClick(() => {
-								b.setDisabled(true).setButtonText(t("Čekám na povolení…"));
-								void run(() => auth.connectWithLocalServer(), t("Strava připojena."));
+								b.setDisabled(true).setButtonText(t("Waiting for approval…"));
+								void run(() => auth.connectWithLocalServer(), t("Strava connected."));
 							}),
 					);
 			}
 			new Setting(el)
-				.setName(auth.canUseLocalServer ? t("Připojit ručně") : t("Připojit"))
-				.setDesc(t("Otevře Stravu; po povolení zkopíruješ adresu z prohlížeče a vložíš ji sem. Funguje i na mobilu."))
+				.setName(auth.canUseLocalServer ? t("Connect manually") : t("Connect"))
+				.setDesc(t("Opens Strava; after you allow access, copy the address from the browser and paste it here. Works on mobile too."))
 				.addButton((b) => {
-					b.setButtonText(t("Připojit ručně")).onClick(() => {
+					b.setButtonText(t("Connect manually")).onClick(() => {
 						try {
 							this.plugin.requestSaveSettings.run();
 							auth.openManualAuthorization();
@@ -634,7 +640,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 							new Notice(`Strava: ${err instanceof Error ? err.message : String(err)}`);
 							return;
 						}
-						new StravaCodeModal(this.app, (text) => run(() => auth.connectWithPastedCode(text), t("Strava připojena."))).open();
+						new StravaCodeModal(this.app, (text) => run(() => auth.connectWithPastedCode(text), t("Strava connected."))).open();
 					});
 					if (!auth.canUseLocalServer) b.setCta();
 				});
@@ -643,13 +649,13 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 	private displayFolders(el: HTMLElement): void {
 		new Setting(el)
-			.setName(t("Složky"))
-			.setDesc(t("Podsložky jsou uvnitř kořenové složky. Změna názvu nepřesouvá existující poznámky."))
+			.setName(t("Folders"))
+			.setDesc(t("Subfolders are inside the root folder. Renaming doesn't move existing notes."))
 			.setHeading();
 		const folders = this.settings.folders;
 		new Setting(el)
-			.setName(t("Kořenová složka"))
-			.setDesc(t("Výchozí: {root}", { root: DEFAULT_FOLDERS.root }))
+			.setName(t("Root folder"))
+			.setDesc(t("Default: {root}", { root: DEFAULT_FOLDERS.root }))
 			.addText((t) =>
 				t.setValue(folders.root).onChange((v) => {
 					const path = normalizeVaultPath(v);
@@ -663,7 +669,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 		for (const key of Object.keys(FOLDER_LABELS) as (keyof typeof FOLDER_LABELS)[]) {
 			new Setting(el)
 				.setName(FOLDER_LABELS[key])
-				.setDesc(t("Výchozí: {v}", { v: DEFAULT_FOLDERS[key] }))
+				.setDesc(t("Default: {v}", { v: DEFAULT_FOLDERS[key] }))
 				.addText((t) =>
 					t.setValue(folders[key]).onChange((v) => {
 						const path = normalizeVaultPath(v);
@@ -675,32 +681,32 @@ export class BetterFormSettingTab extends PluginSettingTab {
 					}),
 				);
 		}
-		new Setting(el).setName(t("Vytvořit chybějící složky")).addButton((b) =>
-			b.setButtonText(t("Vytvořit")).onClick(async () => {
+		new Setting(el).setName(t("Create missing folders")).addButton((b) =>
+			b.setButtonText(t("Create")).onClick(async () => {
 				await this.plugin.createFolders(true);
 			}),
 		);
 		new Setting(el)
-			.setName(t("Doplnit knihovnu"))
-			.setDesc(t("Založí chybějící cviky, předpřipravené programy a šablony tréninků. Existující poznámky se nemění."))
+			.setName(t("Add to library"))
+			.setDesc(t("Creates missing exercises, built-in programs and workout templates. Existing notes aren't changed."))
 			.addButton((b) =>
-				b.setButtonText(t("Doplnit")).onClick(async () => {
+				b.setButtonText(t("Add", undefined, "missing")).onClick(async () => {
 					await this.plugin.seedLibrary(true);
 				}),
 			);
 		new Setting(el)
-			.setName(t("Doplnit popisy cviků"))
-			.setDesc(t("Doplní popis, provedení a časté chyby tam, kde v poznámce cviku chybí. Existující text se nepřepíše."))
+			.setName(t("Add exercise descriptions"))
+			.setDesc(t("Adds the description, technique and common mistakes where they're missing in an exercise note. Existing text isn't overwritten."))
 			.addButton((b) =>
-				b.setButtonText(t("Doplnit")).onClick(async () => {
+				b.setButtonText(t("Add", undefined, "missing")).onClick(async () => {
 					await this.plugin.fillExerciseTexts();
 				}),
 			);
 		new Setting(el)
-			.setName(t("Obnovit předpřipravené programy"))
-			.setDesc(t("Přepíše popis a nastavení předpřipravených programů aktuální verzí z pluginu (po potvrzení). Vlastní programy se nemění."))
+			.setName(t("Restore built-in programs"))
+			.setDesc(t("Replaces the description and settings of the built-in programs with the current version from the plugin (after confirmation). Your own programs aren't changed."))
 			.addButton((b) =>
-				b.setButtonText(t("Obnovit")).onClick(async () => {
+				b.setButtonText(t("Restore")).onClick(async () => {
 					await this.plugin.refreshBuiltinPrograms();
 				}),
 			);
@@ -708,8 +714,8 @@ export class BetterFormSettingTab extends PluginSettingTab {
 
 	private displayThresholds(el: HTMLElement): void {
 		new Setting(el)
-			.setName(t("Prahy a okna výpočtů"))
-			.setDesc(t("Výchozí hodnoty odpovídají zdrojům uvedeným u jednotlivých výpočtů."))
+			.setName(t("Calculation thresholds and windows"))
+			.setDesc(t("Defaults match the sources listed with each calculation."))
 			.setHeading();
 		const thresholds = this.settings.thresholds;
 		for (const group of THRESHOLD_GROUPS) {
@@ -717,7 +723,7 @@ export class BetterFormSettingTab extends PluginSettingTab {
 			details.createEl("summary", { text: t(group.title) });
 			for (const field of group.fields) {
 				const unit = field.unit ? ` (${t(field.unit)})` : "";
-				const desc = (field.desc ? `${t(field.desc)} ` : "") + t("Výchozí: {value}{unit}.", { value: DEFAULT_THRESHOLDS[field.key], unit });
+				const desc = (field.desc ? `${t(field.desc)} ` : "") + t("Default: {value}{unit}.", { value: DEFAULT_THRESHOLDS[field.key], unit });
 				this.numberSetting(
 					details,
 					t(field.label),
@@ -730,21 +736,21 @@ export class BetterFormSettingTab extends PluginSettingTab {
 				);
 			}
 		}
-		new Setting(el).setName(t("Obnovit výchozí prahy")).addButton((b) =>
+		new Setting(el).setName(t("Restore default thresholds")).addButton((b) =>
 			b
-				.setButtonText(t("Obnovit"))
+				.setButtonText(t("Restore"))
 				.setWarning()
 				.onClick(async () => {
 					const ok = await confirmAction(
 						this.app,
-						t("Obnovit výchozí prahy?"),
-						t("Všechny prahy a okna výpočtů se nastaví na výchozí hodnoty. Profil a ostatní nastavení zůstanou."),
-						t("Obnovit"),
+						t("Restore default thresholds?"),
+						t("All calculation thresholds and windows will be reset to their defaults. Your profile and other settings stay."),
+						t("Restore"),
 					);
 					if (!ok) return;
 					this.settings.thresholds = structuredClone(DEFAULT_THRESHOLDS);
 					this.save();
-					new Notice(t("Prahy obnoveny na výchozí hodnoty."));
+					new Notice(t("Thresholds restored to defaults."));
 					this.display();
 				}),
 		);

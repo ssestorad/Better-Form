@@ -272,8 +272,8 @@ function check(
 	integer = false,
 ): void {
 	if (value === undefined) return;
-	if (Number.isNaN(value)) errors[key] = t("Není číslo.");
-	else if (integer && !Number.isInteger(value)) errors[key] = t("Celé číslo.");
+	if (Number.isNaN(value)) errors[key] = t("Not a number.");
+	else if (integer && !Number.isInteger(value)) errors[key] = t("Whole number.");
 	else if (value < min || value > max) errors[key] = `${min}–${max}`;
 }
 
@@ -289,7 +289,7 @@ export function blockErrorKey(id: string, field: string): string {
 
 export function validateDraft(draft: WorkoutDraft): DraftErrors {
 	const errors: DraftErrors = {};
-	if (!isIsoDate(draft.date)) errors.date = t("Neplatné datum.");
+	if (!isIsoDate(draft.date)) errors.date = t("Invalid date.");
 	check(errors, "duration_min", draft.duration_min, 1, 1440);
 	check(errors, "rpe", draft.rpe, 0, 10);
 	if (draft.sport === "run") {
@@ -330,19 +330,19 @@ export function validateDraft(draft: WorkoutDraft): DraftErrors {
 /** Co bloku chybí, aby šel uložit (prázdný blok série se jen vynechá). */
 function missingBlockField(b: DraftBlock): string | null {
 	const needsExercise = b.type !== "amrap" && b.type !== "complex";
-	if (needsExercise && !b.exercise?.trim()) return t("Vyber cvik.");
+	if (needsExercise && !b.exercise?.trim()) return t("Choose an exercise.");
 	switch (b.type) {
 		case "emom":
-			return !isNumber(b.minutes) || !isNumber(b.reps_per_min) ? t("Doplň minuty a opakování za minutu.") : null;
+			return !isNumber(b.minutes) || !isNumber(b.reps_per_min) ? t("Fill in the minutes and reps per minute.") : null;
 		case "amrap":
-			if (!isNumber(b.minutes)) return t("Doplň délku v minutách.");
-			return cleanItems(b.items).length === 0 ? t("Přidej aspoň jeden cvik.") : null;
+			if (!isNumber(b.minutes)) return t("Fill in the duration in minutes.");
+			return cleanItems(b.items).length === 0 ? t("Add at least one exercise.") : null;
 		case "complex":
-			return cleanItems(b.items).length === 0 ? t("Přidej aspoň jeden cvik.") : null;
+			return cleanItems(b.items).length === 0 ? t("Add at least one exercise.") : null;
 		case "ladder":
-			return b.steps.length === 0 ? t("Doplň příčky, např. 1-5.") : null;
+			return b.steps.length === 0 ? t("Fill in the rungs, e.g. 1-5.") : null;
 		case "timed":
-			return !isNumber(b.sec) ? t("Doplň čas.") : null;
+			return !isNumber(b.sec) ? t("Fill in the time.") : null;
 		default:
 			return null;
 	}

@@ -8,8 +8,8 @@ import { CORE_SOURCES } from "./sources/core";
 import { RESEARCH_SOURCES } from "./sources/research";
 import { SUPPLEMENT_SOURCES } from "./sources/supplements";
 import { MORE_SUPPLEMENT_SOURCES } from "./sources/supplementsMore";
-import { SOURCES_EN } from "./sources/en";
 import { getLanguage } from "../i18n";
+import { LOCALES } from "../locales";
 
 export { STUDY_KIND_LABELS, type Source, type StudyKind } from "./sourceTypes";
 
@@ -31,11 +31,12 @@ export interface Basis {
 	evidence: EvidenceLevel;
 }
 
-/** Zdroj s popiskem, citací a poznámkou v jazyce rozhraní (citace jsou většinou anglicky už v originále). */
+/** Zdroj s popiskem, citací a poznámkou v jazyce rozhraní (překlad v src/locales/<kód>/sources.ts, jen kde se liší). */
 export function getSource(id: SourceId): Source {
 	const source: Source = SOURCES[id];
-	const en = getLanguage() === "en" ? SOURCES_EN[id] : undefined;
-	return en ? { ...source, ...en } : source;
+	const language = getLanguage();
+	const local = language === "en" ? undefined : LOCALES[language].content.sources[id];
+	return local ? { ...source, ...local } : source;
 }
 
 export function isSourceId(id: string): id is SourceId {

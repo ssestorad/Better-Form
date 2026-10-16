@@ -102,7 +102,7 @@ export interface PlanWeek {
 	file?: TFile;
 }
 
-const NEWER = "Poznámka s plánem je z novější verze pluginu – aktualizuj plugin.";
+const NEWER = "The plan note is from a newer version of the plugin – update the plugin.";
 
 function clean(text: string | undefined): string | undefined {
 	const trimmed = text?.trim();
@@ -111,11 +111,11 @@ function clean(text: string | undefined): string | undefined {
 
 /** Ověří hodnoty z formuláře a převede je na položku; chyby vrací česky. */
 export function planItemFromDraft(draft: PlanDraft, id: string): PlanItem {
-	if (!isIsoDate(draft.date)) throw new Error(t("Chybí den."));
+	if (!isIsoDate(draft.date)) throw new Error(t("The day is missing."));
 	const duration = draft.durationMin;
-	if (duration !== undefined && !(duration > 0 && duration <= MAX_PLAN_MINUTES)) throw new Error(t("Délka musí být kladná, nejvýš 24 hodin."));
+	if (duration !== undefined && !(duration > 0 && duration <= MAX_PLAN_MINUTES)) throw new Error(t("The duration must be positive, at most 24 hours."));
 	const distance = draft.sport === "run" ? draft.distanceKm : undefined;
-	if (distance !== undefined && !(distance > 0 && distance <= MAX_PLAN_KM)) throw new Error(t("Vzdálenost musí být kladná, nejvýš {MAX_PLAN_KM} km.", { MAX_PLAN_KM }));
+	if (distance !== undefined && !(distance > 0 && distance <= MAX_PLAN_KM)) throw new Error(t("The distance must be positive, at most {MAX_PLAN_KM} km.", { MAX_PLAN_KM }));
 	const item: PlanItem = { id, date: draft.date, sport: draft.sport, intensity: draft.intensity };
 	const title = clean(draft.title);
 	const template = clean(draft.template);
@@ -239,9 +239,9 @@ export class PlanService {
 	 * Položky plánu v těch dnech zůstávají – jen se nepočítají jako vynechané.
 	 */
 	async setOff(from: string, to: string, reason: DayOffReason | null): Promise<void> {
-		if (!isIsoDate(from) || !isIsoDate(to) || to < from) throw new Error(t("Neplatné období."));
+		if (!isIsoDate(from) || !isIsoDate(to) || to < from) throw new Error(t("Invalid period."));
 		const length = daysBetween(from, to);
-		if (length > 60) throw new Error(t("Volno jde nastavit nejvýš na 61 dní najednou."));
+		if (length > 60) throw new Error(t("Days off can be set for at most 61 days at once."));
 		const byWeek = new Map<string, string[]>();
 		for (let i = 0; i <= length; i++) {
 			const date = addDays(from, i);
@@ -311,7 +311,7 @@ export class PlanService {
 
 	/** Upraví položku; když se změní týden, přesune ji do poznámky nového týdne. */
 	async update(item: PlanItem, draft: PlanDraft): Promise<void> {
-		if (item.id.startsWith("program:")) throw new Error(t("Den programu se v plánu neupravuje – změň dny nebo délku tréninku u programu."));
+		if (item.id.startsWith("program:")) throw new Error(t("A program day isn't edited in the plan – change the days or workout duration of the program."));
 		const from = startOfWeek(item.date);
 		const to = startOfWeek(draft.date);
 		if (from === to) {
@@ -339,7 +339,7 @@ export class PlanService {
 	}
 
 	async remove(item: PlanItem): Promise<void> {
-		if (item.id.startsWith("program:")) throw new Error(t("Den programu se z plánu nemaže – pozastav program nebo mu smaž délku tréninku."));
+		if (item.id.startsWith("program:")) throw new Error(t("A program day isn't removed from the plan – pause the program or remove its workout duration."));
 		await this.mutate(startOfWeek(item.date), (items) => items.filter((i) => i.id !== item.id));
 	}
 

@@ -23,17 +23,17 @@
 	{#each block.items as item, i (item.id)}
 		<div class="bf-item-row" class:with-weight={itemWeights}>
 			<span class="bf-item-name">{item.exercise}</span>
-			<NumInput bind:value={item.reps} label={t("Opakování")} placeholder={t("opak.")} error={errors[blockErrorKey(item.id, "reps")]} />
+			<NumInput bind:value={item.reps} label={t("Reps")} placeholder={t("reps", undefined, "abbr")} error={errors[blockErrorKey(item.id, "reps")]} />
 			{#if itemWeights}
-				<NumInput bind:value={item.kg} label={t("Váha (kg)")} placeholder="kg" decimals error={errors[blockErrorKey(item.id, "kg")]} />
+				<NumInput bind:value={item.kg} label={t("Weight (kg)")} placeholder="kg" decimals error={errors[blockErrorKey(item.id, "kg")]} />
 			{/if}
-			<button type="button" class="clickable-icon" aria-label={t("Odebrat cvik")} onclick={() => block.items.splice(i, 1)}>×</button>
+			<button type="button" class="clickable-icon" aria-label={t("Remove exercise")} onclick={() => block.items.splice(i, 1)}>×</button>
 		</div>
 	{/each}
 	<ExercisePicker
 		{options}
 		{preferred}
-		placeholder={t("Přidat cvik do bloku…")}
+		placeholder={t("Add an exercise to the block…")}
 		onSelect={(name) => block.items.push(emptyItem(name))}
 		onCreate={(name) => {
 			onCreate(name);

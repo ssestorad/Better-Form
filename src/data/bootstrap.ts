@@ -2,12 +2,12 @@
 // Existující složky ani soubory se nikdy nemění.
 
 import { exerciseToFrontmatter, programToFrontmatter, templateToFrontmatter } from "../model/serialize";
-import { getLanguage } from "../i18n";
 import { seedExercises } from "../seed/exercises";
-import { programName, templateName } from "../seed/localize";
-import { SEED_PROGRAMS, seedPrograms } from "../seed/programs";
+import { allNames } from "../seed/localize";
+import { TEMPLATE_DATA } from "../seed/programData";
+import { seedPrograms } from "../seed/programs";
 import { exerciseNoteBody } from "../seed/exerciseTexts";
-import { SEED_TEMPLATES, seedTemplates, templateNoteBody } from "../seed/templates";
+import { seedTemplates, templateNoteBody } from "../seed/templates";
 import type { FolderSettings } from "../settings/settings";
 import type { NoteWriter } from "./NoteWriter";
 import { allFolderPaths, namedNotePath } from "./paths";
@@ -47,7 +47,8 @@ export async function seedLibrary(
 	lookup: SeedLookup,
 ): Promise<SeedResult> {
 	const result: SeedResult = { exercises: 0, programs: 0, templates: 0 };
-	const language = getLanguage();
+	// Data nového vaultu jsou vždy anglicky (jazyk rozhraní se řídí nastavením).
+	const language = "en";
 	for (const exercise of seedExercises(language)) {
 		if (lookup.hasExercise(exercise.name) || exercise.aliases.some((a) => lookup.hasExercise(a))) continue;
 		const file = await writer.createNoteIfMissing(
@@ -58,9 +59,8 @@ export async function seedLibrary(
 		if (file) result.exercises++;
 	}
 	const programs = seedPrograms(language);
-	for (const [i, { note, description }] of programs.entries()) {
-		const cs = SEED_PROGRAMS[i]!.note.name;
-		if (lookup.hasProgram(cs) || lookup.hasProgram(programName(cs, "en"))) continue;
+	for (const { id, note, description } of programs) {
+		if (allNames("program", id).some((name) => lookup.hasProgram(name))) continue;
 		const file = await writer.createNoteIfMissing(
 			namedNotePath(folders, "programs", note.name),
 			programToFrontmatter(note),
@@ -69,8 +69,7 @@ export async function seedLibrary(
 		if (file) result.programs++;
 	}
 	for (const [i, note] of seedTemplates(language).entries()) {
-		const cs = SEED_TEMPLATES[i]!.name;
-		if (lookup.hasTemplate(cs) || lookup.hasTemplate(templateName(cs, "en"))) continue;
+		if (allNames("template", TEMPLATE_DATA[i]!.id).some((name) => lookup.hasTemplate(name))) continue;
 		const file = await writer.createNoteIfMissing(namedNotePath(folders, "templates", note.name), templateToFrontmatter(note), templateNoteBody(language));
 		if (file) result.templates++;
 	}

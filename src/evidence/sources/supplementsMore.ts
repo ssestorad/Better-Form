@@ -10,7 +10,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1111/and.12482",
-		note: "Testovaný přípravek PrimaVie; financování v článku neuvedeno.",
+		note: "The tested product was PrimaVie; funding not stated in the article.",
 	},
 	biswas2010: {
 		short: "Biswas 2010",
@@ -18,7 +18,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1111/j.1439-0272.2009.00956.x",
-		note: "Bez kontrolní skupiny.",
+		note: "No control group.",
 	},
 	keller2019: {
 		short: "Keller 2019",
@@ -26,7 +26,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/s12970-019-0270-2",
-		note: "Financoval Natreon Inc., výrobce testovaného přípravku.",
+		note: "Funded by Natreon Inc., the manufacturer of the tested product.",
 	},
 	pingali2022: {
 		short: "Pingali 2022",
@@ -47,7 +47,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		citation: "Operation Supplement Safety (U.S. Department of Defense): Shilajit as a dietary supplement ingredient.",
 		evidence: "research",
 		url: "https://www.opss.org/article/shilajit-dietary-supplement-ingredient",
-		note: "Informační stránka programu bezpečnosti doplňků, ne studie.",
+		note: "An information page of a supplement safety program, not a study.",
 	},
 	mori2009: {
 		short: "Mori 2009",
@@ -55,7 +55,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1002/ptr.2634",
-		note: "První autor pracoval pro pěstitele hub (Hokuto Corporation).",
+		note: "The first author worked for a mushroom grower (Hokuto Corporation).",
 	},
 	nagano2010: {
 		short: "Nagano 2010",
@@ -91,7 +91,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3389/fnagi.2020.00155",
-		note: "Část autorů pracuje pro výrobce přípravku (Grape King Bio).",
+		note: "Some of the authors work for the product's manufacturer (Grape King Bio).",
 	},
 	klupp2015: {
 		short: "Klupp 2015 (Cochrane)",
@@ -127,14 +127,14 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3390/foods12030659",
-		note: "Podpořila SBG Biomedical Research; vztah k výrobci přípravku nezjištěn.",
+		note: "Supported by SBG Biomedical Research; relationship to the product's manufacturer not established.",
 	},
 	wanmuang2007: {
 		short: "Wanmuang 2007",
 		citation: "Wanmuang H., Leopairut J., Kositchaiwat C., Wananukul W. et al. (2007) Fatal fulminant hepatitis associated with Ganoderma lucidum (Lingzhi) mushroom powder. J Med Assoc Thai 90(1):179–181.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/17621752/",
-		note: "Kazuistika.",
+		note: "A case report.",
 	},
 	kikuchi2014: {
 		short: "Kikuchi 2014",
@@ -158,11 +158,11 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		url: "https://doi.org/10.1097/MD.0000000000028997",
 	},
 	mskccChaga: {
-		short: "MSKCC – čaga",
+		short: "MSKCC – chaga",
 		citation: "Memorial Sloan Kettering Cancer Center – About Herbs: Chaga Mushroom.",
 		evidence: "research",
 		url: "https://www.mskcc.org/cancer-care/integrative-medicine/herbs/chaga-mushroom",
-		note: "Odborná monografie (přehled výzkumu a interakcí), ne studie.",
+		note: "A professional monograph (a review of research and interactions), not a study.",
 	},
 	hirsch2017: {
 		short: "Hirsch 2017",
@@ -275,7 +275,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "review",
 		url: "https://doi.org/10.3390/nu10030349",
-		note: "Přehled sponzorovala firma Lonza (výrobce karnitinu), dva autoři jsou její zaměstnanci.",
+		note: "The review was sponsored by Lonza (a carnitine manufacturer); two authors are its employees.",
 	},
 	koeth2013: {
 		short: "Koeth 2013",
@@ -283,7 +283,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1038/nm.3145",
-		note: "Kombinace pozorování u lidí a pokusů na myších.",
+		note: "A combination of observations in humans and experiments in mice.",
 	},
 	sanchezMartinez2018: {
 		short: "Sanchez-Martinez 2018",
@@ -305,7 +305,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "consensus",
 		kind: "position",
 		url: "https://doi.org/10.1080/15502783.2024.2434734",
-		note: "Střet zájmů: hlavní autoři pracují nebo pracovali pro výrobce HMB a mají na HMB patenty.",
+		note: "Conflict of interest: the lead authors work or worked for an HMB manufacturer and hold patents on HMB.",
 	},
 	bideshki2025: {
 		short: "Bideshki 2025",
@@ -411,7 +411,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/s12970-017-0206-7",
-		note: "Spolufinancoval MusclePharm, výrobce testované směsi.",
+		note: "Co-funded by MusclePharm, the manufacturer of the tested blend.",
 	},
 	puenteFernandez2025: {
 		short: "Puente-Fernández 2025",
@@ -524,7 +524,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/s12970-017-0196-5",
-		note: "Financovala ChemiNutra, výrobce alfa-GPC.",
+		note: "Funded by ChemiNutra, the manufacturer of alpha-GPC.",
 	},
 	bellar2015: {
 		short: "Bellar 2015",
@@ -532,7 +532,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/s12970-015-0103-x",
-		note: "Financovala ChemiNutra, výrobce alfa-GPC.",
+		note: "Funded by ChemiNutra, the manufacturer of alpha-GPC.",
 	},
 	lee2021gpc: {
 		short: "Lee 2021",
@@ -694,14 +694,14 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "meta",
 		url: "https://doi.org/10.3390/nu12051300",
-		note: "V roce 2025 kritizována za chyby ve výpočtech (Trexler 2025).",
+		note: "Criticized in 2025 for calculation errors (Trexler 2025).",
 	},
 	trexler2025: {
 		short: "Trexler 2025",
 		citation: "Trexler E. T. (2025) Common errors in sports nutrition meta-analyses lead to distortion of pooled effect estimates. Comment on Viribay et al. Nutrients 17(14):2375.",
 		evidence: "research",
 		url: "https://doi.org/10.3390/nu17142375",
-		note: "Komentář k metaanalýze, ne vlastní studie.",
+		note: "A commentary on a meta-analysis, not a study of its own.",
 	},
 	rezaei2021: {
 		short: "Rezaei 2021",
@@ -806,7 +806,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		citation: "Brewer C. P., Dawson B., Wallman K. E., Guelfi K. J. (2014) Effect of sodium phosphate supplementation on cycling time trial performance and VO2 1 and 8 days post loading. J Sports Sci Med 13(3):529–534.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/25177178/",
-		note: "Kontrolovaná studie; časopis nepřiděluje DOI.",
+		note: "A controlled trial; the journal doesn't assign DOIs.",
 	},
 	vinceti2018: {
 		short: "Vinceti 2018 (Cochrane)",
@@ -877,7 +877,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "review",
 		url: "https://doi.org/10.1186/s12937-016-0128-2",
-		note: "Většina autorů pracuje pro výrobce kyseliny hyaluronové (Kewpie Corporation).",
+		note: "Most of the authors work for a hyaluronic acid manufacturer (Kewpie Corporation).",
 	},
 	deCarvalho2024: {
 		short: "de Carvalho 2024",
@@ -892,7 +892,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1038/s41598-025-32758-5",
-		note: "Šest ze sedmi autorů jsou zaměstnanci výrobce (Contipro).",
+		note: "Six of the seven authors are employees of the manufacturer (Contipro).",
 	},
 	amin2025: {
 		short: "Amin 2025",
@@ -915,7 +915,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "meta",
 		url: "https://doi.org/10.3945/ajcn.115.106989",
-		note: "Tři z pěti autorů jsou zaměstnanci firmy Procter & Gamble, která přípravky s psylliem vyrábí; část dat pochází z jejích záznamů.",
+		note: "Three of the five authors are employees of Procter & Gamble, which makes psyllium products; some of the data come from its records.",
 	},
 	reynolds2019: {
 		short: "Reynolds 2019",
@@ -972,7 +972,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3390/nu11102362",
-		note: "Dva autoři jsou zaměstnanci výrobce L-theaninu (Taiyo Kagaku), který dodal i tablety.",
+		note: "Two authors are employees of an L-theanine manufacturer (Taiyo Kagaku), which also supplied the tablets.",
 	},
 	williams2020: {
 		short: "Williams 2020",
@@ -1010,7 +1010,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		url: "https://doi.org/10.1007/s00421-015-3152-6",
 	},
 	talebi2024umbrella: {
-		short: "Talebi 2024 (souhrn metaanalýz)",
+		short: "Talebi 2024 (umbrella review)",
 		citation: "Talebi S., Mohammadi H., Zeraattalab-Motlagh S., Arab A. et al. (2024) Nutritional interventions for exercise-induced muscle damage: an umbrella review of systematic reviews and meta-analyses of randomized trials. Nutr Rev 82(5):639–653.",
 		evidence: "research",
 		kind: "meta",
@@ -1057,7 +1057,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1093/ajcn/nqac055",
-		note: "Studii vedle amerických Národních ústavů zdraví financovala i firma Mars Edge, která kakaový extrakt vyrábí.",
+		note: "Besides the US National Institutes of Health, the study was funded by Mars Edge, which makes the cocoa extract.",
 	},
 	decroix2018: {
 		short: "Decroix 2018",
@@ -1093,7 +1093,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1111/j.1479-8425.2007.00262.x",
-		note: "Tři ze šesti autorů pracují pro firmu Ajinomoto, která glycin vyrábí.",
+		note: "Three of the six authors work for Ajinomoto, which makes glycine.",
 	},
 	bannai2012: {
 		short: "Bannai 2012",
@@ -1101,7 +1101,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.3389/fneur.2012.00061",
-		note: "První autor pracuje pro firmu Ajinomoto, která glycin vyrábí.",
+		note: "The first author works for Ajinomoto, which makes glycine.",
 	},
 	soh2024: {
 		short: "Soh 2024",
@@ -1123,7 +1123,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3109/19390211.2013.820248",
-		note: "Studii financoval výrobce beta-glukanu (Biothera).",
+		note: "The study was funded by a beta-glucan manufacturer (Biothera).",
 	},
 	mah2020: {
 		short: "Mah 2020",
@@ -1131,7 +1131,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1080/19390211.2018.1495676",
-		note: "Studii financoval výrobce beta-glukanu (Kerry).",
+		note: "The study was funded by a beta-glucan manufacturer (Kerry).",
 	},
 	nieman2008: {
 		short: "Nieman 2008",
@@ -1202,7 +1202,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1007/s00204-019-02490-x",
-		note: "Grant Světové antidopingové agentury (WADA).",
+		note: "A grant from the World Anti-Doping Agency (WADA).",
 	},
 	wilborn2006: {
 		short: "Wilborn 2006",
@@ -1210,7 +1210,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/1550-2783-3-2-19",
-		note: "Studii financoval výrobce doplňků stravy (MuscleTech).",
+		note: "The study was funded by a supplement manufacturer (MuscleTech).",
 	},
 	ambrosio2020: {
 		short: "Ambrosio 2020",
@@ -1239,7 +1239,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1002/ptr.5017",
-		note: "Studii financoval výrobce extraktu (Biotropics Malaysia).",
+		note: "The study was funded by the extract's manufacturer (Biotropics Malaysia).",
 	},
 	talbott2013: {
 		short: "Talbott 2013",
@@ -1247,7 +1247,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1186/1550-2783-10-28",
-		note: "Studii financoval výrobce extraktu (Biotropics Malaysia) a jeden z autorů je jeho zaměstnanec.",
+		note: "The study was funded by the extract's manufacturer (Biotropics Malaysia), and one author is its employee.",
 	},
 	chan2021: {
 		short: "Chan 2021",
@@ -1311,7 +1311,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3390/nu13093028",
-		note: "Studii financovala firma prodávající doplňky stravy (ATHENION).",
+		note: "The study was funded by a company selling supplements (ATHENION).",
 	},
 	suraev2020: {
 		short: "Suraev 2020",
@@ -1334,7 +1334,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "consensus",
 		kind: "position",
 		url: "https://doi.org/10.2903/j.efsa.2016.4484",
-		note: "Přiměřený příjem (AI) platí pro cholin ze všech zdrojů, ne pro doplňky.",
+		note: "The adequate intake (AI) applies to choline from all sources, not to supplements.",
 	},
 	penry2008: {
 		short: "Penry & Manore 2008",
@@ -1349,7 +1349,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1007/BF00377711",
-		note: "Měřila hladinu cholinu v krvi.",
+		note: "It measured blood choline levels.",
 	},
 	buchman2000: {
 		short: "Buchman 2000",
@@ -1357,7 +1357,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1080/07315724.2000.10718076",
-		note: "Pilotní studie s 12 běžci; přípravek PhosChol 900, financování v abstraktu neuvedeno.",
+		note: "A pilot study with 12 runners; the product was PhosChol 900, funding not stated in the abstract.",
 	},
 	warber2000: {
 		short: "Warber 2000",
@@ -1365,7 +1365,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1123/ijsnem.10.2.170",
-		note: "Cholin citrát, ne fosfatidylcholin.",
+		note: "Choline citrate, not phosphatidylcholine.",
 	},
 	jager2007: {
 		short: "Jäger 2007",
@@ -1373,7 +1373,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "review",
 		url: "https://doi.org/10.1186/1550-2783-4-5",
-		note: "Vydání článku financovala firma Chemi Nutra, která prodává fosfolipidy.",
+		note: "Publication of the article was funded by Chemi Nutra, which sells phospholipids.",
 	},
 	higgins2003: {
 		short: "Higgins & Flicker 2003 (Cochrane)",
@@ -1388,7 +1388,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1371/journal.pone.0157714",
-		note: "Cholin bitartrát, ne fosfatidylcholin.",
+		note: "Choline bitartrate, not phosphatidylcholine.",
 	},
 	tang2013: {
 		short: "Tang 2013",
@@ -1396,7 +1396,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "cohort",
 		url: "https://doi.org/10.1056/NEJMoa1109400",
-		note: "Souvislost u pacientů kardiologie, ne důkaz příčiny.",
+		note: "An association in cardiology patients, not proof of cause.",
 	},
 	sebastian1994: {
 		short: "Sebastian 1994",
@@ -1404,7 +1404,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1056/NEJM199406233302502",
-		note: "Bez kontrolní skupiny.",
+		note: "No control group.",
 	},
 	dawsonHughes2009: {
 		short: "Dawson-Hughes 2009",
@@ -1440,7 +1440,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1007/s00198-009-1049-0",
-		note: "Stejná studie jako Dawson-Hughes 2009; skupiny s hydrogenuhličitanem draselným a sodným hodnoceny dohromady.",
+		note: "The same study as Dawson-Hughes 2009; the potassium and sodium bicarbonate groups were analyzed together.",
 	},
 	he2010: {
 		short: "He 2010",
@@ -1455,15 +1455,15 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "meta",
 		url: "https://doi.org/10.1161/JAHA.119.015719",
-		note: "Draslík obecně, většinou jako chlorid.",
+		note: "Potassium in general, mostly as chloride.",
 	},
 	efsaPotassium2016: {
-		short: "EFSA 2016 (draslík)",
+		short: "EFSA 2016 (potassium)",
 		citation: "EFSA NDA Panel (2016) Dietary reference values for potassium. EFSA Journal 14(10):4592.",
 		evidence: "consensus",
 		kind: "position",
 		url: "https://doi.org/10.2903/j.efsa.2016.4592",
-		note: "Přiměřený příjem (AI) platí pro draslík ze všech zdrojů, ne pro doplňky.",
+		note: "The adequate intake (AI) applies to potassium from all sources, not to supplements.",
 	},
 	cappuccio2016: {
 		short: "Cappuccio 2016",
@@ -1471,7 +1471,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "meta",
 		url: "https://doi.org/10.1136/bmjopen-2016-011716",
-		note: "Krátké studie u převážně zdravých lidí.",
+		note: "Short studies in mostly healthy people.",
 	},
 	chycki2018: {
 		short: "Chycki 2018",
@@ -1479,7 +1479,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.3390/nu10111610",
-		note: "Směs více solí; účinek samotného hydrogenuhličitanu draselného z ní určit nejde.",
+		note: "A blend of several salts; the effect of potassium bicarbonate alone can't be determined from it.",
 	},
 	efsaThiamin2016: {
 		short: "EFSA 2016 (thiamin)",
@@ -1522,7 +1522,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1007/s004210050364",
-		note: "Allithiamin společně s pantethinem; 6 cyklistů.",
+		note: "Allithiamine together with pantethine; 6 cyclists.",
 	},
 	doyle1997: {
 		short: "Doyle 1997",
@@ -1544,7 +1544,7 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.5717/jenb.2013.17.4.189",
-		note: "Derivát thiaminu (TTFD); 9 účastnic.",
+		note: "A thiamine derivative (TTFD); 9 participants.",
 	},
 	bager2021: {
 		short: "Bager 2021",
@@ -1552,6 +1552,6 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1111/apt.16166",
-		note: "Pacienti se střevním zánětem, ne zdraví sportovci.",
+		note: "Patients with inflammatory bowel disease, not healthy athletes.",
 	},
 } as const satisfies Record<string, Source>;

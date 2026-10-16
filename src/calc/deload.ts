@@ -7,7 +7,7 @@ import type { DayNote } from "../model/types";
 import { formatNumber } from "../ui/format";
 import type { SessionBest } from "./records";
 import { mean } from "./stats";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 // ---------- Zhoršující se check-in ----------
 
@@ -122,15 +122,15 @@ export function deloadSignals(input: DeloadInput): DeloadSignals {
 	const checkInWorse = input.checkIn.worsening;
 	const stagnating = input.stagnation.stagnating;
 	const reasons: string[] = [];
-	if (lowForm) reasons.push(t("Forma je {tsbDays} dní v řadě víc než {tsbPct} % pod kondicí.", { tsbDays: input.tsbDays, tsbPct: input.tsbPct }));
-	if (hrvLow) reasons.push(t("HRV bylo {hrvLowDays} z posledních 7 dní pod osobní normou.", { hrvLowDays: input.hrvLowDays ?? 0 }));
+	if (lowForm) reasons.push(tn(input.tsbDays, ["Form has been more than {tsbPct} % below fitness for {n} day in a row.", "Form has been more than {tsbPct} % below fitness for {n} days in a row."], { tsbPct: input.tsbPct }));
+	if (hrvLow) reasons.push(t("HRV was below your personal baseline on {hrvLowDays} of the last 7 days.", { hrvLowDays: input.hrvLowDays ?? 0 }));
 	if (checkInWorse) {
 		reasons.push(
-			t("Pocity z check-inu se zhoršily: průměr {v}/5 za poslední {CHECKIN_RECENT_DAYS} dny proti {v2}/5 předtím.", { v: formatNumber(input.checkIn.recent!, 1), CHECKIN_RECENT_DAYS, v2: formatNumber(input.checkIn.before!, 1) }),
+			t("How you feel in the check-in got worse: average {v}/5 over the last {CHECKIN_RECENT_DAYS} days vs {v2}/5 before.", { v: formatNumber(input.checkIn.recent!, 1), CHECKIN_RECENT_DAYS, v2: formatNumber(input.checkIn.before!, 1) }),
 		);
 	}
 	if (stagnating) {
-		reasons.push(t("Výkony {stagnationWeeks} týdny nerostou ({v}).", { stagnationWeeks: input.stagnationWeeks, v: input.stagnation.tracked.slice(0, 3).join(", ") }));
+		reasons.push(tn(input.stagnationWeeks, ["Performance hasn't improved for {n} week ({v}).", "Performance hasn't improved for {n} weeks ({v})."], { v: input.stagnation.tracked.slice(0, 3).join(", ") }));
 	}
 	const count = reasons.length;
 	return { lowForm, hrvLow, checkInWorse, stagnating, count, suggest: count >= DELOAD_MIN_SIGNALS, reasons };

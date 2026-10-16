@@ -42,9 +42,9 @@ export class ExportService {
 		const days: DayNote[] = this.index.all("day").map((e) => e.note);
 		const when = stamp(now);
 		const outputs: [string, string][] = [
-			[t("Tréninky {when}.csv", { when }), workoutsCsv(workouts, this.tonnage)],
-			[t("Série {when}.csv", { when }), setsCsv(workouts)],
-			[t("Dny {when}.csv", { when }), daysCsv(days, (d) => sleepDurationMin(d.sleep))],
+			[t("Workouts {when}.csv", { when }), workoutsCsv(workouts, this.tonnage)],
+			[t("Sets {when}.csv", { when }), setsCsv(workouts)],
+			[t("Days {when}.csv", { when }), daysCsv(days, (d) => sleepDurationMin(d.sleep))],
 		];
 		const files: string[] = [];
 		for (const [name, content] of outputs) {
@@ -60,9 +60,9 @@ export class ExportService {
 		const settings = this.settings();
 		const root = settings.folders.root;
 		const target = settings.backupFolder;
-		if (target === root || target.startsWith(`${root}/`)) throw new Error(t("Složka záloh nesmí být uvnitř kořenové složky."));
+		if (target === root || target.startsWith(`${root}/`)) throw new Error(t("The backup folder can't be inside the root folder."));
 		const files = this.app.vault.getFiles().filter((f) => f.path.startsWith(`${root}/`));
-		if (files.length === 0) throw new Error(t("Složka „{root}“ je prázdná – není co zálohovat.", { root }));
+		if (files.length === 0) throw new Error(t("The folder “{root}” is empty – nothing to back up.", { root }));
 		const entries: ZipEntry[] = [];
 		for (const file of files) {
 			entries.push({ path: file.path, data: new Uint8Array(await this.app.vault.readBinary(file)), modified: new Date(file.stat.mtime) });
@@ -70,7 +70,7 @@ export class ExportService {
 		const zip = createZip(entries);
 		await this.writer.ensureFolder(target);
 		const path = uniquePath(joinPath(target, `${root.split("/").pop() ?? root} ${stamp(now)}.zip`), (p) => this.app.vault.getAbstractFileByPath(p) !== null);
-		const created = await this.app.vault.createBinary(path, zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength) as ArrayBuffer);
+		const created = await this.app.vault.createBinary(path, zip.slice().buffer);
 		return { path: created instanceof TFile ? created.path : path, files: entries.length, bytes: zip.length };
 	}
 }

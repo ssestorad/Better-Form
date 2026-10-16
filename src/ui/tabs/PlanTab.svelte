@@ -10,7 +10,7 @@
 	import { addDays, startOfWeek, toIsoDate, weekdayOf } from "../../model/dates";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { usePlugin } from "../context";
-	import { formatCzechDate, formatDurationMin, formatNumber } from "../format";
+	import { formatCzechDate, formatDateRange, formatDayMonth, formatDurationMin, formatNumber } from "../format";
 	import { formatWhole } from "../nutrition/text";
 
 	const plugin = usePlugin();
@@ -44,13 +44,10 @@
 	});
 
 	const STATUS_CLASS: Record<PlanStatus, string> = { done: "bf-tag bf-tag-done", planned: "bf-tag", missed: "bf-tag bf-tag-warn", off: "bf-tag" };
-	const shortDate = (iso: string) => {
-		const [, m, d] = iso.split("-").map(Number) as [number, number, number];
-		return `${d}. ${m}.`;
-	};
-	const weekTitle = $derived(`${shortDate(week)} – ${formatCzechDate(addDays(week, 6), false)}`);
-	const weekNote = $derived(week === currentWeek ? t("tento týden") : week === addDays(currentWeek, 7) ? t("příští týden") : week === addDays(currentWeek, -7) ? t("minulý týden") : "");
-	const streakText = (dates: string[]) => dates.map((d) => `${WEEKDAY_LABELS[weekdayOf(d)].toLocaleLowerCase("cs")} ${shortDate(d)}`).join(", ");
+	const shortDate = formatDayMonth;
+	const weekTitle = $derived(formatDateRange(week, addDays(week, 6)));
+	const weekNote = $derived(week === currentWeek ? t("this week") : week === addDays(currentWeek, 7) ? t("next week") : week === addDays(currentWeek, -7) ? t("last week") : "");
+	const streakText = (dates: string[]) => dates.map((d) => `${WEEKDAY_LABELS[weekdayOf(d)].toLocaleLowerCase()} ${shortDate(d)}`).join(", ");
 
 	function log(entry: PlanEntry) {
 		const template = entry.item.template ? plugin.index.all("template").find((x) => x.note.name === entry.item.template)?.file : undefined;
@@ -65,7 +62,7 @@
 		}
 	}
 
-	const setOff = (from: string, to: string, reason: DayOffReason | null) => run(() => plugin.plans.setOff(from, to, reason), t("Volno se nepodařilo uložit"));
+	const setOff = (from: string, to: string, reason: DayOffReason | null) => run(() => plugin.plans.setOff(from, to, reason), t("Couldn't save the day off"));
 
 	/** Nabídka dne: volno, nemoc, dovolená a přesun nesplněných položek. */
 	function dayMenu(event: MouseEvent, day: PlanDay) {
@@ -76,22 +73,22 @@
 			const target = day.date < today ? today : addDays(day.date, 1);
 			menu.addItem((item) =>
 				item
-					.setTitle(day.date < today ? t("Přesunout nesplněné na dnešek ({movable})", { movable }) : t("Přesunout nesplněné na další den ({movable})", { movable }))
+					.setTitle(day.date < today ? t("Move unfinished to today ({movable})", { movable }) : t("Move unfinished to the next day ({movable})", { movable }))
 					.setIcon("arrow-right")
-					.onClick(() => void run(() => plugin.plans.movePending(day.date, target, today), t("Přesun se nepodařil"))),
+					.onClick(() => void run(() => plugin.plans.movePending(day.date, target, today), t("Couldn't move"))),
 			);
 			menu.addSeparator();
 		}
-		menu.addItem((item) => item.setTitle(t("Volný den")).setIcon("coffee").onClick(() => void setOff(day.date, day.date, "rest")));
-		menu.addItem((item) => item.setTitle(t("Nemoc")).setIcon("thermometer").onClick(() => void setOff(day.date, day.date, "illness")));
-		menu.addItem((item) => item.setTitle(t("Dovolená")).setIcon("palmtree").onClick(() => void setOff(day.date, day.date, "vacation")));
+		menu.addItem((item) => item.setTitle(t("Rest day")).setIcon("coffee").onClick(() => void setOff(day.date, day.date, "rest")));
+		menu.addItem((item) => item.setTitle(t("Illness")).setIcon("thermometer").onClick(() => void setOff(day.date, day.date, "illness")));
+		menu.addItem((item) => item.setTitle(t("Vacation")).setIcon("palmtree").onClick(() => void setOff(day.date, day.date, "vacation")));
 		if (day.date < weekEnd) {
-			menu.addItem((item) => item.setTitle(t("Nemoc do konce týdne")).setIcon("thermometer").onClick(() => void setOff(day.date, weekEnd, "illness")));
-			menu.addItem((item) => item.setTitle(t("Dovolená do konce týdne")).setIcon("palmtree").onClick(() => void setOff(day.date, weekEnd, "vacation")));
+			menu.addItem((item) => item.setTitle(t("Ill until the end of the week")).setIcon("thermometer").onClick(() => void setOff(day.date, weekEnd, "illness")));
+			menu.addItem((item) => item.setTitle(t("Vacation until the end of the week")).setIcon("palmtree").onClick(() => void setOff(day.date, weekEnd, "vacation")));
 		}
 		if (day.off) {
 			menu.addSeparator();
-			menu.addItem((item) => item.setTitle(t("Zrušit volno")).setIcon("x").onClick(() => void setOff(day.date, day.date, null)));
+			menu.addItem((item) => item.setTitle(t("Cancel day off")).setIcon("x").onClick(() => void setOff(day.date, day.date, null)));
 		}
 		menu.showAtMouseEvent(event);
 	}
@@ -101,9 +98,9 @@
 		busy = true;
 		try {
 			const count = await plugin.plans.copyPrevious(week);
-			new Notice(count > 0 ? t("Zkopírováno z minulého týdne: {count}.", { count }) : t("V předchozím týdnu není nic naplánováno."));
+			new Notice(count > 0 ? t("Copied from last week: {count}.", { count }) : t("Nothing is planned in the previous week."));
 		} catch (err) {
-			new Notice(t("Plán se nepodařilo zkopírovat: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Couldn't copy the plan: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		} finally {
 			busy = false;
 		}
@@ -113,18 +110,18 @@
 		try {
 			await plugin.plans.openNote(week);
 		} catch (err) {
-			new Notice(t("Poznámku plánu nejde otevřít: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Can't open the plan note: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 </script>
 
 <div class="bf-plan-nav">
-	<button type="button" aria-label={t("Předchozí týden")} onclick={() => (week = addDays(week, -7))}>‹</button>
+	<button type="button" aria-label={t("Previous week")} onclick={() => (week = addDays(week, -7))}>‹</button>
 	<span class="bf-plan-week">
 		<strong>{weekTitle}</strong>
 		<span class="bf-muted bf-small bf-plan-weeknote">{weekNote}</span>
 	</span>
-	<button type="button" aria-label={t("Následující týden")} onclick={() => (week = addDays(week, 7))}>›</button>
+	<button type="button" aria-label={t("Next week")} onclick={() => (week = addDays(week, 7))}>›</button>
 </div>
 
 <section class="bf-card">
@@ -137,16 +134,16 @@
 				</span>
 				<div class="bf-plan-items">
 					{#if day.off}
-						<div><span class="bf-tag bf-plan-off" title={day.off === "rest" ? t("Plánované volno") : t("Omluvený den – nepočítá se jako vynechaný a nepřeruší sérii dnů")}>{DAY_OFF_LABELS[day.off]}</span></div>
+						<div><span class="bf-tag bf-plan-off" title={day.off === "rest" ? t("Planned rest") : t("Excused day – doesn't count as missed and doesn't break the day streak")}>{DAY_OFF_LABELS[day.off]}</span></div>
 					{/if}
 					{#each day.entries as entry (entry.item.id)}
 						<div class="bf-plan-item">
 							{#if entry.program}
-								<button type="button" class="bf-link-button bf-plan-title" title={t("Den aktivního programu – dny a délku tréninku změníš na kartě Programy")} onclick={() => plugin.showTab("programs")}>
+								<button type="button" class="bf-link-button bf-plan-title" title={t("Active program day – change the days and workout duration on the Programs tab")} onclick={() => plugin.showTab("programs")}>
 									{t("Program {program_name}", { program_name: entry.program.name })}
 								</button>
 							{:else}
-								<button type="button" class="bf-link-button bf-plan-title" title={t("Upravit, přesunout nebo smazat")} onclick={() => plugin.openPlanItem({ date: day.date, item: entry.item })}>
+								<button type="button" class="bf-link-button bf-plan-title" title={t("Edit, move or delete")} onclick={() => plugin.openPlanItem({ date: day.date, item: entry.item })}>
 									{planItemTitle(entry.item)}
 								</button>
 							{/if}
@@ -155,33 +152,33 @@
 								{planItemDetails(entry.item, entry.minutes)}{entry.program ? ` · ${entry.program.text}` : entry.item.notes ? ` · ${entry.item.notes}` : ""}
 							</span>
 							{#if entry.status === "done" && entry.workout}
-								<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.workout!.file })}>{t("Trénink")}</button>
+								<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.workout!.file })}>{t("Workout")}</button>
 							{:else if entry.program}
 								{#if entry.program.workoutFile}
-									<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.program!.workoutFile! })}>{t("Trénink")}</button>
+									<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.program!.workoutFile! })}>{t("Workout")}</button>
 								{:else if entry.status !== "done" && day.date <= today}
-									<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ program: entry.program!.file, date: day.date })}>{t("Zapsat")}</button>
+									<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ program: entry.program!.file, date: day.date })}>{t("Log")}</button>
 								{/if}
 							{:else if day.date <= today}
-								<button type="button" class="bf-plan-action" onclick={() => log(entry)}>{t("Zapsat")}</button>
+								<button type="button" class="bf-plan-action" onclick={() => log(entry)}>{t("Log")}</button>
 							{/if}
 						</div>
 					{/each}
 					{#each day.programs as program (program.file.path)}
 						<div class="bf-plan-program bf-muted bf-small">
 							{t("Program {program_name}: {program_text}", { program_name: program.name, program_text: program.text })}
-							<span title={program.loggable ? t("Na kartě Programy vyplň u programu délku tréninku – jeho dny se pak počítají do souhrnu, zátěže a výživy.") : t("Denní počítadlo nemá délku ani RPE, proto se do zátěže nepočítá.")}>
-								· {program.loggable ? t("bez délky tréninku – nepočítá se") : t("denní počítadlo – nepočítá se")}
+							<span title={program.loggable ? t("On the Programs tab, fill in the workout duration for the program – its days are then counted in the summary, load and nutrition.") : t("The daily counter has no duration or RPE, so it doesn't count towards load.")}>
+								· {program.loggable ? t("no workout duration – not counted") : t("daily counter – not counted")}
 							</span>
 						</div>
 					{/each}
 					{#if day.entries.length === 0 && day.programs.length === 0 && !day.off}
-						<span class="bf-muted bf-small">{t("nic v plánu")}</span>
+						<span class="bf-muted bf-small">{t("nothing planned")}</span>
 					{/if}
 				</div>
 				<span class="bf-plan-buttons">
-					<button type="button" class="bf-plan-add" aria-label={t("Volno, nemoc, dovolená a přesun – {v}", { v: shortDate(day.date) })} title={t("Volno, nemoc, dovolená, přesun nesplněných")} onclick={(e) => dayMenu(e, day)}>⋯</button>
-					<button type="button" class="bf-plan-add" aria-label={t("Naplánovat trénink na {v}", { v: shortDate(day.date) })} onclick={() => plugin.openPlanItem({ date: day.date })}>+</button>
+					<button type="button" class="bf-plan-add" aria-label={t("Rest, illness, vacation and moving – {v}", { v: shortDate(day.date) })} title={t("Rest, illness, vacation, move unfinished")} onclick={(e) => dayMenu(e, day)}>⋯</button>
+					<button type="button" class="bf-plan-add" aria-label={t("Plan a workout for {v}", { v: shortDate(day.date) })} onclick={() => plugin.openPlanItem({ date: day.date })}>+</button>
 				</span>
 			</li>
 		{/each}
@@ -189,46 +186,46 @@
 </section>
 
 <section class="bf-card">
-	<h4>{t("Souhrn týdne")}</h4>
+	<h4>{t("Week summary")}</h4>
 	{#if view.summary.planned === 0}
-		<p class="bf-muted">{t("V tomto týdnu zatím nic není v plánu. Trénink přidáš tlačítkem + u dne.")}</p>
+		<p class="bf-muted">{t("Nothing is planned for this week yet. Add a workout with the + button next to a day.")}</p>
 	{:else}
 		<dl class="bf-plan-summary">
-			<dt>{t("Tréninky")}</dt>
+			<dt>{t("Workouts")}</dt>
 			<dd>
-				{t("splněno {done} z {planned}{v}{v2}", { done: view.summary.done, planned: view.summary.planned, v: view.summary.missed > 0 ? t(", vynecháno {missed}", { missed: view.summary.missed }) : "", v2: view.summary.postponed > 0
-					? t(", odloženo {postponed}", { postponed: view.summary.postponed })
+				{t("done {done} of {planned}{v}{v2}", { done: view.summary.done, planned: view.summary.planned, v: view.summary.missed > 0 ? t(", missed {missed}", { missed: view.summary.missed }) : "", v2: view.summary.postponed > 0
+					? t(", postponed {postponed}", { postponed: view.summary.postponed })
 					: "" })}
 			</dd>
-			<dt>{t("Čas")}</dt>
+			<dt>{t("Time")}</dt>
 			<dd>
-				{t("v plánu {v}, odtrénováno {v2}", { v: formatDurationMin(view.summary.plannedMin), v2: formatDurationMin(view.summary.actualMin) })}
-				{#if view.summary.withoutDuration > 0}<span class="bf-muted bf-small"> {t("· {withoutDuration}× bez délky (nepočítá se)", { withoutDuration: view.summary.withoutDuration })}</span>{/if}
+				{t("planned {v}, trained {v2}", { v: formatDurationMin(view.summary.plannedMin), v2: formatDurationMin(view.summary.actualMin) })}
+				{#if view.summary.withoutDuration > 0}<span class="bf-muted bf-small"> {t("· {withoutDuration}× without duration (not counted)", { withoutDuration: view.summary.withoutDuration })}</span>{/if}
 			</dd>
 			{#if view.summary.plannedRunKm > 0 || view.summary.actualRunKm > 0}
-				<dt>{t("Běh")}</dt>
-				<dd>{t("v plánu {v} km, uběhnuto {v2} km", { v: formatNumber(view.summary.plannedRunKm), v2: formatNumber(view.summary.actualRunKm) })}</dd>
+				<dt>{t("Run")}</dt>
+				<dd>{t("planned {v} km, run {v2} km", { v: formatNumber(view.summary.plannedRunKm), v2: formatNumber(view.summary.actualRunKm) })}</dd>
 			{/if}
-			<dt>{t("Zátěž")}</dt>
+			<dt>{t("Load")}</dt>
 			<dd>
 				{#if view.outlook.ratio !== null && view.outlook.average !== null}
-					{t("asi {v} AU, tedy {v2}× průměr posledních {OUTLOOK_WEEKS} týdnů ({v3} AU)", { v: formatWhole(view.outlook.expected), v2: formatNumber(view.outlook.ratio, 2), OUTLOOK_WEEKS, v3: formatWhole(view.outlook.average) })}
+					{t("about {v} AU, i.e. {v2}× the average of the last {OUTLOOK_WEEKS} weeks ({v3} AU)", { v: formatWhole(view.outlook.expected), v2: formatNumber(view.outlook.ratio, 2), OUTLOOK_WEEKS, v3: formatWhole(view.outlook.average) })}
 					{#if view.outlook.planned > 0 && view.outlook.ratio > acwrWarn}
-						<br /><span class="bf-plan-warning">{t("Je to výrazný skok (práh {v}×) – zvaž zkrátit nebo zlehčit některý trénink.", { v: formatNumber(acwrWarn, 2) })}</span>
+						<br /><span class="bf-plan-warning">{t("That's a big jump (threshold {v}×) – consider shortening or easing some workouts.", { v: formatNumber(acwrWarn, 2) })}</span>
 					{/if}
 				{:else}
-					{t("asi {v} AU", { v: formatWhole(view.outlook.expected) })}
-					<br /><span class="bf-muted bf-small">{t("Sbírám data – srovnání s průměrem bude po {OUTLOOK_WEEKS} týdnech tréninků se zapsaným RPE a délkou.", { OUTLOOK_WEEKS })}</span>
+					{t("about {v} AU", { v: formatWhole(view.outlook.expected) })}
+					<br /><span class="bf-muted bf-small">{t("Collecting data – the comparison with the average appears after {OUTLOOK_WEEKS} weeks of workouts with RPE and duration logged.", { OUTLOOK_WEEKS })}</span>
 				{/if}
 				<br /><span class="bf-muted bf-small">
-					{t("Zapsané tréninky ({v} AU) + zbytek plánu ({v2} AU); u plánu je to odhad z délky a intenzity (lehká 3, střední 5, těžká 8 × minuty).", { v: formatWhole(view.outlook.actual), v2: formatWhole(view.outlook.planned) })}
+					{t("Logged workouts ({v} AU) + the rest of the plan ({v2} AU); for the plan it's an estimate from duration and intensity (easy 3, moderate 5, hard 8 × minutes).", { v: formatWhole(view.outlook.actual), v2: formatWhole(view.outlook.planned) })}
 					<BasisTag basis={PLAN_LOAD_BASIS} />
 				</span>
 			</dd>
 		</dl>
 		{#each view.streaks as streak (streak[0])}
 			<p class="bf-plan-warning">
-				{t("Těžké dny po sobě: {v} – zvaž prohodit některý s lehčím dnem.", { v: streakText(streak) })}
+				{t("Hard days in a row: {v} – consider swapping one with an easier day.", { v: streakText(streak) })}
 				<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
 			</p>
 		{/each}
@@ -236,11 +233,11 @@
 </section>
 
 <div class="bf-actions">
-	<button type="button" disabled={week === currentWeek} onclick={() => (week = currentWeek)}>{t("Tento týden")}</button>
-	<button type="button" disabled={busy} onclick={() => void copyPrevious()}>{t("Zkopírovat minulý týden")}</button>
-	<button type="button" onclick={() => void openNote()}>{t("Otevřít poznámku týdne")}</button>
-	<button type="button" title={t("Čísla týdne proti minulému, splnění plánu a nové rekordy v poznámce ve složce Souhrny")} onclick={() => void plugin.weeklySummary(week)}>
-		{t("Souhrn týdne")}
+	<button type="button" disabled={week === currentWeek} onclick={() => (week = currentWeek)}>{t("This week")}</button>
+	<button type="button" disabled={busy} onclick={() => void copyPrevious()}>{t("Copy last week")}</button>
+	<button type="button" onclick={() => void openNote()}>{t("Open the week note")}</button>
+	<button type="button" title={t("The week's numbers against last week, plan completion and new records in a note in the Summaries folder")} onclick={() => void plugin.weeklySummary(week)}>
+		{t("Week summary")}
 	</button>
 </div>
 

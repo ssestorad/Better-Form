@@ -46,10 +46,10 @@
 
 	// Karta má čtyři části – knihovna se 72 látkami a tabulky by jinak odsunuly dnešní odškrtávání o tisíce pixelů.
 	const SECTIONS = [
-		{ id: "today", label: t("Dnes") },
-		{ id: "mine", label: t("Moje") },
-		{ id: "library", label: t("Knihovna") },
-		{ id: "tables", label: t("Tabulky") },
+		{ id: "today", label: t("Today") },
+		{ id: "mine", label: t("Mine") },
+		{ id: "library", label: t("Library") },
+		{ id: "tables", label: t("Tables") },
 	] as const;
 	type Section = (typeof SECTIONS)[number]["id"];
 	let section = $state<Section>("today");
@@ -57,9 +57,9 @@
 	const GROUPS: MatchGroup[] = ["fits", "maybe", "other"];
 	const WINDOWS = [7, 30] as const;
 	const DIETS: { value: Diet; label: string }[] = [
-		{ value: "omnivore", label: t("běžná strava") },
-		{ value: "vegetarian", label: t("vegetariánská") },
-		{ value: "vegan", label: t("veganská") },
+		{ value: "omnivore", label: t("regular diet") },
+		{ value: "vegetarian", label: t("vegetarian") },
+		{ value: "vegan", label: t("vegan") },
 	];
 
 	// Cíle u suplementů a strava (nastavení) – podle nich se řadí knihovna.
@@ -179,7 +179,7 @@
 			await action();
 			if (done) new Notice(done);
 		} catch (err) {
-			new Notice(t("Nepodařilo se: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Failed: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 
@@ -216,7 +216,7 @@
 		await run(async () => {
 			await plugin.supplements.create(draft, today, photo);
 			editing = null;
-		}, t("Suplement „{draft_name}“ přidán.", { draft_name: draft.name }));
+		}, t("Supplement “{draft_name}” added.", { draft_name: draft.name }));
 	}
 
 	async function update(entry: SupplementEntry, draft: SupplementDraft) {
@@ -227,14 +227,14 @@
 	}
 
 	function meta(entry: SupplementEntry): string {
-		const composition = entry.note.ingredients ? t("látek ve složení: {ingredients_length}", { ingredients_length: entry.note.ingredients.length }) : "";
+		const composition = entry.note.ingredients ? t("ingredients: {ingredients_length}", { ingredients_length: entry.note.ingredients.length }) : "";
 		return [doseLabel(entry.note.dose, entry.note.unit), SUPPLEMENT_TIMING_LABELS[entry.note.timing], composition]
 			.filter((part) => part !== "")
 			.join(" · ");
 	}
 </script>
 
-<div class="bf-seg" role="tablist" aria-label={t("Části karty Suplementy")}>
+<div class="bf-seg" role="tablist" aria-label={t("Supplements tab sections")}>
 	{#each SECTIONS as s (s.id)}
 		<button type="button" role="tab" class:is-active={section === s.id} aria-selected={section === s.id} onclick={() => (section = s.id)}>{s.label}</button>
 	{/each}
@@ -242,19 +242,19 @@
 
 {#if section === "today"}
 <section class="bf-card">
-	<h4>{t("Dnes")}</h4>
+	<h4>{t("Today")}</h4>
 	{#if active.length === 0}
-		<p class="bf-muted">{t("Zatím nemáš žádný suplement. Vyber si v knihovně, nebo přidej vlastní.")}</p>
+		<p class="bf-muted">{t("You don't have any supplements yet. Pick one in the library or add your own.")}</p>
 		<div class="bf-actions">
-			<button type="button" onclick={() => (section = "library")}>{t("Otevřít knihovnu")}</button>
-			<button type="button" onclick={() => ((section = "mine"), (editing = "new"))}>{t("Přidat vlastní")}</button>
+			<button type="button" onclick={() => (section = "library")}>{t("Open library")}</button>
+			<button type="button" onclick={() => ((section = "mine"), (editing = "new"))}>{t("Add your own")}</button>
 		</div>
 	{:else}
 		<div class="bf-supp-table" role="table">
 			<div class="bf-supp-tr bf-muted" role="row">
-				<span role="columnheader">{t("Suplement")}</span>
-				<span role="columnheader" class="bf-supp-num" title={t("Dodržování za posledních 7 dní")}>{t("7 dní")}</span>
-				<span role="columnheader" class="bf-supp-num" title={t("Dodržování za posledních 30 dní")}>{t("30 dní")}</span>
+				<span role="columnheader">{t("Supplement")}</span>
+				<span role="columnheader" class="bf-supp-num" title={t("Adherence over the last 7 days")}>{t("7 days")}</span>
+				<span role="columnheader" class="bf-supp-num" title={t("Adherence over the last 30 days")}>{t("30 days")}</span>
 			</div>
 			{#each overview as { entry, cells } (entry.file.path)}
 				<div class="bf-supp-tr" role="row">
@@ -268,13 +268,13 @@
 						<span class="bf-supp-name">{entry.note.name}</span>
 						<span class="bf-muted bf-small">{meta(entry)}</span>
 						{#if entry.note.catalog === "caffeine" && caffeineLate && !isTaken(taken, entry.note.name)}
-							<span class="bf-tag bf-tag-warn" title={t("Kofein i 6 h před ulehnutím zkracuje spánek (Drake 2013, výzkum)")}>{t("méně než 6 h do spaní")}</span>
+							<span class="bf-tag bf-tag-warn" title={t("Caffeine even 6 h before bed shortens sleep (Drake 2013, research)")}>{t("less than 6 h before bed")}</span>
 						{/if}
 						{#if entry.note.catalog === "caffeine" && caffeineOver(entry.note.dose, entry.note.unit)}
-							<span class="bf-tag bf-tag-warn" title={t("Od {CAFFEINE_EXCESS_MG_PER_KG} mg/kg přibývá nežádoucích účinků bez dalšího přínosu (IOC 2018, konsenzus)", { CAFFEINE_EXCESS_MG_PER_KG })}>{t("dávka nad {CAFFEINE_EXCESS_MG_PER_KG} mg/kg", { CAFFEINE_EXCESS_MG_PER_KG })}</span>
+							<span class="bf-tag bf-tag-warn" title={t("From {CAFFEINE_EXCESS_MG_PER_KG} mg/kg side effects increase with no further benefit (IOC 2018, consensus)", { CAFFEINE_EXCESS_MG_PER_KG })}>{t("dose above {CAFFEINE_EXCESS_MG_PER_KG} mg/kg", { CAFFEINE_EXCESS_MG_PER_KG })}</span>
 						{/if}
 						{#if entry.note.training_days_only && !trainedToday}
-							<span class="bf-tag" title={t("Bere se jen ve dnech s tréninkem; dnes zatím žádný zapsaný není")}>{t("dnes bez tréninku")}</span>
+							<span class="bf-tag" title={t("Taken only on training days; no workout logged today yet")}>{t("no workout today")}</span>
 						{/if}
 					</label>
 					</div>
@@ -288,7 +288,7 @@
 			{/each}
 		</div>
 		<p class="bf-muted bf-small">
-			{t("Dodržování se počítá od data přidání. Dnešek se započítá, až suplement odškrtneš; u suplementů „jen ve dnech s tréninkem“ se počítají jen dny se zapsaným tréninkem.")}
+			{t("Adherence counts from the date added. Today counts once you check the supplement off; for “training days only” supplements, only days with a logged workout count.")}
 		</p>
 	{/if}
 </section>
@@ -300,19 +300,19 @@
 
 {#if section === "mine"}
 <section class="bf-section">
-	<h4>{t("Moje suplementy")}</h4>
+	<h4>{t("My supplements")}</h4>
 	{#each [...active, ...inactive] as entry (entry.file.path)}
 		<div class="bf-card">
 			<div class="bf-supp-head">
 				<button type="button" class="bf-link-button bf-supp-name" onclick={() => void plugin.app.workspace.openLinkText(entry.file.path, "", false)}>
 					{entry.note.name}
 				</button>
-				<span class="bf-muted bf-small">{meta(entry)}{entry.note.training_days_only ? t(" · jen s tréninkem") : ""}</span>
-				{#if !entry.note.active}<span class="bf-tag">{t("vypnutý")}</span>{/if}
+				<span class="bf-muted bf-small">{meta(entry)}{entry.note.training_days_only ? t(" · training days only") : ""}</span>
+				{#if !entry.note.active}<span class="bf-tag">{t("turned off")}</span>{/if}
 			</div>
 			{#if entry.note.ingredients}
 				<details class="bf-small">
-					<summary>{t("Složení jedné porce")}</summary>
+					<summary>{t("Ingredients per serving")}</summary>
 					{entry.note.ingredients.map((i) => `${i.name} ${doseLabel(i.amount, i.unit)}`).join(" · ")}
 				</details>
 			{/if}
@@ -320,22 +320,22 @@
 				<SupplementForm initial={draftOf(entry)} onSave={(draft) => void update(entry, draft)} onCancel={() => (editing = null)} />
 			{:else}
 				<div class="bf-actions">
-					<button type="button" onclick={() => (editing = entry.file.path)}>{t("Upravit")}</button>
+					<button type="button" onclick={() => (editing = entry.file.path)}>{t("Edit")}</button>
 					{#if entry.note.active}
-						<button type="button" title={t("Přestane se nabízet k odškrtnutí; historie zůstane")} onclick={() => void run(() => plugin.supplements.setActive(entry, false, today))}>
-							{t("Vypnout")}
+						<button type="button" title={t("Stops being offered for checking off; the history stays")} onclick={() => void run(() => plugin.supplements.setActive(entry, false, today))}>
+							{t("Turn off")}
 						</button>
 					{:else}
-						<button type="button" onclick={() => void run(() => plugin.supplements.setActive(entry, true, today))}>{t("Zapnout")}</button>
+						<button type="button" onclick={() => void run(() => plugin.supplements.setActive(entry, true, today))}>{t("Turn on")}</button>
 					{/if}
-					<button type="button" onclick={() => void plugin.trashNote(entry.file, "supplement", entry.note.name)}>{t("Smazat")}</button>
+					<button type="button" onclick={() => void plugin.trashNote(entry.file, "supplement", entry.note.name)}>{t("Delete")}</button>
 				</div>
 			{/if}
 		</div>
 	{/each}
 	{#if editing === "new"}
 		<div class="bf-card">
-			<SupplementForm initial={EMPTY_DRAFT} nameEditable saveLabel={t("Přidat")} onSave={(draft) => void create(draft)} onCancel={() => (editing = null)} />
+			<SupplementForm initial={EMPTY_DRAFT} nameEditable saveLabel={t("Add")} onSave={(draft) => void create(draft)} onCancel={() => (editing = null)} />
 		</div>
 	{:else if editing === "label"}
 		<div class="bf-card">
@@ -343,8 +343,8 @@
 		</div>
 	{:else}
 		<div class="bf-actions">
-			<button type="button" onclick={() => (editing = "new")}>{t("Přidat vlastní suplement")}</button>
-			<button type="button" title={t("Přípravek s více látkami: fotka etikety a text složení")} onclick={() => (editing = "label")}>{t("Přidat podle etikety")}</button>
+			<button type="button" onclick={() => (editing = "new")}>{t("Add your own supplement")}</button>
+			<button type="button" title={t("A product with several ingredients: label photo and ingredients text")} onclick={() => (editing = "label")}>{t("Add from label")}</button>
 		</div>
 	{/if}
 </section>
@@ -354,10 +354,10 @@
 
 {#if section === "library"}
 <section class="bf-section">
-	<h4>{t("Knihovna")}</h4>
+	<h4>{t("Library")}</h4>
 	<p class="bf-muted bf-small">{t(SUPPLEMENT_DISCLAIMER)}</p>
 	<div class="bf-card">
-		<div class="bf-small"><strong>{t("Co od suplementů chceš?")}</strong> {t("Knihovna se seřadí podle důkazů v oblastech, které vybereš (bez výběru podle všech). Kliknutím na látku se rozbalí podrobnosti.")}</div>
+		<div class="bf-small"><strong>{t("What do you want from supplements?")}</strong> {t("The library is sorted by the evidence in the areas you choose (by all of them if none are chosen). Click a substance to expand the details.")}</div>
 		<div class="bf-supp-goals">
 			{#each BENEFIT_AREAS as area (area)}
 				<button type="button" class="bf-supp-goal" class:is-active={goals.includes(area)} aria-pressed={goals.includes(area)} onclick={() => void toggleGoal(area)}>
@@ -376,41 +376,41 @@
 	</div>
 	{#if b12Missing}
 		<p class="bf-supp-warning">
-			{t("Při {v} stravě je nedostatek vitaminu B12 častý a vede k chudokrevnosti a poškození nervů – doplňuj ho (Pawlak 2014, výzkum). Najdeš ho níže ve „Vitaminy B“.", { v: diet === "vegan" ? t("veganské") : t("vegetariánské") })}
+			{t("On a {v} diet, vitamin B12 deficiency is common and leads to anemia and nerve damage – supplement it (Pawlak 2014, research). You'll find it below under “B vitamins”.", { v: diet === "vegan" ? t("vegan") : t("vegetarian") })}
 		</p>
 	{/if}
-	<input class="bf-supp-search" type="search" placeholder={t("Hledat látku ({SUPPLEMENT_CATALOG_length} v knihovně)", { SUPPLEMENT_CATALOG_length: SUPPLEMENT_CATALOG.length })} aria-label={t("Hledat v knihovně suplementů")} bind:value={query} />
+	<input class="bf-supp-search" type="search" placeholder={t("Search substances ({SUPPLEMENT_CATALOG_length} in the library)", { SUPPLEMENT_CATALOG_length: SUPPLEMENT_CATALOG.length })} aria-label={t("Search the supplement library")} bind:value={query} />
 	<div class="bf-supp-filters bf-small">
 		<label>
-			<span>{t("Důkazy")}</span>
+			<span>{t("Evidence")}</span>
 			<select bind:value={filter.evidence}>
-				<option value="all">{t("všechny")}</option>
-				<option value="c">{t("aspoň předběžné (A–C)")}</option>
-				<option value="b">{t("jen silné a střední (A, B)")}</option>
+				<option value="all">{t("all")}</option>
+				<option value="c">{t("at least preliminary (A–C)")}</option>
+				<option value="b">{t("strong and moderate only (A, B)")}</option>
 			</select>
 		</label>
 		<label>
-			<span>{t("Bezpečnost")}</span>
+			<span>{t("Safety")}</span>
 			<select bind:value={filter.safety}>
-				<option value="all">{t("všechny")}</option>
-				<option value="no_risk">{t("bez vážných rizik (🟢 🟠)")}</option>
-				<option value="ok">{t("jen bez známých problémů (🟢)")}</option>
+				<option value="all">{t("all")}</option>
+				<option value="no_risk">{t("no serious risks (🟢 🟠)")}</option>
+				<option value="ok">{t("no known problems only (🟢)")}</option>
 			</select>
 		</label>
 		<label class="bf-supp-filter-check">
 			<input type="checkbox" bind:checked={hideOwned} />
-			<span>{t("skrýt, co už beru")}</span>
+			<span>{t("hide what I already take")}</span>
 		</label>
 		{#if filtered || query.trim() !== ""}
-			<span class="bf-muted">{t("Zobrazeno {shownCount} z {SUPPLEMENT_CATALOG_length}", { shownCount, SUPPLEMENT_CATALOG_length: SUPPLEMENT_CATALOG.length })}</span>
+			<span class="bf-muted">{t("Showing {shownCount} of {SUPPLEMENT_CATALOG_length}", { shownCount, SUPPLEMENT_CATALOG_length: SUPPLEMENT_CATALOG.length })}</span>
 		{/if}
 		{#if filtered}
-			<button type="button" class="bf-link-button" onclick={() => ((filter = { ...NO_FILTER }), (hideOwned = false))}>{t("zrušit filtry")}</button>
+			<button type="button" class="bf-link-button" onclick={() => ((filter = { ...NO_FILTER }), (hideOwned = false))}>{t("clear filters")}</button>
 		{/if}
 	</div>
 	{#if library.length === 0}
 		<p class="bf-muted bf-small">
-			{filtered ? t("Filtrům nic neodpovídá – zkus je uvolnit.") : t("Nic takového v knihovně není. Vlastní suplement přidáš v části Moje.")}
+			{filtered ? t("Nothing matches the filters – try loosening them.") : t("There's nothing like that in the library. Add your own supplement under Mine.")}
 		</p>
 	{/if}
 	{#each library as { group, items } (group)}
@@ -420,14 +420,14 @@
 			{#if editing === `catalog:${item.id}`}
 				<div class="bf-card">
 					<strong>{item.name}</strong>
-					<SupplementForm initial={catalogDraft(item)} saveLabel={t("Přidat")} onSave={(draft) => void create(draft)} onCancel={() => (editing = null)} />
+					<SupplementForm initial={catalogDraft(item)} saveLabel={t("Add")} onSave={(draft) => void create(draft)} onCancel={() => (editing = null)} />
 				</div>
 			{/if}
 		{/each}
 	{/each}
-	<p class="bf-muted bf-small">{t(SUPPLEMENT_CONTAMINATION_NOTE)} <span class="bf-tag">{t("konsenzus")}</span> {t("IOC 2018 (Maughan)")}</p>
+	<p class="bf-muted bf-small">{t(SUPPLEMENT_CONTAMINATION_NOTE)} <span class="bf-tag">{t("consensus")}</span> {t("IOC 2018 (Maughan)")}</p>
 	{#if weightKg === null}
-		<p class="bf-muted bf-small">{t("Dávky podle hmotnosti (kofein, protein, beta-alanin) se dopočítají, až zapíšeš váhu v check-inu nebo v profilu.")}</p>
+		<p class="bf-muted bf-small">{t("Weight-based doses (caffeine, protein, beta-alanine) are calculated once you log your weight in the check-in or profile.")}</p>
 	{/if}
 </section>
 {/if}

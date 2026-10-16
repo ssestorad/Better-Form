@@ -47,7 +47,7 @@
 <StravaCard />
 
 <section class="bf-card">
-	<h4>{t("Nový trénink")}</h4>
+	<h4>{t("New workout")}</h4>
 	<div class="bf-log-sports">
 		{#each sports as sport (sport)}
 			<button type="button" onclick={() => plugin.openWorkout({ sport })}>{SPORT_LABELS[sport]}</button>
@@ -57,7 +57,7 @@
 
 {#if programsToday.length > 0}
 	<section class="bf-card">
-		<h4>{t("Z programu na dnes")}</h4>
+		<h4>{t("From today's program")}</h4>
 		<div class="bf-log-sports">
 			{#each programsToday as p (p.entry.file.path)}
 				<button type="button" onclick={() => plugin.openWorkout({ program: p.entry.file })}>{p.entry.note.name}</button>
@@ -67,19 +67,19 @@
 {/if}
 
 <section class="bf-card">
-	<h4>{t("Ze šablony")}</h4>
+	<h4>{t("From a template")}</h4>
 	{#if !hasTemplates}
-		<p class="bf-muted">{t("Zatím žádné šablony – ulož si trénink tlačítkem „Uložit jako šablonu“.")}</p>
+		<p class="bf-muted">{t("No templates yet – save a workout with the “Save as template” button.")}</p>
 	{:else}
-		<input type="search" placeholder={t("Hledat šablonu…")} bind:value={query} />
+		<input type="search" placeholder={t("Search templates…")} bind:value={query} />
 		<ul class="bf-list">
 			{#each templates as x (x.file.path)}
 				<li>
 					<button type="button" class="bf-link-button" onclick={() => plugin.openWorkout({ template: x.file })}>
 						{x.note.name}
 					</button>
-					<span class="bf-muted"> {t("· {v} · {blocks_length} bloků", { v: SPORT_LABELS[x.note.sport], blocks_length: x.note.blocks.length })}</span>
-					<button type="button" class="bf-link-button" aria-label={t("Smazat šablonu {note_name}", { note_name: x.note.name })} onclick={() => void plugin.trashNote(x.file, "template", x.note.name)}>{t("smazat")}</button>
+					<span class="bf-muted"> {t("· {v} · {blocks_length} blocks", { v: SPORT_LABELS[x.note.sport], blocks_length: x.note.blocks.length })}</span>
+					<button type="button" class="bf-link-button" aria-label={t("Delete template {note_name}", { note_name: x.note.name })} onclick={() => void plugin.trashNote(x.file, "template", x.note.name)}>{t("delete")}</button>
 				</li>
 			{/each}
 		</ul>
@@ -87,13 +87,13 @@
 </section>
 
 <div class="bf-actions">
-	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Knihovna cviků")}</button>
+	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Exercise library")}</button>
 </div>
 
 <section class="bf-card">
-	<h4>{t("Poslední tréninky")}</h4>
+	<h4>{t("Recent workouts")}</h4>
 	{#if recent.length === 0}
-		<p class="bf-muted">{t("Zatím žádný zapsaný trénink.")}</p>
+		<p class="bf-muted">{t("No workout logged yet.")}</p>
 	{:else}
 		<ul class="bf-list">
 			{#each recent as w (w.file.path)}
@@ -101,7 +101,7 @@
 					<button type="button" class="bf-link-button" onclick={() => plugin.openWorkout({ file: w.file })}>
 						{formatShortDate(w.note.date)} · {workoutLabel(w.note)}
 					</button>
-					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("doplnit RPE")}</span>{/if}
+					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("add RPE")}</span>{/if}
 					{#if workoutDetails(w.note, false)}<span class="bf-muted"> · {workoutDetails(w.note, false)}</span>{/if}
 				</li>
 			{/each}

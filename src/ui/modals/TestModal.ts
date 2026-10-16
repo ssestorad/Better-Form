@@ -2,6 +2,7 @@ import { Modal, Notice } from "obsidian";
 import { mount, unmount } from "svelte";
 import type BetterFormPlugin from "../../main";
 import type { TestType } from "../../model/constants";
+import type { TestNote } from "../../model/types";
 import { formatNumber, formatShortDate } from "../format";
 import TestForm from "../program/TestForm.svelte";
 import { t } from "../../i18n";
@@ -23,7 +24,7 @@ export class TestModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal");
-		this.titleEl.setText(t("Test maxima"));
+		this.titleEl.setText(t("Max test"));
 		this.component = mount(TestForm, {
 			target: this.contentEl,
 			props: {
@@ -35,9 +36,9 @@ export class TestModal extends Modal {
 					category: e.note.category,
 				})),
 				lastText: (exercise: string, type: TestType) => this.lastText(exercise, type),
-				onSave: async (test) => {
+				onSave: async (test: Omit<TestNote, "forma" | "schema">) => {
 					await this.plugin.programs.saveTest(test);
-					new Notice(t("Test uložen: {exercise} – {v}.", { exercise: test.exercise, v: formatNumber(test.result, 1) }));
+					new Notice(t("Test saved: {exercise} – {v}.", { exercise: test.exercise, v: formatNumber(test.result, 1) }));
 					this.close();
 				},
 				onCancel: () => this.close(),
@@ -59,6 +60,6 @@ export class TestModal extends Modal {
 			.map((t) => t.note)
 			.filter((t) => t.test_type === type && this.plugin.workouts.isSameExercise(t.exercise, exercise))
 			.sort((a, b) => b.date.localeCompare(a.date))[0];
-		return last ? t("minule {v} ({v2})", { v: formatNumber(last.result, 1), v2: formatShortDate(last.date) }) : undefined;
+		return last ? t("last time {v} ({v2})", { v: formatNumber(last.result, 1), v2: formatShortDate(last.date) }) : undefined;
 	}
 }

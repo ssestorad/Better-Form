@@ -84,7 +84,7 @@ export class WorkoutService {
 		let previousDate: string | undefined;
 		if (existing) {
 			if (this.index.all("workout").find((e) => e.file === existing)?.schemaStatus === "newer") {
-				throw new Error(t("Trénink je z novější verze pluginu – aktualizuj plugin."));
+				throw new Error(t("The workout is from a newer version of the plugin – update the plugin."));
 			}
 			previousDate = this.index.all("workout").find((e) => e.file === existing)?.note.date;
 			await this.writer.updateFrontmatter(existing, (fm) => {
@@ -108,7 +108,7 @@ export class WorkoutService {
 	/** Uloží šablonu z formuláře; vrátí soubor. */
 	async saveTemplate(draft: WorkoutDraft, name: string): Promise<TFile> {
 		const template = draftToTemplate(draft, name.trim(), SCHEMA_VERSION);
-		if (template.blocks.length === 0) throw new Error(t("Šablona nemá žádný cvik."));
+		if (template.blocks.length === 0) throw new Error(t("The template has no exercise."));
 		return this.writer.createNote(
 			namedNotePath(this.settings().folders, "templates", template.name),
 			templateToFrontmatter(template),
@@ -134,7 +134,7 @@ export class WorkoutService {
 				measure,
 				muscles: { primary: [], secondary: [] },
 			},
-			t("Doplň svalové partie (muscles) a případně techniku."),
+			t("Fill in the muscle groups (muscles) and optionally the technique."),
 		);
 	}
 

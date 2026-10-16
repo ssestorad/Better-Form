@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Přehled – běh: tepové zóny, rozložení intenzit (SPEC 8.7) a boty (5.10).
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { Notice } from "obsidian";
 	import {
 		HR_MAX_BASIS,
@@ -74,7 +74,7 @@
 			await action();
 			if (done) new Notice(done);
 		} catch (err) {
-			new Notice(t("Nepodařilo se: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Failed: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 
@@ -86,7 +86,7 @@
 			name = "";
 			startKm = undefined;
 			limitKm = undefined;
-		}, t("Boty přidány."));
+		}, t("Shoes added."));
 	}
 
 	function openNote(entry: ShoeEntry) {
@@ -95,17 +95,17 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Tepové zóny")}</h4>
+	<h4>{t("Heart rate zones")}</h4>
 	{#if hrMax}
 		<p class="bf-small">
-			{t("Maximální tep {hrMax_value}", { hrMax_value: hrMax.value })}
+			{t("Maximum heart rate {hrMax_value}", { hrMax_value: hrMax.value })}
 			{#if hrMax.from === "estimated"}
-				{t("– odhad z věku (208 − 0,7 × věk)")}
+				{t("– estimated from age (208 − 0.7 × age)")}
 				<span class="bf-tag" title={getSource(HR_MAX_BASIS.sourceIds[0]!).citation}>{EVIDENCE_LABELS[HR_MAX_BASIS.evidence]}</span>
 			{:else}
-				{t("– změřený, z profilu")}
+				{t("– measured, from your profile")}
 			{/if}
-			{t("· klidový tep {v}", { v: restingHr ?? t("není zapsaný") })}
+			{t("· resting heart rate {v}", { v: restingHr ?? t("not logged") })}
 		</p>
 		<div class="bf-ov-table" role="table">
 			{#each zones as zone (zone.zone)}
@@ -116,73 +116,73 @@
 			{/each}
 		</div>
 		<p class="bf-muted bf-small">
-			{t("Zóny po 10 % {v}", { v: restingHr !== null ? t("tepové rezervy (klidový tep z posledních check-inů)") : t("maximálního tepu – s klidovým tepem z check-inu budou přesnější") })}
-			<span class="bf-tag">{EVIDENCE_LABELS[HR_ZONE_BASIS.evidence]}</span>{t(". Odhad maxima z věku se u jednotlivce může lišit o 10 i více tepů.")}
+			{t("Zones in 10 % steps of {v}", { v: restingHr !== null ? t("heart rate reserve (resting heart rate from recent check-ins)") : t("maximum heart rate – with a resting heart rate from the check-in they'll be more accurate") })}
+			<span class="bf-tag">{EVIDENCE_LABELS[HR_ZONE_BASIS.evidence]}</span>{t(". An age-based maximum can be off by 10 beats or more for an individual.")}
 		</p>
 	{:else}
-		<p class="bf-muted">{t("Vyplň v profilu rok narození nebo změřený maximální tep.")}</p>
+		<p class="bf-muted">{t("Fill in your year of birth or a measured maximum heart rate in your profile.")}</p>
 	{/if}
 </section>
 
 <section class="bf-card">
-	<h4>{t("Rozložení intenzit (4 týdny)")}</h4>
+	<h4>{t("Intensity distribution (4 weeks)")}</h4>
 	{#if intensity}
-		<div class="bf-ov-bar bf-ov-split" role="img" aria-label={t("Intenzivní čas {v} %", { v: formatNumber(intensity.share * 100, 0) })}>
+		<div class="bf-ov-bar bf-ov-split" role="img" aria-label={t("High-intensity time {v} %", { v: formatNumber(intensity.share * 100, 0) })}>
 			<div class="bf-ov-bar-fill" style:width={`${(1 - intensity.share) * 100}%`}></div>
 			<div class="bf-ov-bar-fill is-warn" style:width={`${intensity.share * 100}%`}></div>
 		</div>
 		<p class="bf-small">
-			{t("Lehké zóny 1–2:")} <strong>{formatNumber((1 - intensity.share) * 100, 0)} %</strong> {t("· intenzivní zóny 3–5:")}
+			{t("Easy zones 1–2:")} <strong>{formatNumber((1 - intensity.share) * 100, 0)} %</strong> {t("· hard zones 3–5:")}
 			<strong>{formatNumber(intensity.share * 100, 0)} %</strong>
-			<span class="bf-muted">{t("({runs} běhů s daty o tepu)", { runs: intensity.runs })}</span>
+			<span class="bf-muted">{tn(intensity.runs, ["({n} run with heart rate data)", "({n} runs with heart rate data)"])}</span>
 		</p>
 		<p class="bf-muted bf-small">
-			{t("Vytrvalci s nejlepšími výsledky tráví zhruba 80 % času v nízké intenzitě")} <BasisTag basis={INTENSITY_BASIS} named />{t(". Upozornění přijde nad {warnPct} % intenzivního času.", { warnPct })}
+			{t("The most successful endurance athletes spend roughly 80 % of their time at low intensity")} <BasisTag basis={INTENSITY_BASIS} named />{t(". You get a warning above {warnPct} % high-intensity time.", { warnPct })}
 		</p>
 	{:else}
-		<p class="bf-muted">{t("Sbírám data – rozložení se počítá z času v tepových zónách, který ke běhům dodává Strava (jen s předplatným).")}</p>
+		<p class="bf-muted">{t("Collecting data – the distribution is calculated from time in heart rate zones, which Strava provides for runs (subscription only).")}</p>
 	{/if}
 	{#if researchTopic("intensity")}<ResearchCard topic={researchTopic("intensity")!} />{/if}
 </section>
 
 <section class="bf-card">
-	<h4>{t("Boty")}</h4>
+	<h4>{t("Shoes")}</h4>
 	{#if shoes.length === 0 && !adding}
-		<p class="bf-muted">{t("Zatím žádné boty. Po přidání je vybereš u běhu a plugin bude počítat kilometry.")}</p>
+		<p class="bf-muted">{t("No shoes yet. Once added, you can pick them for a run and the plugin will count the kilometers.")}</p>
 	{/if}
 	{#each shoes as { entry, usage } (entry.file.path)}
 		<div class="bf-ov-shoe">
 			<div class="bf-ov-shoe-head">
 				<button type="button" class="bf-link-button bf-ov-shoe-name" onclick={() => openNote(entry)}>{entry.note.name}</button>
-				{#if !entry.note.active}<span class="bf-tag">{t("vyřazené")}</span>{/if}
+				{#if !entry.note.active}<span class="bf-tag">{t("retired")}</span>{/if}
 				{#if usage.status === "over"}
-					<span class="bf-tag bf-tag-warn">{t("nad limitem")}</span>
+					<span class="bf-tag bf-tag-warn">{t("over the limit")}</span>
 				{:else if usage.status === "near"}
-					<span class="bf-tag bf-tag-warn">{t("blíží se limitu")}</span>
+					<span class="bf-tag bf-tag-warn">{t("close to the limit")}</span>
 				{/if}
 			</div>
-			<div class="bf-ov-bar" role="img" aria-label={t("{km} z {limit} km", { km: formatNumber(usage.km, 0), limit: formatNumber(usage.limitKm, 0) })}>
+			<div class="bf-ov-bar" role="img" aria-label={t("{km} of {limit} km", { km: formatNumber(usage.km, 0), limit: formatNumber(usage.limitKm, 0) })}>
 				<div class="bf-ov-bar-fill" class:is-warn={usage.status !== "ok"} style:width={`${Math.min(100, usage.ratio * 100)}%`}></div>
 			</div>
 			<div class="bf-muted bf-small bf-ov-shoe-foot">
-				<span>{t("{v} z {v2} km · {runs} běhů", { v: formatNumber(usage.km, 0), v2: formatNumber(usage.limitKm, 0), runs: usage.runs })}</span>
+				<span>{tn(usage.runs, ["{v} of {v2} km · {n} run", "{v} of {v2} km · {n} runs"], { v: formatNumber(usage.km, 0), v2: formatNumber(usage.limitKm, 0) })}</span>
 				<button type="button" class="bf-link-button" onclick={() => void run(() => plugin.gear.setActive(entry, !entry.note.active))}>
-					{entry.note.active ? t("Vyřadit") : t("Vrátit")}
+					{entry.note.active ? t("Retire") : t("Restore", undefined, "gear")}
 				</button>
-				<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "shoes", entry.note.name)}>{t("Smazat")}</button>
+				<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "shoes", entry.note.name)}>{t("Delete")}</button>
 			</div>
 		</div>
 	{/each}
 	{#if adding}
 		<form class="bf-ov-form" onsubmit={addShoes}>
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Název")}</span>
-				<input type="text" bind:value={name} placeholder={t("např. Pegasus 40")} />
+				<span class="bf-field-label">{t("Name")}</span>
+				<input type="text" bind:value={name} placeholder={t("e.g. Pegasus 40")} />
 			</label>
 			<div class="bf-grid-2">
 				<label class="bf-field">
-					<span class="bf-field-label">{t("Už najeto (km)")}</span>
-					<NumInput bind:value={startKm} label={t("Už najeto km")} decimals placeholder="0" />
+					<span class="bf-field-label">{t("Already run (km)")}</span>
+					<NumInput bind:value={startKm} label={t("Already run km")} decimals placeholder="0" />
 				</label>
 				<label class="bf-field">
 					<span class="bf-field-label">{t("Limit (km)")}</span>
@@ -190,17 +190,17 @@
 				</label>
 			</div>
 			<div class="bf-actions">
-				<button type="submit" class="mod-cta" disabled={name.trim() === ""}>{t("Přidat")}</button>
-				<button type="button" onclick={() => (adding = false)}>{t("Zrušit")}</button>
+				<button type="submit" class="mod-cta" disabled={name.trim() === ""}>{t("Add")}</button>
+				<button type="button" onclick={() => (adding = false)}>{t("Cancel")}</button>
 			</div>
 		</form>
 	{:else}
 		<div class="bf-actions">
-			<button type="button" onclick={() => (adding = true)}>{t("Přidat boty")}</button>
+			<button type="button" onclick={() => (adding = true)}>{t("Add shoes")}</button>
 		</div>
 	{/if}
 	<p class="bf-muted bf-small">
-		{t("Limit kilometrů je orientační zvyklost")} <span class="bf-tag">{EVIDENCE_LABELS[SHOE_LIMIT_BASIS.evidence]}</span> {t("– rozhoduje stav bot a to, jak se v nich běhá. Výchozí limit změníš v nastavení.")}
+		{t("The kilometer limit is a rough convention")} <span class="bf-tag">{EVIDENCE_LABELS[SHOE_LIMIT_BASIS.evidence]}</span> {t("– what matters is the shoes' condition and how they feel to run in. Change the default limit in the settings.")}
 	</p>
 </section>
 

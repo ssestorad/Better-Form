@@ -7,10 +7,11 @@ import EntryTest from "../basic/EntryTest.svelte";
 import type { EntryTestItem, EntryTestResult } from "../basic/types";
 import { formatNumber, formatShortDate } from "../format";
 import { t } from "../../i18n";
-import { csProgramName } from "../../seed/localize";
+import { builtinId } from "../../seed/localize";
 
 /** Program, který se po vstupním testu nabídne k aktivaci. */
-const BASIC_PROGRAM = "Základ 4"; // i18n-ignore: název programu v knihovně (data)
+/** Id programu Basic 4 (src/seed/programData.ts). */
+const BASIC_PROGRAM = "basic-4";
 const SITUPS = "Sedy-lehy";
 
 /** Vstupní test / retest maxim cviků režimu Základ. */
@@ -23,9 +24,9 @@ export class EntryTestModal extends Modal {
 
 	override onOpen(): void {
 		this.modalEl.addClass("bf-modal");
-		this.titleEl.setText(t("Test maxim"));
+		this.titleEl.setText(t("Max tests"));
 		const today = toIsoDate(new Date());
-		const program = this.plugin.programs.programs().find((p) => csProgramName(p.note.name) === BASIC_PROGRAM);
+		const program = this.plugin.programs.programs().find((p) => builtinId("program", p.note.name) === BASIC_PROGRAM);
 		const offer = program && programWeek(program.note, today) === null ? program : undefined;
 		this.component = mount(EntryTest, {
 			target: this.contentEl,
@@ -44,7 +45,7 @@ export class EntryTestModal extends Modal {
 					}
 					if (activate && offer) await this.plugin.programs.activate(offer, date);
 					new Notice(
-						t("Uloženo testů: {results_length}.{v}", { results_length: results.length, v: activate && offer ? t(" Program „{note_name}“ je aktivní.", { note_name: offer.note.name }) : "" }),
+						t("Tests saved: {results_length}.{v}", { results_length: results.length, v: activate && offer ? t(" The program “{note_name}” is active.", { note_name: offer.note.name }) : "" }),
 					);
 					this.close();
 				},
@@ -76,7 +77,7 @@ export class EntryTestModal extends Modal {
 				.filter((t) => t.test_type === type && workouts.isSameExercise(t.exercise, exercise))
 				.sort((a, b) => b.date.localeCompare(a.date))[0];
 			const item: EntryTestItem = { exercise, unit };
-			if (last) item.last = t("minule {v} ({v2})", { v: formatNumber(last.result, 0), v2: formatShortDate(last.date) });
+			if (last) item.last = t("last time {v} ({v2})", { v: formatNumber(last.result, 0), v2: formatShortDate(last.date) });
 			items.push(item);
 		}
 		return items;

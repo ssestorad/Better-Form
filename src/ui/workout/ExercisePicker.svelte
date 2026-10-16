@@ -12,7 +12,7 @@
 		/** Založení nového cviku, když v knihovně chybí. */
 		onCreate?: (name: string) => void;
 	}
-	let { options, preferred = [], placeholder = t("Přidat cvik…"), onSelect, onCreate }: Props = $props();
+	let { options, preferred = [], placeholder = t("Add exercise…"), onSelect, onCreate }: Props = $props();
 
 	let query = $state("");
 	let open = $state(false);
@@ -99,7 +99,7 @@
 						onmousedown={(e) => e.preventDefault()}
 						onclick={() => choose(matches.length)}
 					>
-						<span>{t("Založit nový cvik „{trim}“", { trim: query.trim() })}</span>
+						<span>{t("Create new exercise “{trim}”", { trim: query.trim() })}</span>
 					</button>
 				</li>
 			{/if}

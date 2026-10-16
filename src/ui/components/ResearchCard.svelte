@@ -16,10 +16,10 @@
 
 <details class="bf-research">
 	<summary>
-		{t("Co říká výzkum: {title}", { title: topic.title })} <span class="bf-tag">{EVIDENCE_LABELS[topic.evidence]}</span>
+		{t("What the research says: {title}", { title: topic.title })} <span class="bf-tag">{EVIDENCE_LABELS[topic.evidence]}</span>
 	</summary>
 	<p>{topic.summary}</p>
-	<p><strong>{t("Prakticky:")}</strong> {topic.practical}</p>
+	<p><strong>{t("In practice:")}</strong> {topic.practical}</p>
 	<ul class="bf-research-studies">
 		{#each studies as study, i (i)}
 			<li>
@@ -35,7 +35,7 @@
 		{/each}
 	</ul>
 	{#if hasEmg}
-		<p class="bf-muted bf-research-citation">{t("EMG měří aktivaci svalu, ne jeho růst – pro závěry o hypertrofii je to nejslabší typ důkazu.")}</p>
+		<p class="bf-muted bf-research-citation">{t("EMG measures muscle activation, not growth – for conclusions about hypertrophy it's the weakest type of evidence.")}</p>
 	{/if}
 </details>
 

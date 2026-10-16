@@ -8,7 +8,7 @@ import { periodLabel, periodOf, periodStats, shiftPeriod, type Period, type Peri
 import { allRecords, newRecords, type RecordContext } from "./records";
 import { sleepDurationMin } from "./sleep";
 import { mean } from "./stats";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 /** Čísla jednoho období (měsíc, týden) se srovnáním s předchozím. */
 export interface PeriodSummary {
@@ -44,7 +44,7 @@ export function previousMonth(month: string): string {
 export function percentChange(current: number, previous: number): string {
 	if (previous <= 0) return "—";
 	const pct = Math.round(((current - previous) / previous) * 100);
-	if (pct === 0) return t("beze změny");
+	if (pct === 0) return t("no change");
 	return `${pct > 0 ? "+" : "−"}${Math.abs(pct)} %`;
 }
 
@@ -56,45 +56,45 @@ function row(label: string, current: string, previous: string, change: string): 
 export function renderMonthlySummary(input: MonthSummaryInput): string {
 	const { stats } = input;
 	const title = periodLabel(periodOf("month", `${input.month}-01`));
-	const lines: string[] = [t("**Souhrn za {title}**", { title }), ""];
+	const lines: string[] = [t("**Summary for {title}**", { title }), ""];
 
 	if (stats.workouts === 0) {
-		lines.push(t("V tomto měsíci není zapsaný žádný trénink."));
+		lines.push(t("No workout logged this month."));
 	} else {
-		lines.push(t("| | Tento měsíc | Minulý měsíc | Změna |"), ...statsLines(input));
+		lines.push(t("| | This month | Last month | Change |"), ...statsLines(input));
 	}
-	if (input.weightChangeKg !== null) lines.push("", weightLine(input.weightChangeKg, t("za měsíc")));
-	lines.push("", t("**Nové rekordy**"));
-	if (input.records.length === 0) lines.push(t("V tomto měsíci žádný."));
+	if (input.weightChangeKg !== null) lines.push("", weightLine(input.weightChangeKg, t("per month")));
+	lines.push("", t("**New records**"));
+	if (input.records.length === 0) lines.push(t("None this month."));
 	else for (const record of input.records) lines.push(`- ${record}`);
 	return lines.join("\n");
 }
 
-const weightLine = (kg: number, span: string) => t("**Hmotnost:** {v}{v2} kg {span}", { v: kg > 0 ? "+" : kg < 0 ? "−" : "", v2: formatNumber(Math.abs(kg), 1), span });
+const weightLine = (kg: number, span: string) => t("**Weight:** {v}{v2} kg {span}", { v: kg > 0 ? "+" : kg < 0 ? "−" : "", v2: formatNumber(Math.abs(kg), 1), span });
 
 /** Řádky tabulky čísel se srovnáním (pod hlavičkou), sporty a poznámka o chybějící zátěži – stejné pro měsíc i týden. */
 function statsLines(input: PeriodSummary): string[] {
 	const { stats, previous } = input;
 	const lines = ["| --- | ---: | ---: | ---: |"];
-	lines.push(row(t("Tréninky"), String(stats.workouts), String(previous.workouts), percentChange(stats.workouts, previous.workouts)));
-	lines.push(row(t("Dny s tréninkem"), String(stats.activeDays), String(previous.activeDays), percentChange(stats.activeDays, previous.activeDays)));
-	lines.push(row(t("Čas"), formatDurationMin(stats.durationMin), formatDurationMin(previous.durationMin), percentChange(stats.durationMin, previous.durationMin)));
-	lines.push(row(t("Zátěž (sRPE)"), formatNumber(stats.load, 0), formatNumber(previous.load, 0), percentChange(stats.load, previous.load)));
+	lines.push(row(t("Workouts"), String(stats.workouts), String(previous.workouts), percentChange(stats.workouts, previous.workouts)));
+	lines.push(row(t("Training days"), String(stats.activeDays), String(previous.activeDays), percentChange(stats.activeDays, previous.activeDays)));
+	lines.push(row(t("Time"), formatDurationMin(stats.durationMin), formatDurationMin(previous.durationMin), percentChange(stats.durationMin, previous.durationMin)));
+	lines.push(row(t("Load (sRPE)"), formatNumber(stats.load, 0), formatNumber(previous.load, 0), percentChange(stats.load, previous.load)));
 	if (stats.runKm > 0 || previous.runKm > 0) {
-		lines.push(row(t("Běh"), `${formatNumber(stats.runKm, 1)} km`, `${formatNumber(previous.runKm, 1)} km`, percentChange(stats.runKm, previous.runKm)));
+		lines.push(row(t("Run"), `${formatNumber(stats.runKm, 1)} km`, `${formatNumber(previous.runKm, 1)} km`, percentChange(stats.runKm, previous.runKm)));
 	}
 	if (stats.swimM > 0 || previous.swimM > 0) {
-		lines.push(row(t("Plavání"), `${formatNumber(stats.swimM, 0)} m`, `${formatNumber(previous.swimM, 0)} m`, percentChange(stats.swimM, previous.swimM)));
+		lines.push(row(t("Swim"), `${formatNumber(stats.swimM, 0)} m`, `${formatNumber(previous.swimM, 0)} m`, percentChange(stats.swimM, previous.swimM)));
 	}
 	if (stats.tonnageKg > 0 || previous.tonnageKg > 0) {
 		lines.push(
-			row(t("Zvednuto"), `${formatNumber(stats.tonnageKg / 1000, 1)} t`, `${formatNumber(previous.tonnageKg / 1000, 1)} t`, percentChange(stats.tonnageKg, previous.tonnageKg)),
+			row(t("Lifted"), `${formatNumber(stats.tonnageKg / 1000, 1)} t`, `${formatNumber(previous.tonnageKg / 1000, 1)} t`, percentChange(stats.tonnageKg, previous.tonnageKg)),
 		);
 	}
 	if (input.sleepAvgMin !== null) {
 		lines.push(
 			row(
-				t("Spánek (průměr)"),
+				t("Sleep (average)"),
 				formatDurationMin(input.sleepAvgMin),
 				input.previousSleepAvgMin !== null ? formatDurationMin(input.previousSleepAvgMin) : "—",
 				input.previousSleepAvgMin !== null ? percentChange(input.sleepAvgMin, input.previousSleepAvgMin) : "—",
@@ -102,9 +102,9 @@ function statsLines(input: PeriodSummary): string[] {
 		);
 	}
 	const sports = SPORTS.filter((s) => (stats.bySport[s] ?? 0) > 0).map((s) => `${SPORT_LABELS[s].toLocaleLowerCase("cs")} ${stats.bySport[s]}×`);
-	lines.push("", t("**Podle sportu:** {v}", { v: sports.join(" · ") }));
+	lines.push("", t("**By sport:** {v}", { v: sports.join(" · ") }));
 	if (stats.missingLoad > 0) {
-		lines.push(t("*{missingLoad} {v} RPE nebo délku – do zátěže se nepočítá.*", { missingLoad: stats.missingLoad, v: stats.missingLoad === 1 ? t("trénink nemá") : t("tréninků nemá") }));
+		lines.push(tn(stats.missingLoad, ["*{n} workout is missing RPE or duration – not counted in load.*", "*{n} workouts are missing RPE or duration – not counted in load.*"]));
 	}
 	return lines;
 }
@@ -129,23 +129,23 @@ export interface WeekSummaryInput extends PeriodSummary {
 
 /** Markdown týdenního souhrnu: čísla proti minulému týdnu, plán, zátěž proti průměru, rekordy. */
 export function renderWeeklySummary(input: WeekSummaryInput): string {
-	const lines: string[] = [t("**Souhrn týdne {v}**", { v: periodLabel(periodOf("week", input.week)) }), ""];
-	if (input.stats.workouts === 0) lines.push(t("V tomto týdnu není zapsaný žádný trénink."));
-	else lines.push(t("| | Tento týden | Minulý týden | Změna |"), ...statsLines(input));
+	const lines: string[] = [t("**Week summary {v}**", { v: periodLabel(periodOf("week", input.week)) }), ""];
+	if (input.stats.workouts === 0) lines.push(t("No workout logged this week."));
+	else lines.push(t("| | This week | Last week | Change |"), ...statsLines(input));
 	if (input.plan && input.plan.planned > 0) {
 		const { planned, done, missed, postponed } = input.plan;
-		const rest = [missed > 0 ? t("vynecháno {missed}", { missed }) : "", postponed > 0 ? t("odloženo {postponed}", { postponed }) : ""].filter((x) => x !== "");
-		lines.push("", t("**Plán:** splněno {done} z {planned}{v}", { done, planned, v: rest.length > 0 ? ` · ${rest.join(" · ")}` : "" }));
+		const rest = [missed > 0 ? t("missed {missed}", { missed }) : "", postponed > 0 ? t("postponed {postponed}", { postponed }) : ""].filter((x) => x !== "");
+		lines.push("", t("**Plan:** done {done} of {planned}{v}", { done, planned, v: rest.length > 0 ? ` · ${rest.join(" · ")}` : "" }));
 	}
 	if (input.averageLoad !== null && input.averageLoad > 0 && input.stats.load > 0) {
 		lines.push(
 			"",
-			t("**Zátěž proti průměru:** {v}× průměru čtyř předchozích týdnů ({v2} AU)", { v: formatNumber(input.stats.load / input.averageLoad, 2), v2: formatNumber(input.averageLoad, 0) }),
+			t("**Load vs average:** {v}× the average of the four previous weeks ({v2} AU)", { v: formatNumber(input.stats.load / input.averageLoad, 2), v2: formatNumber(input.averageLoad, 0) }),
 		);
 	}
-	if (input.weightChangeKg !== null) lines.push("", weightLine(input.weightChangeKg, t("za týden")));
+	if (input.weightChangeKg !== null) lines.push("", weightLine(input.weightChangeKg, t("per week")));
 	if (input.records.length > 0) {
-		lines.push("", t("**Nové rekordy**"));
+		lines.push("", t("**New records**"));
 		for (const record of input.records) lines.push(`- ${record}`);
 	}
 	return lines.join("\n");

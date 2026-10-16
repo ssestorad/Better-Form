@@ -22,18 +22,18 @@
 	let { date: initialDate, exercise: initialExercise, options, lastText, onSave, onCancel }: Props = $props();
 
 	const TYPE_LABELS: Record<TestType, string> = {
-		max_reps: t("Maximum opakování"),
-		max_reps_timed: t("Maximum opakování v časovém limitu"),
-		max_hold: t("Maximální výdrž"),
-		"1rm": t("1RM (maximální váha na 1 opakování)"),
-		run_time: t("Čas běhu na vzdálenost"),
+		max_reps: t("Max reps"),
+		max_reps_timed: t("Max reps within a time limit"),
+		max_hold: t("Max hold"),
+		"1rm": t("1RM (maximum weight for 1 rep)"),
+		run_time: t("Run time over a distance"),
 	};
 	const RESULT_LABELS: Record<TestType, string> = {
-		max_reps: t("Počet opakování"),
-		max_reps_timed: t("Počet opakování"),
-		max_hold: t("Výdrž (s)"),
-		"1rm": t("Váha (kg)"),
-		run_time: t("Čas (h:mm:ss)"),
+		max_reps: t("Number of reps"),
+		max_reps_timed: t("Number of reps"),
+		max_hold: t("Hold (s)"),
+		"1rm": t("Weight (kg)"),
+		run_time: t("Time (h:mm:ss)"),
 	};
 
 	let date = $state(untrack(() => initialDate));
@@ -79,24 +79,24 @@
 
 <form class="bf-test" onsubmit={submit}>
 	<div class="bf-field">
-		<span class="bf-field-label">{t("Cvik")}</span>
+		<span class="bf-field-label">{t("Exercise")}</span>
 		{#if exercise}
 			<div class="bf-test-exercise">
 				<strong>{exercise}</strong>
-				<button type="button" class="bf-link-button" onclick={() => (exercise = "")}>{t("změnit")}</button>
+				<button type="button" class="bf-link-button" onclick={() => (exercise = "")}>{t("change")}</button>
 			</div>
 		{:else}
-			<ExercisePicker {options} placeholder={t("Vyber cvik…")} onSelect={(name) => (exercise = name)} />
+			<ExercisePicker {options} placeholder={t("Choose an exercise…")} onSelect={(name) => (exercise = name)} />
 		{/if}
 	</div>
 
 	<div class="bf-grid-2">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Datum")}</span>
+			<span class="bf-field-label">{t("Date")}</span>
 			<input type="date" value={date} onchange={(e) => (date = e.currentTarget.value)} />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Typ testu")}</span>
+			<span class="bf-field-label">{t("Test type")}</span>
 			<select class="dropdown" value={type} onchange={(e) => (type = e.currentTarget.value as TestType)}>
 				{#each TEST_TYPES as x (x)}<option value={x}>{TYPE_LABELS[x]}</option>{/each}
 			</select>
@@ -114,23 +114,23 @@
 		</label>
 		{#if type === "max_reps_timed"}
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Časový limit (mm:ss)")}</span>
-				<ClockInput bind:value={limit} label={t("Časový limit")} placeholder="2:00" />
+				<span class="bf-field-label">{t("Time limit (mm:ss)")}</span>
+				<ClockInput bind:value={limit} label={t("Time limit")} placeholder="2:00" />
 			</label>
 		{:else if type === "run_time"}
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Vzdálenost (km)")}</span>
-				<NumInput bind:value={distance} label={t("Vzdálenost (km)")} decimals />
+				<span class="bf-field-label">{t("Distance (km)")}</span>
+				<NumInput bind:value={distance} label={t("Distance (km)")} decimals />
 			</label>
 		{/if}
 	</div>
 
-	<p class="bf-muted bf-test-note">{t("Před testem se rozcvič. Test dělej odpočatý – výsledek se použije pro výpočet cílů v programech.")}</p>
+	<p class="bf-muted bf-test-note">{t("Warm up before the test. Do it rested – the result is used to calculate targets in programs.")}</p>
 	{#if error}<p class="bf-error">{error}</p>{/if}
 
 	<div class="bf-form-buttons">
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
-		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Ukládám…") : t("Uložit test")}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
+		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Saving…") : t("Save test")}</button>
 	</div>
 </form>
 

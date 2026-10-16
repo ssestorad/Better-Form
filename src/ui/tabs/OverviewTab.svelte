@@ -17,10 +17,10 @@
 	const settingsVersion = plugin.settingsVersion;
 
 	const VIEWS = [
-		{ id: "summary", label: t("Souhrn") },
-		{ id: "charts", label: t("Grafy") },
-		{ id: "records", label: t("Rekordy") },
-		{ id: "run", label: t("Běh") },
+		{ id: "summary", label: t("Summary") },
+		{ id: "charts", label: t("Charts") },
+		{ id: "records", label: t("Records") },
+		{ id: "run", label: t("Run") },
 	] as const;
 	type ViewId = (typeof VIEWS)[number]["id"];
 	let view = $state<ViewId>("summary");
@@ -58,7 +58,7 @@
 	const workoutDates = $derived(new Set(workouts.map((w) => w.date)));
 </script>
 
-<div class="bf-seg" role="tablist" aria-label={t("Části přehledu")}>
+<div class="bf-seg" role="tablist" aria-label={t("Overview sections")}>
 	{#each VIEWS as v (v.id)}
 		<button type="button" role="tab" aria-selected={view === v.id} class:is-active={view === v.id} onclick={() => (view = v.id)}>{v.label}</button>
 	{/each}

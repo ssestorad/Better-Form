@@ -59,20 +59,20 @@ export function validateOnboarding(values: OnboardingValues, currentYear: number
 		const value = values[field];
 		if (value === undefined) continue;
 		const { min, max, integer } = limits[field];
-		if (Number.isNaN(value)) errors[field] = t("Není číslo.");
-		else if (integer && !Number.isInteger(value)) errors[field] = t("Zadej celé číslo.");
-		else if (value < min || value > max) errors[field] = t("Rozsah {min}–{max}.", { min, max });
+		if (Number.isNaN(value)) errors[field] = t("Not a number.");
+		else if (integer && !Number.isInteger(value)) errors[field] = t("Enter a whole number.");
+		else if (value < min || value > max) errors[field] = t("Range {min}–{max}.", { min, max });
 	}
-	if (!SPORTS.some((s) => values.sports[s])) errors.sports = t("Nech zapnutý aspoň jeden sport.");
+	if (!SPORTS.some((s) => values.sports[s])) errors.sports = t("Keep at least one sport turned on.");
 	return errors;
 }
 
 /** Co ještě chybí pro výpočet výživy (pro shrnutí v průvodci). */
 export function onboardingMissing(values: OnboardingValues): string[] {
 	const missing: string[] = [];
-	if (values.sex === "") missing.push(t("pohlaví"));
-	if (values.birthYear === undefined) missing.push(t("rok narození"));
-	if (values.heightCm === undefined) missing.push(t("výška"));
+	if (values.sex === "") missing.push(t("sex"));
+	if (values.birthYear === undefined) missing.push(t("year of birth"));
+	if (values.heightCm === undefined) missing.push(t("height"));
 	if (values.weightKg === undefined) missing.push("hmotnost");
 	return missing;
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Karta Cíle (SPEC 5.8): cíle s průběhem a předpovědí podle trendu a normy
 	// zadané uživatelem se vzdáleností od splnění a nejslabší disciplínou.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { Notice } from "obsidian";
 	import { GOAL_FORECAST_BASIS } from "../../calc/goals";
 	import type { NormItemStatus } from "../../calc/norms";
@@ -52,50 +52,50 @@
 			await action();
 			if (done) new Notice(done);
 		} catch (err) {
-			new Notice(t("Nepodařilo se: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Failed: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 
 	async function createGoal(draft: GoalDraft) {
 		await plugin.goals.create(draft, today);
 		addingGoal = false;
-		new Notice(t("Cíl přidán."));
+		new Notice(t("Goal added."));
 	}
 
 	async function saveNorm(note: Omit<NormNote, "forma" | "schema">, existing?: NormEntry) {
 		await plugin.goals.saveNorm(note, existing);
 		addingNorm = false;
 		editingNorm = null;
-		new Notice(t("Norma uložena."));
+		new Notice(t("Standard saved."));
 	}
 
 	const setStatus = (entry: GoalEntry, status: GoalStatus, done: string) => run(() => plugin.goals.setStatus(entry, status), done);
 	const open = (entry: GoalEntry | NormEntry) => void plugin.app.workspace.openLinkText(entry.file.path, "", false);
 
-	const CLOSED_LABELS: Record<GoalStatus, string> = { active: t("aktivní"), done: t("splněný"), dropped: t("zrušený") };
+	const CLOSED_LABELS: Record<GoalStatus, string> = { active: t("active"), done: t("done", undefined, "goal"), dropped: t("dropped") };
 
 	/** Hodnota disciplíny normy: čas, sekundy nebo opakování. */
 	function normValue(item: NormItemStatus, value: number): string {
 		if (item.item.kind === "run_time") return formatGoalValue(value, "time");
-		return item.item.kind === "hold" ? formatSeconds(value) : t("{n} opak.", { n: formatNumber(value, 0) });
+		return item.item.kind === "hold" ? formatSeconds(value) : tn(Math.round(value), ["{n} rep", "{n} reps"]);
 	}
 
 	function normName(item: NormItemStatus): string {
 		const { item: i } = item;
-		if (i.kind === "run_time") return t("Běh {v} km", { v: formatNumber(i.distance_km ?? 0, 2) });
-		return i.time_limit_s !== undefined ? `${i.exercise} (${formatSeconds(i.time_limit_s)})` : `${i.exercise}${i.kind === "hold" ? " – výdrž" : ""}`;
+		if (i.kind === "run_time") return t("Run {v} km", { v: formatNumber(i.distance_km ?? 0, 2) });
+		return i.time_limit_s !== undefined ? `${i.exercise} (${formatSeconds(i.time_limit_s)})` : `${i.exercise}${i.kind === "hold" ? " – hold" : ""}`;
 	}
 </script>
 
 <section class="bf-card">
 	<header class="bf-goal-head">
-		<h4>{t("Cíle")}</h4>
-		{#if !addingGoal}<button type="button" class="mod-cta" onclick={() => (addingGoal = true)}>{t("Přidat cíl")}</button>{/if}
+		<h4>{t("Goals")}</h4>
+		{#if !addingGoal}<button type="button" class="mod-cta" onclick={() => (addingGoal = true)}>{t("Add goal")}</button>{/if}
 	</header>
 	{#if addingGoal}
 		<GoalForm onSave={createGoal} onCancel={() => (addingGoal = false)} />
 	{:else if active.length === 0}
-		<p class="bf-muted">{t("Zatím žádný aktivní cíl. Cíl může být čas na trati, síla, počet opakování, stupeň dovednosti, týdenní kilometry, hmotnost nebo splnění normy.")}</p>
+		<p class="bf-muted">{t("No active goal yet. A goal can be a race time, strength, number of reps, skill level, weekly kilometers, body weight or meeting a standard.")}</p>
 	{/if}
 </section>
 
@@ -118,42 +118,42 @@
 			{/if}
 		</header>
 		{#if evaluation}
-			<div class="bf-goal-bar" role="img" aria-label={t("Průběh {v} %", { v: Math.round((evaluation.fraction ?? 0) * 100) })}>
+			<div class="bf-goal-bar" role="img" aria-label={t("Progress {v} %", { v: Math.round((evaluation.fraction ?? 0) * 100) })}>
 				<div class="bf-goal-fill" style:width={`${(evaluation.fraction ?? 0) * 100}%`}></div>
 			</div>
 			<div class="bf-goal-row bf-goal-small">
 				<span>
-					{t("Teď")} <strong>{evaluation.current === null ? "—" : formatGoalValue(evaluation.current, evaluation.unit)}</strong>
-					{#if evaluation.start !== null}<span class="bf-muted"> {t("· začátek {v}", { v: formatGoalValue(evaluation.start, evaluation.unit) })}</span>{/if}
+					{t("Now")} <strong>{evaluation.current === null ? "—" : formatGoalValue(evaluation.current, evaluation.unit)}</strong>
+					{#if evaluation.start !== null}<span class="bf-muted"> {t("· start {v}", { v: formatGoalValue(evaluation.start, evaluation.unit) })}</span>{/if}
 				</span>
-				<span>{t("cíl")} <strong>{formatGoalValue(evaluation.target, evaluation.unit)}</strong></span>
+				<span>{t("goal")} <strong>{formatGoalValue(evaluation.target, evaluation.unit)}</strong></span>
 			</div>
 			<p class="bf-goal-small">
 				{forecastText(evaluation, note.deadline)}
 				{#if evaluation.eta !== null || evaluation.perWeek !== null}<BasisTag basis={GOAL_FORECAST_BASIS} />{/if}
 			</p>
 			<p class="bf-muted bf-goal-small">
-				{t("{v} · založeno {v2}", { v: note.deadline ? t("Termín {v}", { v: formatCzechDate(note.deadline, false) }) : t("Bez termínu"), v2: formatCzechDate(note.created, false) })}
+				{t("{v} · created {v2}", { v: note.deadline ? t("Deadline {v}", { v: formatCzechDate(note.deadline, false) }) : t("No deadline"), v2: formatCzechDate(note.created, false) })}
 			</p>
 		{/if}
 		<div class="bf-actions">
-			<button type="button" onclick={() => void setStatus(entry, "done", t("Cíl označen jako splněný."))}>{t("Splněno")}</button>
-			<button type="button" onclick={() => void setStatus(entry, "dropped", t("Cíl zrušen – poznámka zůstává."))}>{t("Zrušit cíl")}</button>
-			<button type="button" onclick={() => void plugin.trashNote(entry.file, "goal", note.name)}>{t("Smazat")}</button>
+			<button type="button" onclick={() => void setStatus(entry, "done", t("Goal marked as done."))}>{t("Done")}</button>
+			<button type="button" onclick={() => void setStatus(entry, "dropped", t("Goal dropped – the note stays."))}>{t("Drop goal")}</button>
+			<button type="button" onclick={() => void plugin.trashNote(entry.file, "goal", note.name)}>{t("Delete")}</button>
 		</div>
 	</section>
 {/each}
 
 {#if closed.length > 0}
 	<details class="bf-goal-closed">
-		<summary>{t("Splněné a zrušené cíle ({closed_length})", { closed_length: closed.length })}</summary>
+		<summary>{t("Completed and dropped goals ({closed_length})", { closed_length: closed.length })}</summary>
 		<ul>
 			{#each closed as { entry } (entry.file.path)}
 				<li>
 					<button type="button" class="bf-link-button" onclick={() => open(entry)}>{entry.note.name}</button>
 					<span class="bf-tag">{CLOSED_LABELS[entry.note.status]}</span>
-					<button type="button" class="bf-link-button" onclick={() => void setStatus(entry, "active", t("Cíl je znovu aktivní."))}>{t("obnovit")}</button>
-					<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "goal", entry.note.name)}>{t("smazat")}</button>
+					<button type="button" class="bf-link-button" onclick={() => void setStatus(entry, "active", t("The goal is active again."))}>{t("restore")}</button>
+					<button type="button" class="bf-link-button" onclick={() => void plugin.trashNote(entry.file, "goal", entry.note.name)}>{t("delete")}</button>
 				</li>
 			{/each}
 		</ul>
@@ -162,12 +162,12 @@
 
 <section class="bf-card">
 	<header class="bf-goal-head">
-		<h4>{t("Normy")}</h4>
-		{#if !addingNorm}<button type="button" onclick={() => (addingNorm = true)}>{t("Přidat normu")}</button>{/if}
+		<h4>{t("Standards")}</h4>
+		{#if !addingNorm}<button type="button" onclick={() => (addingNorm = true)}>{t("Add standard")}</button>{/if}
 	</header>
 	<p class="bf-muted bf-goal-small">
-		{t("Tabulku normy si zadáš sám (cvik, limit, požadovaná hodnota podle věku a pohlaví) – plugin žádné normy nepředvyplňuje. Výkon se bere z testů maxim a z tréninků za posledních 90 dní.")}
-		{#if profile.sex === null || profile.age === null}{t("Pro řádky podle pohlaví a věku vyplň profil v nastavení.")}{/if}
+		{t("You enter the standard's table yourself (exercise, limit, required value by age and sex) – the plugin doesn't prefill any standards. Results come from max tests and workouts in the last 90 days.")}
+		{#if profile.sex === null || profile.age === null}{t("For rows by sex and age, fill in your profile in the settings.")}{/if}
 	</p>
 	{#if addingNorm}
 		<NormForm onSave={(note) => saveNorm(note)} onCancel={() => (addingNorm = false)} />
@@ -178,17 +178,17 @@
 	<section class="bf-card">
 		<header class="bf-goal-head">
 			<button type="button" class="bf-link-button bf-goal-name" onclick={() => open(entry)}>{entry.note.name}</button>
-			<span class="bf-tag" class:bf-tag-done={status.total > 0 && status.met === status.total}>{t("splněno {met} z {total}", { met: status.met, total: status.total })}</span>
+			<span class="bf-tag" class:bf-tag-done={status.total > 0 && status.met === status.total}>{t("met {met} of {total}", { met: status.met, total: status.total })}</span>
 		</header>
 		{#if editingNorm === entry.file.path}
 			<NormForm initial={entry.note} onSave={(note) => saveNorm(note, entry)} onCancel={() => (editingNorm = null)} />
 		{:else}
 			<div class="bf-norm-table" role="table">
 				<div class="bf-norm-tr bf-muted" role="row">
-					<span role="columnheader">{t("Disciplína")}</span>
-					<span role="columnheader">{t("Teď")}</span>
-					<span role="columnheader">{t("Norma")}</span>
-					<span role="columnheader">{t("Splnění")}</span>
+					<span role="columnheader">{t("Event")}</span>
+					<span role="columnheader">{t("Now")}</span>
+					<span role="columnheader">{t("Standard")}</span>
+					<span role="columnheader">{t("Met")}</span>
 				</div>
 				{#each status.items as item, i (i)}
 					<div class="bf-norm-tr" class:is-weakest={status.weakest === item} role="row">
@@ -201,23 +201,23 @@
 			</div>
 			<p class="bf-goal-small">
 				{#if status.total === 0}
-					<span class="bf-muted">{t("Žádný řádek tabulky neodpovídá tvému profilu (pohlaví, věk).")}</span>
+					<span class="bf-muted">{t("No row of the table matches your profile (sex, age).")}</span>
 				{:else if status.weakest}
-					<strong>{t("Nejslabší disciplína:")}</strong>
+					<strong>{t("Weakest event:")}</strong>
 					{normName(status.weakest)}
 					{#if status.weakest.current && status.weakest.target !== null}
-						{t("– chybí {v}", { v: normValue(status.weakest, Math.abs(status.weakest.target - status.weakest.current.value)) })}
+						{t("– {v} short", { v: normValue(status.weakest, Math.abs(status.weakest.target - status.weakest.current.value)) })}
 					{:else}
-						{t("– zatím bez výkonu; udělej test maxima.")}
+						{t("– no result yet; do a max test.")}
 					{/if}
 				{:else}
-					<strong>{t("Všechny disciplíny jsou splněné.")}</strong>
+					<strong>{t("All events are met.")}</strong>
 				{/if}
 			</p>
 			<div class="bf-actions">
-				<button type="button" onclick={() => (editingNorm = entry.file.path)}>{t("Upravit tabulku")}</button>
-				<button type="button" onclick={() => plugin.openTest({})}>{t("Test maxima")}</button>
-				<button type="button" onclick={() => void plugin.trashNote(entry.file, "norm", entry.note.name)}>{t("Smazat")}</button>
+				<button type="button" onclick={() => (editingNorm = entry.file.path)}>{t("Edit table")}</button>
+				<button type="button" onclick={() => plugin.openTest({})}>{t("Max test")}</button>
+				<button type="button" onclick={() => void plugin.trashNote(entry.file, "norm", entry.note.name)}>{t("Delete")}</button>
 			</div>
 		{/if}
 	</section>

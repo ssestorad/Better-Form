@@ -240,11 +240,11 @@ export function baseName(fileName: string): string {
  * Vyhodí chybu se srozumitelným textem, když soubor nejde přečíst.
  */
 export function readProgramFile(text: string, fileName: string, parseYaml: (text: string) => unknown): ProgramFileResult {
-	const content = text.replace(/^﻿/, "");
+	const content = text.replace(/^\uFEFF/, "");
 	const trimmed = content.trim();
-	const fallbackName = baseName(fileName) || t("Importovaný program");
+	const fallbackName = baseName(fileName) || t("Imported program");
 	const ext = (fileName.match(/\.[^.]+$/)?.[0] ?? "").toLowerCase();
-	if (trimmed === "") throw new Error(t("Soubor je prázdný."));
+	if (trimmed === "") throw new Error(t("The file is empty."));
 
 	const withDefaults = (raw: Record<string, unknown>): Record<string, unknown> => ({
 		...raw,
@@ -257,11 +257,11 @@ export function readProgramFile(text: string, fileName: string, parseYaml: (text
 		try {
 			data = JSON.parse(trimmed);
 		} catch {
-			throw new Error(t("Soubor není platný JSON."));
+			throw new Error(t("The file isn't valid JSON."));
 		}
 		// Program může být přímo objekt, nebo zabalený v klíči `program`.
 		const raw = isRecord(data) && isRecord(data.program) ? data.program : data;
-		if (!isRecord(raw)) throw new Error(t("JSON musí obsahovat objekt programu (name, days, items)."));
+		if (!isRecord(raw)) throw new Error(t("The JSON must contain a program object (name, days, items)."));
 		const body = typeof raw.description === "string" ? raw.description : typeof raw.popis === "string" ? raw.popis : "";
 		return { raw: withDefaults(raw), body: body.trim(), format: "json", skipped: [], defaultDays: false };
 	}
@@ -272,7 +272,7 @@ export function readProgramFile(text: string, fileName: string, parseYaml: (text
 		try {
 			data = parseYaml(fm[1] ?? "");
 		} catch {
-			throw new Error(t("Úvodní blok mezi řádky --- se nepodařilo přečíst."));
+			throw new Error(t("Couldn't read the front matter block between --- lines."));
 		}
 		const body = content.slice(fm[0].length).trim();
 		if (isRecord(data) && Array.isArray(data.items)) return { raw: withDefaults(data), body, format: "note", skipped: [], defaultDays: false };
@@ -286,9 +286,9 @@ export function readProgramFile(text: string, fileName: string, parseYaml: (text
 		try {
 			data = parseYaml(trimmed);
 		} catch {
-			throw new Error(t("Soubor není platný YAML."));
+			throw new Error(t("The file isn't valid YAML."));
 		}
-		if (!isRecord(data)) throw new Error(t("YAML musí obsahovat objekt programu (name, days, items)."));
+		if (!isRecord(data)) throw new Error(t("The YAML must contain a program object (name, days, items)."));
 		return { raw: withDefaults(data), body: typeof data.description === "string" ? data.description.trim() : "", format: "yaml", skipped: [], defaultDays: false };
 	}
 
@@ -306,18 +306,18 @@ export interface ImportSummary {
 
 /** Hláška po importu: co vzniklo a co je potřeba zkontrolovat. */
 export function describeImport(report: ImportSummary): string {
-	const parts = [t("Program „{report_name}“ vytvořen (položek: {items}). Je v knihovně na kartě Programy, zatím neaktivní.", { report_name: report.name, items: report.items })];
-	if (report.defaultDays) parts.push(t("Dny v souboru chyběly – nastaveno po, st, pá."));
-	if (report.dropped > 0) parts.push(t("Nenačtených položek: {dropped} (chybí cvik nebo cíl).", { dropped: report.dropped }));
+	const parts = [t("Program “{report_name}” created (items: {items}). It's in the library on the Programs tab, not active yet.", { report_name: report.name, items: report.items })];
+	if (report.defaultDays) parts.push(t("The file had no days – set to Mon, Wed, Fri."));
+	if (report.dropped > 0) parts.push(t("Items not loaded: {dropped} (missing exercise or target).", { dropped: report.dropped }));
 	if (report.skipped.length > 0) {
 		const shown = report.skipped.slice(0, 3).join("; ");
-		parts.push(t("Nepřečtené řádky ({skipped_length}): {shown}{v}", { skipped_length: report.skipped.length, shown, v: report.skipped.length > 3 ? "…" : "" }));
+		parts.push(t("Unread lines ({skipped_length}): {shown}{v}", { skipped_length: report.skipped.length, shown, v: report.skipped.length > 3 ? "…" : "" }));
 	}
 	if (report.unknownExercises.length > 0) {
-		parts.push(t("Cviky mimo knihovnu: {v} – přidej je do knihovny, ať se počítají do partií.", { v: report.unknownExercises.join(", ") }));
+		parts.push(t("Exercises not in the library: {v} – add them to the library so they count towards muscle groups.", { v: report.unknownExercises.join(", ") }));
 	}
 	return parts.join("\n");
 }
 
 /** Ukázka souboru se seznamem – do nápovědy v nastavení. */
-export const PROGRAM_FILE_EXAMPLE = "# Síla 3× týdně\nTýdnů: 8\n\n## Pondělí a pátek\n- Dřep s činkou: 5×5\n- Bench press: 4×8\n- Plank: 3×45 s\n\n## Středa\n- Shyby: 3× max\n- Kliky: 3×60 %\n- Běh: 5 km";
+export const PROGRAM_FILE_EXAMPLE = "# Strength 3× a week\nWeeks: 8\n\n## Monday and Friday\n- Barbell squat: 5×5\n- Bench press: 4×8\n- Plank: 3×45 s\n\n## Wednesday\n- Pull-up: 3× max\n- Push-up: 3×60 %\n- Run: 5 km";

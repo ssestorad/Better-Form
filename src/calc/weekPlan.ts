@@ -40,7 +40,7 @@ export function nextItemId(items: readonly Pick<PlanItem, "id">[]): string {
 /** `off` = den je volný (volno, nemoc, dovolená) – položka se nepočítá jako vynechaná ani jako zbývající. */
 export type PlanStatus = "done" | "planned" | "missed" | "off";
 
-export const PLAN_STATUS_LABELS: Record<PlanStatus, string> = translated({ done: "splněno", planned: "v plánu", missed: "vynecháno", off: "odloženo" });
+export const PLAN_STATUS_LABELS: Record<PlanStatus, string> = translated({ done: "done", planned: "planned", missed: "missed", off: "postponed" });
 
 export interface PlanMatch<W> {
 	item: PlanItem;

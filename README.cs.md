@@ -4,7 +4,7 @@
 
 Plugin do [Obsidianu](https://obsidian.md) pro tréninkový deník: zápis tréninků, regenerace, doporučení na dnešek, plán týdne a doporučený příjem. Všechna data jsou běžné Markdown poznámky ve tvém vaultu – čitelné i bez pluginu a bez jakékoli služby třetí strany.
 
-> **Stav:** verze 0.2.0, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Co není ověřené](#co-není-ověřené)). Rozhraní je anglicky a česky.
+> **Stav:** verze 0.3.0, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Co není ověřené](#co-není-ověřené)). Rozhraní je anglicky a česky.
 
 ## Ukázky
 
@@ -12,11 +12,11 @@ Snímky se vzorovými daty ve světlém vzhledu a s českým rozhraním.
 
 | Dnes | Plán týdne |
 |---|---|
-| <img src="docs/screenshots/dnes.jpg" alt="Karta Dnes: ranní check-in, připravenost s rozpadem a trendem, doporučení na dnešek" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Karta Plán: týden po dnech se stavem položek a souhrnem" width="400"> |
+| <img src="docs/screenshots/cs/dnes.jpg" alt="Karta Dnes: ranní check-in, připravenost s rozpadem a trendem, doporučení na dnešek" width="400"> | <img src="docs/screenshots/cs/plan.jpg" alt="Karta Plán: týden po dnech se stavem položek a souhrnem" width="400"> |
 
 | Přehled | Tělo | Zápis tréninku |
 |---|---|---|
-| <img src="docs/screenshots/prehled.jpg" alt="Karta Přehled: čísla týdne, kalendář tréninků, série a odznaky" width="270"> | <img src="docs/screenshots/telo.jpg" alt="Karta Tělo: panáček s týdenním objemem svalových partií" width="270"> | <img src="docs/screenshots/zapis.jpg" alt="Zápis tréninku: série a kalkulačka kotoučů s obrázkem osy" width="270"> |
+| <img src="docs/screenshots/cs/prehled.jpg" alt="Karta Přehled: čísla týdne, kalendář tréninků, série a odznaky" width="270"> | <img src="docs/screenshots/cs/telo.jpg" alt="Karta Tělo: panáček s týdenním objemem svalových partií" width="270"> | <img src="docs/screenshots/cs/zapis.jpg" alt="Zápis tréninku: série a kalkulačka kotoučů s obrázkem osy" width="270"> |
 
 ## Co umí
 
@@ -42,26 +42,26 @@ Snímky se vzorovými daty ve světlém vzhledu a s českým rozhraním.
 
 Každý trénink, den, cvik, program nebo cíl je jedna poznámka s frontmatterem (`forma: workout`, `forma: day`, …). Plugin je čte a zapisuje jen přes API Obsidianu, nepotřebuje Dataview ani jiné pluginy a nic neposílá mimo zařízení. Výjimkou je Strava, pokud si ji sám připojíš.
 
-Výchozí složky v češtině (v angličtině se kořen jmenuje `Better Form/` a podsložky `Journal/`, `Workouts/`, `Plan/`, `Library/` …):
+Výchozí složky (vždy anglicky; vaulty založené verzí 0.2 a starší si nechají české složky `Forma/`):
 
 ```
-Forma/
-  Deník/        denní poznámky: spánek, check-in, HRV, váha, kroky
-  Tréninky/     jedna poznámka = jeden trénink
-  Plán/         jedna poznámka = plán jednoho týdne
-  Knihovna/     cviky, šablony tréninků, programy, suplementy
-  Cíle/  Zdraví/  Vybavení/  Testy/  Souhrny/  Export/
+Better Form/
+  Journal/      denní poznámky: spánek, check-in, HRV, váha, kroky
+  Workouts/     jedna poznámka = jeden trénink
+  Plan/         jedna poznámka = plán jednoho týdne
+  Library/      cviky, šablony tréninků, programy, suplementy
+  Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
 ```
 
-Názvy složek jdou změnit v nastavení. Jazyk složek a knihovny se volí při prvním spuštění; existující poznámky se při pozdějším přepnutí jazyka nepřejmenovávají. Tvůj text v poznámkách plugin nikdy nepřepisuje – generovaný obsah píše jen mezi značky `<!-- forma:start -->` a `<!-- forma:end -->`. Smazání z rozhraní přesouvá poznámku do koše podle nastavení Obsidianu, nikdy ji nemaže natrvalo.
+Názvy složek jdou změnit v nastavení. Existující poznámky se při přepnutí jazyka nikdy nepřejmenovávají; tlačítko „Přeložit poznámky“ u nastavení jazyka přeloží vestavěnou knihovnu (cviky, šablony, programy) i texty, které plugin vygeneroval v poznámkách – texty, které jsi upravil, zůstanou. Tvůj text v poznámkách plugin nikdy nepřepisuje – generovaný obsah píše jen mezi značky `<!-- forma:start -->` a `<!-- forma:end -->`. Smazání z rozhraní přesouvá poznámku do koše podle nastavení Obsidianu, nikdy ji nemaže natrvalo.
 
 ## Jazyk
 
-Rozhraní je anglicky a česky. Při prvním spuštění se jazyk vezme z Obsidianu (čeština → česky, jinak anglicky) a jde kdykoli změnit v nastavení pluginu pod „Language / Jazyk“. Přeložené je rozhraní, doporučení, generované bloky v poznámkách i knihovna cviků, programů a suplementů; co sis zapsal sám, zůstává, jak jsi to napsal. Vestavěné cviky mají název v druhém jazyce jako alias, takže odkazy a historie fungují v obou jazycích. Názvy příkazů v paletě se změní až po restartu Obsidianu.
+Rozhraní je anglicky a česky. Při prvním spuštění se jazyk vezme z Obsidianu (podporovaný jazyk, jinak angličtina) a jde kdykoli změnit v nastavení pluginu pod „Language“. Přeložené je rozhraní, doporučení, generované bloky v poznámkách i knihovna cviků, programů a suplementů; co sis zapsal sám, zůstává, jak jsi to napsal. Data – složky a názvy poznámek knihovny v novém vaultu – jsou vždy anglicky, bez ohledu na jazyk rozhraní. Vestavěné cviky mají názvy ve všech jazycích jako aliasy, takže odkazy a historie fungují v libovolné kombinaci jazyků. Názvy příkazů v paletě se změní až po restartu Obsidianu.
 
 ## Instalace
 
-Plugin zatím není v katalogu komunitních pluginů, instaluje se ručně. Potřebuješ Obsidian 1.6.0 nebo novější.
+Plugin zatím není v katalogu komunitních pluginů, instaluje se ručně. Potřebuješ Obsidian 1.8.7 nebo novější.
 
 **Ručně (počítač i telefon):**
 
@@ -114,6 +114,17 @@ Načte se datum a čas, vzdálenost, čas v pohybu, tep (pokud v souboru je), p�
 
 Od června 2026 Strava dovoluje založit API aplikaci jen účtům s **placeným předplatným**. Pokud ho máš, v nastavení pluginu je návod krok za krokem: založíš si vlastní API aplikaci, vložíš Client ID a Client Secret a připojíš účet. Synchronizace se spouští jen ručně. Přihlašovací údaje zůstávají v souboru `data.json` pluginu ve tvém vaultu.
 
+## Přidání jazyka
+
+Zdrojovým jazykem je angličtina: texty rozhraní i vestavěná knihovna jsou v kódu anglicky a každý další jazyk je překlad ve vlastní složce. Postup:
+
+1. Zkopíruj `src/locales/cs/` do `src/locales/<kód>/` (třeba `de`) a v jejím `index.ts` nastav `code` a `label`.
+2. Přelož hodnoty (nikdy klíče): `ui.ts` pro rozhraní, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` a `sources.ts` pro knihovnu. Tvary podle čísla se řídí `Intl.PluralRules` daného jazyka (`one`, `few`, `many`, `other`).
+3. Zaregistruj jazyk jedním řádkem v `src/locales/index.ts`.
+4. Spusť `npm test` – testy vypíšou každý chybějící nebo nesedící překlad pro každý zaregistrovaný jazyk. `I18N_DUMP=missing-{code}.json npm test` uloží chybějící texty rozhraní do souboru.
+
+Jazyk se pak objeví v nastavení a vybere se sám, když ho používá Obsidian.
+
 ## Síť a soukromí
 
 - Plugin pracuje **offline** a všechna data ukládá jako poznámky v tvém vaultu. Nic neodesílá, nemá telemetrii ani reklamy a nepotřebuje žádný účet.
@@ -139,7 +150,7 @@ Heuristika se nikdy nevydává za výzkum. Katalog obsahuje přes 350 ověřený
 ### Co není ověřené
 
 - V Obsidianu na počítači je ověřený zápis tréninku (i ze šablon), panáček, check-in a denní poznámka, plán týdne se souhrnem, karta Suplementy, Přehled, mazání a import GPX ze Stravy. Karta Výživa, měsíční a roční souhrn a provoz na telefonu zatím prošly jen testy a náhledem.
-- Anglické rozhraní prošlo testy a náhledem, v Obsidianu zatím ne.
+- Anglické rozhraní a převod existujícího českého vaultu tlačítkem „Přeložit poznámky“ jsou vyzkoušené v Obsidianu.
 - Synchronizace se Stravou nebyla vyzkoušená proti skutečnému API.
 - Import TCX z MapMyRun, import FIT, načtení tepu ze souboru, import denních dat z CSV a import historie ze Strong a Hevy jsou vyzkoušené jen na ručně sestavených souborech. Import historie si nejdřív vyzkoušej na záloze.
 - Na mobilu plugin zatím vyzkoušený nebyl.
@@ -166,14 +177,15 @@ Pro nasazení zkopíruj `.env.local.example` na `.env.local` a vyplň `VAULT_PAT
 | `src/data/` | čtení a zápis poznámek |
 | `src/model/` | datový model poznámek (frontmatter) |
 | `src/evidence/` | katalog zdrojů |
-| `src/i18n/` | překlad: `t()` / `tn()`, anglický slovník `en.ts` (klíč = český text) |
-| `src/seed/` | knihovna cviků, programy, katalog suplementů; anglické verze v `src/seed/en/` |
+| `src/i18n/` | překlad: `t()` / `tn()` s tvary podle čísla a kontextem, volba jazyka |
+| `src/locales/` | složka pro každý jazyk (klíč = anglický text nebo id vestavěného obsahu) a registr jazyků |
+| `src/seed/` | knihovna cviků, programy, šablony, katalog suplementů, výzkum – anglický zdroj se stálými id |
 | `src/ui/` | rozhraní (Svelte 5) |
 | `tests/` | testy včetně datové vrstvy nad vaultem v paměti |
 
 Při každém pushi do `main` spustí GitHub Actions testy, typovou kontrolu a build.
 
-**Vydání:** zvyš verzi ve `manifest.json` a `package.json`, do `versions.json` přidej `"<verze>": "<minAppVersion>"`, commitni a pushni tag se stejným číslem bez `v` (např. `git tag 0.2.1` a `git push origin 0.2.1`). Workflow „Vydání“ zkontroluje, že tag sedí se všemi třemi soubory, spustí testy a build a založí release se soubory `main.js`, `manifest.json` a `styles.css`.
+**Vydání:** zvyš verzi ve `manifest.json` a `package.json`, do `versions.json` přidej `"<verze>": "<minAppVersion>"`, commitni a pushni tag se stejným číslem bez `v` (např. `git tag 0.2.2` a `git push public 0.2.2`). Workflow „Vydání“ zkontroluje, že tag sedí se všemi třemi soubory, spustí testy a build a založí release se soubory `main.js`, `manifest.json` a `styles.css`.
 
 ## Licence
 

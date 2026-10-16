@@ -3,21 +3,16 @@
 
 import type { ExerciseNote } from "../model/types";
 import { getLanguage } from "../i18n";
-import { seedExercises } from "./exercises";
-import { csExerciseName, exerciseName } from "./localize";
+import { builtinExerciseIn } from "./exercises";
+import { exerciseId } from "./localize";
 
 const TEXT_FIELDS = ["description", "technique", "mistakes"] as const;
 export type ExerciseTextField = (typeof TEXT_FIELDS)[number];
 
-const key = (name: string) => name.trim().toLocaleLowerCase("cs");
-const byName = new Map<string, Map<string, ExerciseNote>>();
-
-/** Vestavěný cvik se stejným názvem v kterémkoli jazyce (bez ohledu na velikost písmen); texty v jazyce rozhraní. */
+/** Vestavěný cvik se stejným názvem nebo aliasem v kterémkoli jazyce; název a texty v jazyce rozhraní. */
 export function builtinExercise(name: string): ExerciseNote | undefined {
-	const language = getLanguage();
-	let map = byName.get(language);
-	if (!map) byName.set(language, (map = new Map(seedExercises(language).map((e) => [key(e.name), e]))));
-	return map.get(key(exerciseName(csExerciseName(name), language)));
+	const id = exerciseId(name);
+	return id === undefined ? undefined : builtinExerciseIn(id, getLanguage());
 }
 
 /** Texty, které v poznámce chybí a vestavěná knihovna je má. */

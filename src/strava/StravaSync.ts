@@ -65,7 +65,7 @@ export class StravaSync {
 	}
 
 	async sync(): Promise<SyncResult> {
-		if (this.running) throw new Error(t("Synchronizace už běží."));
+		if (this.running) throw new Error(t("Sync is already running."));
 		this.running = true;
 		try {
 			return await this.run();
@@ -191,7 +191,7 @@ export class StravaSync {
 			}
 		} catch {
 			// Záměrně bez původní chyby – mohla by obsahovat hlavičku s tokenem.
-			throw new Error(t("Ke Stravě se nepodařilo připojit – zkontroluj internet."));
+			throw new Error(t("Couldn't connect to Strava – check your internet connection."));
 		}
 		if (status < 200 || status >= 300) throw new StravaApiError(status, describeStravaError(status, json));
 		return json;

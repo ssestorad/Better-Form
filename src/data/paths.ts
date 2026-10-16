@@ -44,6 +44,7 @@ export function allFolderPaths(folders: FolderSettings): string[] {
 	return [...result].sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
 }
 
+// eslint-disable-next-line no-control-regex -- řídicí znaky do názvu souboru nepatří, proto se odstraňují
 const FORBIDDEN_CHARS = /[\\/:*?"<>|#^[\]\u0000-\u001f]/g;
 const MAX_NAME_LENGTH = 120;
 
@@ -56,7 +57,7 @@ export function sanitizeFileName(name: string): string {
 		.slice(0, MAX_NAME_LENGTH)
 		.replace(/[.\s]+$/, "")
 		.replace(/^\.+/, "");
-	return cleaned || t("Bez názvu");
+	return cleaned || t("Untitled");
 }
 
 /** Denní poznámka: <root>/Deník/2026/2026-09-28.md */
@@ -76,7 +77,7 @@ export function workoutNotePath(folders: FolderSettings, date: string, label: st
 /** Plán týdne: <root>/Plán/2026/Týden 2026-10-05.md (`week` = pondělí týdne). */
 export function planNotePath(folders: FolderSettings, week: string): string {
 	// Poznámka se hledá podle frontmatteru (`week`), název souboru je jen popisek v jazyce rozhraní.
-	return joinPath(folderPath(folders, "plans"), week.slice(0, 4), t("Týden {week}.md", { week }));
+	return joinPath(folderPath(folders, "plans"), week.slice(0, 4), t("Week {week}.md", { week }));
 }
 
 /** Poznámka v knihovně / jiné podsložce pojmenovaná podle názvu, např. cvik. */

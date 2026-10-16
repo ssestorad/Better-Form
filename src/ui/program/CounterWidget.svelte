@@ -57,8 +57,8 @@
 		<div class="bf-counter-custom">
 			<NumInput
 				bind:value={custom}
-				label={t("Vlastní počet")}
-				placeholder={t("jiný")}
+				label={t("Custom count")}
+				placeholder={t("other")}
 				onkeydown={(e) => {
 					if (e.key === "Enter") {
 						e.preventDefault();
@@ -67,8 +67,8 @@
 				}}
 			/>
 		</div>
-		<button type="button" disabled={busy || !customValid} onclick={addCustom}>{t("Přidat")}</button>
-		<button type="button" class="clickable-icon" disabled={busy || progress.done === 0} title={t("Vrátit poslední dávku")} aria-label={t("Vrátit poslední dávku")} onclick={() => void run(onUndo)}>↶</button>
+		<button type="button" disabled={busy || !customValid} onclick={addCustom}>{t("Add")}</button>
+		<button type="button" class="clickable-icon" disabled={busy || progress.done === 0} title={t("Undo last entry")} aria-label={t("Undo last entry")} onclick={() => void run(onUndo)}>↶</button>
 	</div>
 	{#if error}<div class="bf-error">{error}</div>{/if}
 </div>

@@ -39,7 +39,7 @@
 		active = null,
 		onHover,
 		onSelect,
-		label = t("Zapojené svalové partie"),
+		label = t("Muscle groups worked"),
 	}: Props = $props();
 
 	let hovered = $state<MuscleId | null>(null);

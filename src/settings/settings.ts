@@ -3,7 +3,7 @@
 
 import { isLanguage, type Language } from "../i18n";
 import { SPORTS, type MuscleId, type Sport } from "../model/constants";
-import { exerciseName } from "../seed/localize";
+import { builtinName, exerciseId } from "../seed/localize";
 
 export type SettingsSex = "male" | "female";
 export type ActivityLevel = "sedentary" | "light" | "active";
@@ -215,25 +215,29 @@ export const DEFAULT_THRESHOLDS: ThresholdSettings = {
 	stagnationWeeks: 3,
 };
 
-export const DEFAULT_FOLDERS: FolderSettings = {
+/**
+ * Složky, které jako výchozí měly verze do 0.2 – použijí se jen u vaultu, jehož uložené
+ * nastavení složky neobsahuje (jinak by se data po aktualizaci hledala jinde).
+ */
+export const LEGACY_FOLDERS: FolderSettings = {
 	root: "Forma",
-	days: "Deník", // i18n-ignore: výchozí název složky (data, fáze 3)
-	workouts: "Tréninky", // i18n-ignore: výchozí název složky (data, fáze 3)
+	days: "Deník", // i18n-ignore: název složky ve starších vaultech (data)
+	workouts: "Tréninky", // i18n-ignore: název složky ve starších vaultech (data)
 	exercises: "Knihovna/Cviky",
-	templates: "Knihovna/Šablony tréninků", // i18n-ignore: výchozí název složky (data, fáze 3)
+	templates: "Knihovna/Šablony tréninků", // i18n-ignore: název složky ve starších vaultech (data)
 	programs: "Knihovna/Programy",
 	supplements: "Knihovna/Suplementy",
-	goals: "Cíle", // i18n-ignore: výchozí název složky (data, fáze 3)
-	pains: "Zdraví/Bolesti", // i18n-ignore: výchozí název složky (data, fáze 3)
-	gear: "Vybavení", // i18n-ignore: výchozí název složky (data, fáze 3)
+	goals: "Cíle", // i18n-ignore: název složky ve starších vaultech (data)
+	pains: "Zdraví/Bolesti", // i18n-ignore: název složky ve starších vaultech (data)
+	gear: "Vybavení", // i18n-ignore: název složky ve starších vaultech (data)
 	tests: "Testy",
 	summaries: "Souhrny",
 	exports: "Export",
-	plans: "Plán", // i18n-ignore: výchozí název složky (data, fáze 3)
+	plans: "Plán", // i18n-ignore: název složky ve starších vaultech (data)
 };
 
-/** Výchozí složky nového vaultu v angličtině (české jsou DEFAULT_FOLDERS). */
-export const DEFAULT_FOLDERS_EN: FolderSettings = {
+/** Výchozí složky nového vaultu – vždy anglicky, bez ohledu na jazyk rozhraní. */
+export const DEFAULT_FOLDERS: FolderSettings = {
 	root: "Better Form",
 	days: "Journal",
 	workouts: "Workouts",
@@ -249,18 +253,6 @@ export const DEFAULT_FOLDERS_EN: FolderSettings = {
 	exports: "Export",
 	plans: "Plan",
 };
-
-/** Výchozí hodnoty, které závisí na jazyce: složky, cviky režimu Základ, složka záloh. Jen pro nový vault. */
-export function languageDefaults(language: Language): Pick<BetterFormSettings, "folders" | "basicExercises" | "backupFolder"> {
-	if (language === "cs") {
-		return { folders: { ...DEFAULT_FOLDERS }, basicExercises: [...DEFAULT_SETTINGS.basicExercises], backupFolder: DEFAULT_SETTINGS.backupFolder };
-	}
-	return {
-		folders: { ...DEFAULT_FOLDERS_EN },
-		basicExercises: DEFAULT_SETTINGS.basicExercises.map((name) => exerciseName(name, "en")),
-		backupFolder: "Better Form backups",
-	};
-}
 
 export const DEFAULT_NUTRITION: NutritionSettings = {
 	rmrFormula: "ten_haaf",
@@ -292,7 +284,7 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 		goal: "maintain",
 	},
 	mode: "full",
-	basicExercises: ["Kliky", "Shyby", "Dřepy", "Sedy-lehy", "Běh"], // i18n-ignore: názvy cviků (data)
+	basicExercises: ["Push-up", "Pull-up", "Bodyweight squat", "Sit-up", "Running"],
 	situpAlternative: "",
 	folders: DEFAULT_FOLDERS,
 	sports: Object.fromEntries(SPORTS.map((s) => [s, true])) as Record<Sport, boolean>,
@@ -308,7 +300,7 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 	units: "metric",
 	thresholds: DEFAULT_THRESHOLDS,
 	nutrition: DEFAULT_NUTRITION,
-	backupFolder: "Forma zálohy", // i18n-ignore: výchozí název složky (data, fáze 3)
+	backupFolder: "Better Form backups",
 	strava: {
 		clientId: "",
 		clientSecret: "",
@@ -353,9 +345,9 @@ export function mergeSettings(loaded: unknown): BetterFormSettings {
 
 /** Úpravy nastavení uloženého starší verzí pluginu. */
 function migrateSettings(settings: BetterFormSettings): BetterFormSettings {
-	// 1 → 2: do režimu Základ patří i běh.
-	if (settings.settingsVersion < 2 && !settings.basicExercises.some((e) => e.trim().toLocaleLowerCase("cs") === "běh")) { // i18n-ignore: název cviku (data)
-		settings.basicExercises = [...settings.basicExercises, "Běh"]; // i18n-ignore
+	// 1 → 2: do režimu Základ patří i běh (název v jazyce vaultu).
+	if (settings.settingsVersion < 2 && !settings.basicExercises.some((e) => exerciseId(e) === "running")) {
+		settings.basicExercises = [...settings.basicExercises, builtinName("exercise", "running", settings.language)];
 	}
 	if (!(RMR_FORMULAS as readonly string[]).includes(settings.nutrition.rmrFormula)) settings.nutrition.rmrFormula = DEFAULT_NUTRITION.rmrFormula;
 	if (!isLanguage(settings.language)) settings.language = DEFAULT_SETTINGS.language;

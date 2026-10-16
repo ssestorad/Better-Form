@@ -333,12 +333,12 @@ export const TRIAL_METRICS = ["sleep_quality", "sleep_duration", "mood", "stress
 export type TrialMetric = (typeof TRIAL_METRICS)[number];
 
 export const TRIAL_METRIC_LABELS: Record<TrialMetric, string> = translated({
-	sleep_quality: "kvalita spánku (1–5)",
-	sleep_duration: "délka spánku (h)",
-	mood: "nálada (1–5)",
-	stress: "stres (1–5, 5 = klid)",
-	fatigue: "únava (1–5, 5 = odpočatý)",
-	soreness: "svaly (1–5, 5 = bez bolesti)",
+	sleep_quality: "sleep quality (1–5)",
+	sleep_duration: "sleep duration (h)",
+	mood: "mood (1–5)",
+	stress: "stress (1–5, 5 = calm)",
+	fatigue: "fatigue (1–5, 5 = rested)",
+	soreness: "muscles (1–5, 5 = no soreness)",
 });
 
 /** Délka srovnávaných období a minimum měření v každém (heuristika, praxe). */

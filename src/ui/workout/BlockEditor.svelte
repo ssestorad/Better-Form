@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Jeden blok tréninku: hlavička (cvik, typ, posun, smazání), „minule“ + návrh, obsah podle typu.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { untrack } from "svelte";
 	import { parseLadderSteps } from "../../calc/performance";
 	import type { BarbellSettings } from "../../calc/plates";
@@ -74,16 +74,16 @@
 	<header class="bf-block-header">
 		<div class="bf-block-title">
 			{#if !multi && block.exercise}
-				<button type="button" class="bf-link-button bf-block-name" title={t("Zobrazit provedení a zapojené partie")} onclick={() => onShowExercise(block.exercise!)}>
+				<button type="button" class="bf-link-button bf-block-name" title={t("Show technique and muscles worked")} onclick={() => onShowExercise(block.exercise!)}>
 					{block.exercise}
 				</button>
 			{:else}
-				<strong>{multi ? BLOCK_LABELS[block.type] : t("Bez cviku")}</strong>
+				<strong>{multi ? BLOCK_LABELS[block.type] : t("No exercise")}</strong>
 			{/if}
 			{#if !multi}
 				<select
 					class="dropdown bf-block-type"
-					aria-label={t("Typ bloku")}
+					aria-label={t("Block type")}
 					value={block.type}
 					onchange={(e) => (block.type = e.currentTarget.value as BlockType)}
 				>
@@ -92,26 +92,26 @@
 			{/if}
 		</div>
 		<div class="bf-block-tools">
-			<button type="button" class="clickable-icon" aria-label={t("Posunout nahoru")} disabled={index === 0} onclick={() => onMove(-1)}>↑</button>
-			<button type="button" class="clickable-icon" aria-label={t("Posunout dolů")} disabled={index === count - 1} onclick={() => onMove(1)}>↓</button>
-			<button type="button" class="clickable-icon" aria-label={t("Smazat blok")} onclick={onRemove}>✕</button>
+			<button type="button" class="clickable-icon" aria-label={t("Move up")} disabled={index === 0} onclick={() => onMove(-1)}>↑</button>
+			<button type="button" class="clickable-icon" aria-label={t("Move down")} disabled={index === count - 1} onclick={() => onMove(1)}>↓</button>
+			<button type="button" class="clickable-icon" aria-label={t("Delete block")} onclick={onRemove}>✕</button>
 		</div>
 	</header>
 
 	{#if canSuperset}
-		<label class="bf-superset" title={t("Cviky se střídají bez pauzy: série prvního, hned série druhého, pak teprve odpočinek")}>
+		<label class="bf-superset" title={t("The exercises alternate without rest: a set of the first, right away a set of the second, and only then rest")}>
 			<input type="checkbox" checked={block.superset === true} onchange={(e) => (block.superset = e.currentTarget.checked ? true : undefined)} />
-			<span>{t("Superset s předchozím cvikem")}</span>
+			<span>{t("Superset with the previous exercise")}</span>
 		</label>
 	{/if}
-	{#if block.targetNote}<div class="bf-target">{t("Cíl programu: {targetNote}", { targetNote: block.targetNote })}</div>{/if}
-	{#if last}<div class="bf-last">{t("Minule {last}", { last })}</div>{/if}
+	{#if block.targetNote}<div class="bf-target">{t("Program target: {targetNote}", { targetNote: block.targetNote })}</div>{/if}
+	{#if last}<div class="bf-last">{t("Last time {last}", { last })}</div>{/if}
 	{#if block.suggestion}
 		<div class="bf-suggestion">
-			<span>{t("Návrh: {suggestion}", { suggestion: block.suggestion })}</span>
+			<span>{t("Suggestion: {suggestion}", { suggestion: block.suggestion })}</span>
 			<BasisTag basis={PROGRESSION_BASIS} />
 			{#if block.lastSets}
-				<button type="button" class="bf-link-button" onclick={() => onReplace(revertToLast(block))}>{t("vrátit na minule")}</button>
+				<button type="button" class="bf-link-button" onclick={() => onReplace(revertToLast(block))}>{t("reset to last time")}</button>
 			{/if}
 		</div>
 	{/if}
@@ -120,38 +120,38 @@
 		<SetsEditor {block} {measure} bells={blockBells} barbell={exerciseInfo?.category === "strength" || exerciseInfo === undefined ? barbell : undefined} {errors} />
 	{:else if block.type === "emom"}
 		<div class="bf-mini-grid">
-			<label class="bf-mini"><span>{t("Minuty")}</span><NumInput bind:value={block.minutes} label={t("Minuty")} error={err("minutes")} /></label>
-			<label class="bf-mini"><span>{t("Opak./min")}</span><NumInput bind:value={block.reps_per_min} label={t("Opakování za minutu")} error={err("reps_per_min")} /></label>
+			<label class="bf-mini"><span>{t("Minutes")}</span><NumInput bind:value={block.minutes} label={t("Minutes")} error={err("minutes")} /></label>
+			<label class="bf-mini"><span>{t("Reps/min")}</span><NumInput bind:value={block.reps_per_min} label={t("Reps per minute")} error={err("reps_per_min")} /></label>
 			<label class="bf-mini">
-				<span>{bodyweight ? t("Přívažek kg") : "kg"}</span>
+				<span>{bodyweight ? t("Added weight kg") : "kg"}</span>
 				{#if bodyweight}
-					<NumInput bind:value={block.added_kg} label={t("Přívažek (kg)")} signed />
+					<NumInput bind:value={block.added_kg} label={t("Added weight (kg)")} signed />
 				{:else}
-					<WeightInput bind:value={block.kg} label={t("Váha (kg)")} bells={blockBells} error={err("kg")} />
+					<WeightInput bind:value={block.kg} label={t("Weight (kg)")} bells={blockBells} error={err("kg")} />
 				{/if}
 			</label>
-			<label class="bf-mini"><span>{t("Odjeto kol")}</span><NumInput bind:value={block.rounds} label={t("Odjeto kol")} placeholder={block.minutes !== undefined ? String(block.minutes) : ""} error={err("rounds")} /></label>
-			<label class="bf-mini"><span>{t("RPE bloku")}</span><NumInput bind:value={block.rpe} label={t("RPE bloku")} decimals error={err("rpe")} /></label>
+			<label class="bf-mini"><span>{t("Rounds done")}</span><NumInput bind:value={block.rounds} label={t("Rounds done")} placeholder={block.minutes !== undefined ? String(block.minutes) : ""} error={err("rounds")} /></label>
+			<label class="bf-mini"><span>{t("Block RPE")}</span><NumInput bind:value={block.rpe} label={t("Block RPE")} decimals error={err("rpe")} /></label>
 		</div>
 	{:else if block.type === "amrap"}
 		<div class="bf-mini-grid">
-			<label class="bf-mini"><span>{t("Minuty")}</span><NumInput bind:value={block.minutes} label={t("Minuty")} error={err("minutes")} /></label>
-			<label class="bf-mini"><span>{t("Kola")}</span><NumInput bind:value={block.rounds} label={t("Dokončená kola")} error={err("rounds")} /></label>
-			<label class="bf-mini"><span>{t("Opak. navíc")}</span><NumInput bind:value={block.extra_reps} label={t("Opakování v nedokončeném kole")} error={err("extra_reps")} /></label>
-			<label class="bf-mini"><span>{t("RPE bloku")}</span><NumInput bind:value={block.rpe} label={t("RPE bloku")} decimals error={err("rpe")} /></label>
+			<label class="bf-mini"><span>{t("Minutes")}</span><NumInput bind:value={block.minutes} label={t("Minutes")} error={err("minutes")} /></label>
+			<label class="bf-mini"><span>{t("Rounds")}</span><NumInput bind:value={block.rounds} label={t("Completed rounds")} error={err("rounds")} /></label>
+			<label class="bf-mini"><span>{t("Extra reps")}</span><NumInput bind:value={block.extra_reps} label={t("Reps in the unfinished round")} error={err("extra_reps")} /></label>
+			<label class="bf-mini"><span>{t("Block RPE")}</span><NumInput bind:value={block.rpe} label={t("Block RPE")} decimals error={err("rpe")} /></label>
 		</div>
 		<ItemsEditor {block} {options} {preferred} itemWeights {errors} onCreate={onCreateExercise} />
 	{:else if block.type === "complex"}
 		<div class="bf-mini-grid">
-			<label class="bf-mini"><span>{t("Kola")}</span><NumInput bind:value={block.rounds} label={t("Kola")} error={err("rounds")} /></label>
-			<label class="bf-mini"><span>kg</span><WeightInput bind:value={block.kg} label={t("Váha (kg)")} bells={blockBells} error={err("kg")} /></label>
-			<label class="bf-mini"><span>{t("RPE bloku")}</span><NumInput bind:value={block.rpe} label={t("RPE bloku")} decimals error={err("rpe")} /></label>
+			<label class="bf-mini"><span>{t("Rounds")}</span><NumInput bind:value={block.rounds} label={t("Rounds")} error={err("rounds")} /></label>
+			<label class="bf-mini"><span>kg</span><WeightInput bind:value={block.kg} label={t("Weight (kg)")} bells={blockBells} error={err("kg")} /></label>
+			<label class="bf-mini"><span>{t("Block RPE")}</span><NumInput bind:value={block.rpe} label={t("Block RPE")} decimals error={err("rpe")} /></label>
 		</div>
 		<ItemsEditor {block} {options} {preferred} itemWeights={false} {errors} onCreate={onCreateExercise} />
 	{:else if block.type === "ladder"}
 		<div class="bf-mini-grid">
 			<label class="bf-mini bf-mini-wide">
-				<span>{t("Příčky (např. 1-5 nebo 2, 4, 6)")}</span>
+				<span>{t("Rungs (e.g. 1-5 or 2, 4, 6)")}</span>
 				<input
 					type="text"
 					value={ladderText}
@@ -162,25 +162,25 @@
 				/>
 			</label>
 			<label class="bf-mini">
-				<span>{bodyweight ? t("Přívažek kg") : "kg"}</span>
+				<span>{bodyweight ? t("Added weight kg") : "kg"}</span>
 				{#if bodyweight}
-					<NumInput bind:value={block.added_kg} label={t("Přívažek (kg)")} signed />
+					<NumInput bind:value={block.added_kg} label={t("Added weight (kg)")} signed />
 				{:else}
-					<WeightInput bind:value={block.kg} label={t("Váha (kg)")} bells={blockBells} error={err("kg")} />
+					<WeightInput bind:value={block.kg} label={t("Weight (kg)")} bells={blockBells} error={err("kg")} />
 				{/if}
 			</label>
 		</div>
-		{#if block.steps.length > 0}<div class="bf-hint">{t("{v} · celkem {ladderTotal} opak.", { v: block.steps.join(" – "), ladderTotal })}</div>{/if}
+		{#if block.steps.length > 0}<div class="bf-hint">{tn(ladderTotal, ["{v} · {n} rep in total", "{v} · {n} reps in total"], { v: block.steps.join(" – ") })}</div>{/if}
 	{:else if block.type === "timed"}
 		<div class="bf-mini-grid">
-			<label class="bf-mini"><span>{t("Čas (mm:ss)")}</span><ClockInput bind:value={block.sec} label={t("Čas")} error={err("sec")} /></label>
-			<label class="bf-mini"><span>{t("Opakování")}</span><NumInput bind:value={block.reps} label={t("Opakování")} error={err("reps")} /></label>
+			<label class="bf-mini"><span>{t("Time (mm:ss)")}</span><ClockInput bind:value={block.sec} label={t("Time")} error={err("sec")} /></label>
+			<label class="bf-mini"><span>{t("Reps")}</span><NumInput bind:value={block.reps} label={t("Reps")} error={err("reps")} /></label>
 			<label class="bf-mini">
-				<span>{bodyweight ? t("Přívažek kg") : "kg"}</span>
+				<span>{bodyweight ? t("Added weight kg") : "kg"}</span>
 				{#if bodyweight}
-					<NumInput bind:value={block.added_kg} label={t("Přívažek (kg)")} signed />
+					<NumInput bind:value={block.added_kg} label={t("Added weight (kg)")} signed />
 				{:else}
-					<WeightInput bind:value={block.kg} label={t("Váha (kg)")} bells={blockBells} error={err("kg")} />
+					<WeightInput bind:value={block.kg} label={t("Weight (kg)")} bells={blockBells} error={err("kg")} />
 				{/if}
 			</label>
 		</div>

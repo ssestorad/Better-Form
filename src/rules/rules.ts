@@ -7,7 +7,7 @@ import { MUSCLE_LABELS, type MuscleId } from "../model/constants";
 import { addDays } from "../model/dates";
 import { formatCzechDate, formatDays, formatDurationMin, formatNumber } from "../ui/format";
 import type { RecommendationAction, Rule, RuleContext, RuleOutput, RulePlanItem } from "./types";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 /** O kolik minut pod osobním průměrem je spánek „výrazně kratší“. */
 export const SLEEP_BELOW_AVERAGE_MIN = 60;
@@ -27,10 +27,10 @@ function easeHardPlan(ctx: RuleContext): { reason: string; action: Recommendatio
 	const hard = hardPlanned(ctx);
 	if (!hard) return null;
 	return {
-		reason: t("V plánu máš dnes těžký trénink: {hard_label}.", { hard_label: hard.label }),
+		reason: t("You have a hard workout planned for today: {hard_label}.", { hard_label: hard.label }),
 		action: hard.movable
-			? { label: t("Přesunout na zítra"), target: "plan", move: { itemId: hard.id, from: hard.date, to: addDays(ctx.today, 1) } }
-			: { label: t("Plán týdne"), target: "plan" },
+			? { label: t("Move to tomorrow"), target: "plan", move: { itemId: hard.id, from: hard.date, to: addDays(ctx.today, 1) } }
+			: { label: t("Weekly plan"), target: "plan" },
 	};
 }
 
@@ -48,17 +48,17 @@ export const sleepRule: Rule = {
 		if (!short && !belowAverage) return null;
 		const reasons: string[] = [];
 		if (short) {
-			reasons.push(t("Spánek {v}, doporučené minimum pro dospělého je {v2} h.", { v: formatDurationMin(lastMin), v2: formatNumber(ctx.thresholds.sleepTargetHours, 2) }));
+			reasons.push(t("Sleep {v}; the recommended minimum for an adult is {v2} h.", { v: formatDurationMin(lastMin), v2: formatNumber(ctx.thresholds.sleepTargetHours, 2) }));
 		}
 		if (belowAverage) {
-			reasons.push(t("Je to o {v} méně než tvůj průměr ({v2}).", { v: formatDurationMin(averageMin! - lastMin), v2: formatDurationMin(averageMin!) }));
+			reasons.push(t("That's {v} less than your average ({v2}).", { v: formatDurationMin(averageMin - lastMin), v2: formatDurationMin(averageMin) }));
 		}
 		const plan = easeHardPlan(ctx);
 		if (plan) reasons.push(plan.reason);
 		return {
 			level: lastMin < targetMin - SLEEP_WARN_HOURS_BELOW * 60 ? "warn" : "suggest",
-			title: t("Krátký spánek – dnes lehčeji"),
-			text: t("Těžký nebo technicky náročný trénink přesuň na jindy; dnes zvol lehčí den nebo volno a večer jdi spát dřív."),
+			title: t("Short sleep – go easier today"),
+			text: t("Move a hard or technically demanding workout to another day; choose an easier day or rest today and go to bed earlier tonight."),
 			reasons,
 			...(plan ? { action: plan.action } : {}),
 		};
@@ -79,17 +79,17 @@ export const hrvRule: Rule = {
 			const plan = easeHardPlan(ctx);
 			return {
 				level: "suggest",
-				title: t("HRV pod normou – lehčí den"),
-				text: t("Dnes zvol lehký trénink nebo volno; k těžkému se vrať, až se průměr HRV vrátí do pásma."),
-				reasons: [t("Průměr HRV za {hrvWindowDays} dní je {v} ms, tvoje normální pásmo je {band}.", { hrvWindowDays: ctx.thresholds.hrvWindowDays, v: ms(hrv.current), band }), ...(plan ? [plan.reason] : [])],
+				title: t("HRV below baseline – easier day"),
+				text: t("Choose easy training or rest today; go back to hard training once your HRV average is back in range."),
+				reasons: [t("Your {hrvWindowDays}-day HRV average is {v} ms; your normal range is {band}.", { hrvWindowDays: ctx.thresholds.hrvWindowDays, v: ms(hrv.current), band }), ...(plan ? [plan.reason] : [])],
 				...(plan ? { action: plan.action } : {}),
 			};
 		}
 		return {
 			level: "info",
-			title: hrv.status === "above" ? t("HRV nad normou – trénuj podle plánu") : t("HRV v normě – trénuj podle plánu"),
-			text: t("Z pohledu HRV nic nebrání plánovanému tréninku."),
-			reasons: [t("Průměr HRV za {hrvWindowDays} dní je {v} ms, tvoje normální pásmo je {band}.", { hrvWindowDays: ctx.thresholds.hrvWindowDays, v: ms(hrv.current), band })],
+			title: hrv.status === "above" ? t("HRV above baseline – train as planned") : t("HRV within baseline – train as planned"),
+			text: t("From an HRV point of view nothing stands in the way of the planned workout."),
+			reasons: [t("Your {hrvWindowDays}-day HRV average is {v} ms; your normal range is {band}.", { hrvWindowDays: ctx.thresholds.hrvWindowDays, v: ms(hrv.current), band })],
 		};
 	},
 };
@@ -103,13 +103,13 @@ export const acwrRule: Rule = {
 		if (!ctx.acwr || ctx.acwr.ratio <= ctx.thresholds.acwrWarn) return null;
 		return {
 			level: "warn",
-			title: t("Prudký nárůst zátěže"),
-			text: t("V nejbližších dnech nepřidávej objem ani intenzitu a nech tělo zátěž vstřebat."),
+			title: t("Sharp increase in load"),
+			text: t("Don't add volume or intensity in the next few days; let your body absorb the load."),
 			reasons: [
-				t("Zátěž posledních {acwrAcuteDays} dní je {v}× vyšší než dlouhodobá (práh {v2}).", { acwrAcuteDays: ctx.thresholds.acwrAcuteDays, v: formatNumber(ctx.acwr.ratio, 2), v2: formatNumber(ctx.thresholds.acwrWarn, 2) }),
-				t("Poměr akutní a chronické zátěže je sporná metoda (Impellizzeri 2020) – ber ho jen jako upozornění na skok, ne jako předpověď zranění."),
+				t("Load over the last {acwrAcuteDays} days is {v}× higher than long-term (threshold {v2}).", { acwrAcuteDays: ctx.thresholds.acwrAcuteDays, v: formatNumber(ctx.acwr.ratio, 2), v2: formatNumber(ctx.thresholds.acwrWarn, 2) }),
+				t("The acute:chronic workload ratio is a disputed method (Impellizzeri 2020) – treat it only as a warning about a jump, not as an injury prediction."),
 			],
-			action: { label: t("Graf zátěže"), target: "overview" },
+			action: { label: t("Load chart"), target: "overview" },
 		};
 	},
 };
@@ -123,10 +123,10 @@ export const monotonyRule: Rule = {
 		if (!ctx.monotony || ctx.monotony.monotony <= ctx.thresholds.monotonyWarn) return null;
 		return {
 			level: "suggest",
-			title: t("Jednotvárná zátěž – zařaď lehčí den"),
-			text: t("Střídej těžké a lehké dny; jeden opravdu lehký den nebo volno týdnu pomůže víc než další středně těžký trénink."),
+			title: t("Monotonous load – add an easier day"),
+			text: t("Alternate hard and easy days; one truly easy day or rest helps the week more than another moderately hard workout."),
 			reasons: [
-				t("Monotónnost za 7 dní je {v} (práh {v2}) – dny jsou si zátěží příliš podobné.", { v: formatNumber(ctx.monotony.monotony, 1), v2: formatNumber(ctx.thresholds.monotonyWarn, 1) }),
+				t("Monotony over 7 days is {v} (threshold {v2}) – the days are too similar in load.", { v: formatNumber(ctx.monotony.monotony, 1), v2: formatNumber(ctx.thresholds.monotonyWarn, 1) }),
 			],
 		};
 	},
@@ -145,10 +145,10 @@ export const volumeRule: Rule = {
 		if (low.length === 0) return null;
 		return {
 			level: "suggest",
-			title: t("Doplnit objem: {v}", { v: muscleList(low) }),
-			text: t("U partií, které cíleně trénuješ, přidej v týdnu několik sérií blízko vyčerpání."),
-			reasons: low.map((m) => t("{v}: {v2} z doporučených {min}–{max} sérií za posledních 7 dní.", { v: MUSCLE_LABELS[m], v2: formatNumber(ctx.weeklySets[m], 1), min, max })),
-			action: { label: t("Karta Tělo"), target: "body" },
+			title: t("Add volume: {v}", { v: muscleList(low) }),
+			text: t("For the muscle groups you focus on, add a few sets close to failure during the week."),
+			reasons: low.map((m) => t("{v}: {v2} of the recommended {min}–{max} sets in the last 7 days.", { v: MUSCLE_LABELS[m], v2: formatNumber(ctx.weeklySets[m], 1), min, max })),
+			action: { label: t("Body tab"), target: "body" },
 		};
 	},
 };
@@ -165,23 +165,23 @@ export const recoveryRule: Rule = {
 			return hours !== null && hours < limit;
 		});
 		if (recent.length === 0) return null;
-		const reason = (m: MuscleId) => t("{v}: trénink před {v2} h (orientačně {limit} h mezi těžkými tréninky).", { v: MUSCLE_LABELS[m], v2: formatNumber(ctx.recoveries[m].hours!, 0), limit });
+		const reason = (m: MuscleId) => t("{v}: trained {v2} h ago (roughly {limit} h between hard sessions).", { v: MUSCLE_LABELS[m], v2: formatNumber(ctx.recoveries[m].hours!, 0), limit });
 		const planned = recent.filter((m) => ctx.plannedMuscles.includes(m));
 		if (planned.length > 0) {
 			return {
 				level: "suggest",
-				title: t("Dnešní plán zatěžuje neodpočaté partie: {v}", { v: muscleList(planned) }),
-				text: t("Tyto partie dnes netrénuj těžce – uber váhu nebo série, případně trénink prohoď s jiným dnem."),
+				title: t("Today's plan loads muscle groups that haven't recovered: {v}", { v: muscleList(planned) }),
+				text: t("Don't train these muscle groups hard today – reduce weight or sets, or swap the workout with another day."),
 				reasons: planned.map(reason),
-				action: { label: t("Karta Tělo"), target: "body" },
+				action: { label: t("Body tab"), target: "body" },
 			};
 		}
 		return {
 			level: "info",
 			title: `V regeneraci: ${muscleList(recent)}`,
-			text: t("Tyto partie dnes netrénuj těžce."),
+			text: t("Don't train these muscle groups hard today."),
 			reasons: recent.map(reason),
-			action: { label: t("Karta Tělo"), target: "body" },
+			action: { label: t("Body tab"), target: "body" },
 		};
 	},
 };
@@ -197,12 +197,12 @@ export const intensityRule: Rule = {
 		if (pct <= ctx.thresholds.intenseShareWarnPct) return null;
 		return {
 			level: "suggest",
-			title: t("Hodně intenzivního běhu – přidej lehké běhy"),
-			text: t("Většinu běhů běhej v zónách 1–2; intenzivní tréninky nech jen na jeden až dva dny v týdnu."),
+			title: t("A lot of high-intensity running – add easy runs"),
+			text: t("Run most of your runs in zones 1–2; keep hard sessions to one or two days a week."),
 			reasons: [
-				t("Za poslední 4 týdny je {v} % času v zónách 3–5 (práh {intenseShareWarnPct} %); počítáno z {runs} běhů s tepem.", { v: formatNumber(pct, 0), intenseShareWarnPct: ctx.thresholds.intenseShareWarnPct, runs: ctx.intensity.runs }),
+				tn(ctx.intensity.runs, ["Over the last 4 weeks {v} % of your time was in zones 3–5 (threshold {intenseShareWarnPct} %); calculated from {n} run with heart rate.", "Over the last 4 weeks {v} % of your time was in zones 3–5 (threshold {intenseShareWarnPct} %); calculated from {n} runs with heart rate."], { v: formatNumber(pct, 0), intenseShareWarnPct: ctx.thresholds.intenseShareWarnPct }),
 			],
-			action: { label: t("Rozložení intenzit"), target: "overview" },
+			action: { label: t("Intensity distribution"), target: "overview" },
 		};
 	},
 };
@@ -218,25 +218,25 @@ export const painRule: Rule = {
 		const { painProfessionalLevel: level, painProfessionalDays: days } = ctx.thresholds;
 		const describe = (p: (typeof pains)[number]) => {
 			const base = `${p.name} (${MUSCLE_LABELS[p.muscle]}): ${p.level}/10`;
-			if (p.reason === "level") return t("{base} – intenzita {level}/10 a víc.", { base, level });
-			if (p.reason === "duration") return t("{base} – trvá {v} bez zlepšení.", { base, v: formatDays(p.days) });
-			return `${base}, ${p.days === 0 ? "od dneška" : formatDays(p.days)}${p.improving ? ", zlepšuje se" : ""}.`;
+			if (p.reason === "level") return t("{base} – intensity {level}/10 or more.", { base, level });
+			if (p.reason === "duration") return t("{base} – lasting {v} without improvement.", { base, v: formatDays(p.days) });
+			return `${base}, ${p.days === 0 ? "from today" : formatDays(p.days)}${p.improving ? ", improving" : ""}.`;
 		};
 		const reasons = pains.map(describe);
-		const action = { label: t("Bolesti na kartě Tělo"), target: "body" } as const;
+		const action = { label: t("Pain on the Body tab"), target: "body" } as const;
 		if (pains.some((p) => p.seeProfessional)) {
 			return {
 				level: "warn",
-				title: t("Bolest – poraď se s odborníkem"),
-				text: t("Zajdi za fyzioterapeutem nebo lékařem. Do té doby vynech cviky, které bolestivé místo zatěžují. Plugin nic nediagnostikuje – jen eviduje, co zapíšeš."),
+				title: t("Pain – see a professional"),
+				text: t("See a physiotherapist or doctor. Until then, skip exercises that load the painful area. The plugin doesn't diagnose anything – it only records what you log."),
 				reasons,
 				action,
 			};
 		}
 		return {
 			level: "suggest",
-			title: t("Aktivní bolest – uprav trénink"),
-			text: t("Vynech nebo uprav cviky, které bolestivé místo zatěžují. Když bolest zesílí na {level}/10 nebo potrvá déle než {days} dní bez zlepšení, poraď se s fyzioterapeutem nebo lékařem.", { level, days }),
+			title: t("Active pain – adjust your training"),
+			text: t("Skip or modify exercises that load the painful area. If the pain gets to {level}/10 or lasts more than {days} days without improvement, see a physiotherapist or doctor.", { level, days }),
 			reasons,
 			action,
 		};
@@ -252,10 +252,10 @@ export const deloadRule: Rule = {
 		if (!ctx.deload.suggest) return null;
 		return {
 			level: "suggest",
-			title: t("Zvaž odlehčený týden"),
-			text: t("Na týden uber objem i intenzitu; v programech je připravený „Odlehčovací týden“. Jednotlivé signály mají oporu ve výzkumu, jejich kombinace je heuristika."),
+			title: t("Consider a deload week"),
+			text: t("Reduce volume and intensity for a week; a “Deload week” is ready among the programs. The individual signals are backed by research; combining them is a heuristic."),
 			reasons: ctx.deload.reasons,
-			action: { label: t("Programy"), target: "programs" },
+			action: { label: t("Programs"), target: "programs" },
 		};
 	},
 };
@@ -269,16 +269,16 @@ export const goalRule: Rule = {
 		const risky = ctx.goals.filter((g) => g.status === "at_risk");
 		if (risky.length === 0) return null;
 		const reason = (g: (typeof risky)[number]) => {
-			if (g.overdue) return t("{g_name}: termín už uplynul.", { g_name: g.name });
-			if (g.eta && g.deadline) return t("{g_name}: podle trendu vyjde na {v}, termín je {v2}.", { g_name: g.name, v: formatCzechDate(g.eta, false), v2: formatCzechDate(g.deadline, false) });
-			return t("{g_name}: trend posledních týdnů k cíli nevede.", { g_name: g.name });
+			if (g.overdue) return t("{g_name}: the deadline has passed.", { g_name: g.name });
+			if (g.eta && g.deadline) return t("{g_name}: at the current trend you'll reach it on {v}; the deadline is {v2}.", { g_name: g.name, v: formatCzechDate(g.eta, false), v2: formatCzechDate(g.deadline, false) });
+			return t("{g_name}: the trend of recent weeks isn't heading towards the goal.", { g_name: g.name });
 		};
 		return {
 			level: "suggest",
-			title: risky.length === 1 ? t("Cíl je ohrožený: {risky0_name}", { risky0_name: risky[0]!.name }) : t("Ohrožené cíle: {risky_length}", { risky_length: risky.length }),
-			text: t("Uprav plán – přidej trénink zaměřený na cíl – nebo posuň termín. Předpověď je přímka proložená posledními výkony, ber ji orientačně."),
+			title: risky.length === 1 ? t("Goal at risk: {risky0_name}", { risky0_name: risky[0]!.name }) : t("Goals at risk: {risky_length}", { risky_length: risky.length }),
+			text: t("Adjust your plan – add a workout aimed at the goal – or move the deadline. The forecast is a straight line through your recent results; treat it as a rough guide."),
 			reasons: risky.map(reason),
-			action: { label: t("Cíle"), target: "goals" },
+			action: { label: t("Goals"), target: "goals" },
 		};
 	},
 };
@@ -296,23 +296,23 @@ export const challengeRule: Rule = {
 			for (const pain of ctx.pains) {
 				if (pain.level > 0 && challenge.muscles.includes(pain.muscle)) {
 					affected.add(challenge.name);
-					reasons.push(t("{challenge_name}: zatěžuje partii s bolestí ({pain_name}, {level}/10).", { challenge_name: challenge.name, pain_name: pain.name, level: pain.level }));
+					reasons.push(t("{challenge_name}: loads the muscle group with pain ({pain_name}, {level}/10).", { challenge_name: challenge.name, pain_name: pain.name, level: pain.level }));
 				}
 			}
 		}
 		if (ctx.checkIn.worsening) {
 			for (const challenge of ctx.challenges) affected.add(challenge.name);
 			reasons.push(
-				t("Pocity z check-inu se zhoršily ({v}/5 za poslední dny proti {v2}/5 předtím).", { v: formatNumber(ctx.checkIn.recent!, 1), v2: formatNumber(ctx.checkIn.before!, 1) }),
+				t("How you feel in the check-in got worse ({v}/5 in recent days vs {v2}/5 before).", { v: formatNumber(ctx.checkIn.recent!, 1), v2: formatNumber(ctx.checkIn.before!, 1) }),
 			);
 		}
 		if (reasons.length === 0) return null;
 		return {
 			level: "suggest",
-			title: t("Denní výzva – dnes uber: {v}", { v: [...affected].join(", ") }),
-			text: t("Výzva nemá volné dny, takže únava se sčítá. Dnes udělej zhruba polovinu, nebo si dej den volna – série se dá navázat."),
+			title: t("Daily challenge – go easier today: {v}", { v: [...affected].join(", ") }),
+			text: t("The challenge has no rest days, so fatigue adds up. Do about half today, or take a day off – the streak can be continued."),
 			reasons,
-			action: { label: t("Programy"), target: "programs" },
+			action: { label: t("Programs"), target: "programs" },
 		};
 	},
 };
@@ -329,13 +329,13 @@ export const planLoadRule: Rule = {
 		if (!week || week.remaining <= 0 || week.ratio <= ctx.thresholds.acwrWarn) return null;
 		return {
 			level: "warn",
-			title: t("Plán týdne je výrazně nad tvým průměrem"),
-			text: t("Zkrať nebo zlehči některý ze zbývajících tréninků; zátěž přidávej postupně."),
+			title: t("This week's plan is well above your average"),
+			text: t("Shorten or ease one of the remaining workouts; increase load gradually."),
 			reasons: [
-				t("Zapsané tréninky a zbytek plánu dají tento týden asi {v} AU; průměr posledních 4 týdnů je {v2} AU ({v3}×, práh {v4}×).", { v: formatNumber(week.expected, 0), v2: formatNumber(week.average, 0), v3: formatNumber(week.ratio, 2), v4: formatNumber(ctx.thresholds.acwrWarn, 2) }),
-				t("Zátěž z plánu je odhad z plánované délky a intenzity; poměr ber jen jako upozornění na skok (Impellizzeri 2020)."),
+				t("Logged workouts and the rest of the plan add up to about {v} AU this week; the average of the last 4 weeks is {v2} AU ({v3}×, threshold {v4}×).", { v: formatNumber(week.expected, 0), v2: formatNumber(week.average, 0), v3: formatNumber(week.ratio, 2), v4: formatNumber(ctx.thresholds.acwrWarn, 2) }),
+				t("Load from the plan is estimated from the planned duration and intensity; treat the ratio only as a warning about a jump (Impellizzeri 2020)."),
 			],
-			action: { label: t("Plán týdne"), target: "plan" },
+			action: { label: t("Weekly plan"), target: "plan" },
 		};
 	},
 };
@@ -350,10 +350,10 @@ export const planHardDaysRule: Rule = {
 		if (!hard || !ctx.plan?.hardYesterday) return null;
 		return {
 			level: "suggest",
-			title: t("Druhý těžký den po sobě"),
-			text: t("Po těžkém dni zařaď lehčí trénink nebo volno; dnešní těžký trénink prohoď s lehčím dnem."),
-			reasons: [t("Včera máš zapsaný těžký trénink (RPE {HARD_RPE} a víc) a dnes je v plánu další: {hard_label}.", { HARD_RPE, hard_label: hard.label })],
-			action: { label: t("Plán týdne"), target: "plan" },
+			title: t("Second hard day in a row"),
+			text: t("After a hard day, schedule an easier workout or rest; swap today's hard workout with an easier day."),
+			reasons: [t("You logged a hard workout yesterday (RPE {HARD_RPE} or more) and another one is planned today: {hard_label}.", { HARD_RPE, hard_label: hard.label })],
+			action: { label: t("Weekly plan"), target: "plan" },
 		};
 	},
 };
@@ -368,10 +368,10 @@ export const nutritionCheckRule: Rule = {
 		if (!check) return null;
 		return {
 			level: "suggest",
-			title: t("Váha neodpovídá cíli – zkontroluj doporučený příjem"),
-			text: t("Pokud ses doporučení zhruba držel, odhad výdeje nesedí. Na kartě Výživa ho jedním klepnutím posuneš podle vývoje váhy."),
-			reasons: [t("Podle trendu váhy za poslední 3 týdny je odhad výdeje asi o {v} kcal denně {v2}, než má být.", { v: formatNumber(Math.abs(check.stepKcal), 0), v2: check.stepKcal > 0 ? t("nižší") : t("vyšší") })],
-			action: { label: t("Karta Výživa"), target: "nutrition" },
+			title: t("Weight doesn't match your goal – check the recommended intake"),
+			text: t("If you roughly followed the recommendation, the expenditure estimate is off. On the Nutrition tab you can shift it by your weight trend with one tap."),
+			reasons: [t("Based on your weight trend over the last 3 weeks, the expenditure estimate is about {v} kcal a day {v2} than it should be.", { v: formatNumber(Math.abs(check.stepKcal), 0), v2: check.stepKcal > 0 ? t("lower") : t("higher") })],
+			action: { label: t("Nutrition tab"), target: "nutrition" },
 		};
 	},
 };

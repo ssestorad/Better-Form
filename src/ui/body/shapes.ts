@@ -5,8 +5,8 @@
 // Každá postava je nakreslená v prostoru 200 × 420; zadní je posunutá doprava.
 // Cesty popisují levou polovinu těla a zrcadlí se kolem svislé osy postavy.
 
+import { inContext } from "../../i18n";
 import type { MuscleId } from "../../model/constants";
-import { t } from "../../i18n";
 
 /** Šířka jedné postavy v původním návrhu. */
 const SINGLE_WIDTH = 200;
@@ -111,8 +111,8 @@ export const ABS_LINES = "M89,138 L111,138 M89,160 L111,160 M89,180 L111,180 M10
 
 /** Popisky pod postavami. */
 export const FIGURE_LABELS = [
-	{ x: SINGLE_WIDTH / 2, text: "zepředu" },
-	{ x: BACK_OFFSET + SINGLE_WIDTH / 2, text: "zezadu" },
+	{ x: SINGLE_WIDTH / 2, text: "front" },
+	{ x: BACK_OFFSET + SINGLE_WIDTH / 2, text: inContext("figure", "back") },
 ];
 
 /** Všechny souřadnice [x, y] z cesty (cesty používají jen absolutní M, L, C, Z). */

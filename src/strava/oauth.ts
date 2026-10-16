@@ -49,19 +49,19 @@ export function readCallback(params: URLSearchParams, expectedState: string | nu
 	if (error) {
 		return {
 			ok: false,
-			error: error === "access_denied" ? t("Přístup jsi na Stravě zamítl.") : t("Strava vrátila chybu: {error}.", { error }),
+			error: error === "access_denied" ? t("You declined access on Strava.") : t("Strava returned an error: {error}.", { error }),
 		};
 	}
 	const code = params.get("code")?.trim();
-	if (!code) return { ok: false, error: t("V adrese chybí kód (parametr code).") };
+	if (!code) return { ok: false, error: t("The address is missing the code (code parameter).") };
 	if (expectedState !== null && params.get("state") !== expectedState) {
-		return { ok: false, error: t("Odpověď nepatří k tomuto přihlášení – spusť připojení znovu.") };
+		return { ok: false, error: t("The response doesn't belong to this sign-in – start connecting again.") };
 	}
 	const scope = params.get("scope");
 	if (scope !== null && !scope.split(",").includes(STRAVA_SCOPE)) {
 		return {
 			ok: false,
-			error: t("Chybí oprávnění číst aktivity – při přihlášení nech zaškrtnuté „Zobrazit údaje o soukromých aktivitách“."),
+			error: t("Permission to read activities is missing – when signing in, keep “View data about your private activities” checked."),
 		};
 	}
 	return { ok: true, code };
@@ -73,11 +73,11 @@ export function readCallback(params: URLSearchParams, expectedState: string | nu
  */
 export function readPastedCode(text: string, expectedState: string | null): CallbackResult {
 	const trimmed = text.trim();
-	if (!trimmed) return { ok: false, error: t("Vlož adresu z prohlížeče nebo kód.") };
+	if (!trimmed) return { ok: false, error: t("Paste the address from the browser or the code.") };
 	const query = trimmed.includes("?") ? trimmed.slice(trimmed.indexOf("?") + 1).split("#")[0]! : null;
 	if (query !== null) return readCallback(new URLSearchParams(query), expectedState);
 	if (/^[A-Za-z0-9]+$/.test(trimmed)) return { ok: true, code: trimmed };
-	return { ok: false, error: t("Tohle nevypadá jako adresa ani kód ze Stravy.") };
+	return { ok: false, error: t("This doesn't look like an address or code from Strava.") };
 }
 
 export function codeExchangeBody(clientId: string, clientSecret: string, code: string): Record<string, string> {
@@ -122,25 +122,25 @@ export function needsRefresh(expiresAt: number, nowS: number): boolean {
 
 /** Srozumitelná hláška k chybové odpovědi Stravy. Neobsahuje tokeny ani tajný klíč. */
 export function describeStravaError(status: number, json: unknown): string {
-	if (status === 429) return t("Strava dočasně omezila počet požadavků. Zkus to znovu za 15 minut.");
+	if (status === 429) return t("Strava temporarily limited the number of requests. Try again in 15 minutes.");
 	const errors =
 		typeof json === "object" && json !== null && Array.isArray((json as { errors?: unknown }).errors)
 			? ((json as { errors: unknown[] }).errors as { resource?: unknown; field?: unknown; code?: unknown }[])
 			: [];
 	const first = errors[0];
 	if (status === 400 || status === 401) {
-		if (first?.field === "code") return t("Kód už neplatí (dá se použít jen jednou a krátce). Spusť připojení znovu.");
+		if (first?.field === "code") return t("The code is no longer valid (it can only be used once, briefly). Start connecting again.");
 		if (first?.field === "client_id" || first?.resource === "Application") {
-			return t("Client ID nebo Client Secret nesouhlasí – zkontroluj je v nastavení.");
+			return t("The Client ID or Client Secret doesn't match – check them in the settings.");
 		}
 		if (first?.field === "refresh_token" || first?.field === "access_token") {
-			return t("Přihlášení ke Stravě vypršelo nebo bylo zrušeno – připoj se znovu.");
+			return t("The Strava sign-in expired or was revoked – connect again.");
 		}
-		return status === 401 ? t("Strava odmítla přihlášení – připoj se znovu.") : t("Strava požadavek odmítla – zkontroluj Client ID a Client Secret.");
+		return status === 401 ? t("Strava rejected the sign-in – connect again.") : t("Strava rejected the request – check the Client ID and Client Secret.");
 	}
-	if (status === 403) return t("Strava přístup zakázala – aplikace nemá potřebné oprávnění.");
-	if (status >= 500) return t("Strava má právě výpadek. Zkus to později.");
-	return t("Strava vrátila chybu {status}.", { status });
+	if (status === 403) return t("Strava denied access – the application doesn't have the required permission.");
+	if (status >= 500) return t("Strava is currently down. Try again later.");
+	return t("Strava returned error {status}.", { status });
 }
 
 /** Náhodný řetězec pro parametr `state`. */

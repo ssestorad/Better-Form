@@ -79,21 +79,21 @@
 
 <section class="bf-card">
 	<header class="bf-card-header">
-		<h4>{t("Ranní check-in")}</h4>
+		<h4>{t("Morning check-in")}</h4>
 		{#if checkedIn}
-			<button type="button" onclick={() => plugin.openCheckIn(today)}>{t("Upravit")}</button>
+			<button type="button" onclick={() => plugin.openCheckIn(today)}>{t("Edit")}</button>
 		{/if}
 	</header>
 	{#if checkedIn}
 		<dl class="bf-summary">
-			{#if summary.sleep}<dt>{t("Spánek")}</dt><dd>{summary.sleep}</dd>{/if}
-			{#if summary.feelings}<dt>{t("Pocity")}</dt><dd>{summary.feelings}</dd>{/if}
+			{#if summary.sleep}<dt>{t("Sleep")}</dt><dd>{summary.sleep}</dd>{/if}
+			{#if summary.feelings}<dt>{t("How you feel")}</dt><dd>{summary.feelings}</dd>{/if}
 			{#if summary.hrv}<dt>HRV</dt><dd>{summary.hrv}</dd>{/if}
-			{#if summary.weight}<dt>{t("Váha")}</dt><dd>{summary.weight}</dd>{/if}
+			{#if summary.weight}<dt>{t("Weight")}</dt><dd>{summary.weight}</dd>{/if}
 		</dl>
 	{:else}
-		<p class="bf-muted">{t("Dnes ještě nevyplněno – zabere to do půl minuty.")}</p>
-		<button type="button" class="mod-cta" onclick={() => plugin.openCheckIn(today)}>{t("Ranní check-in")}</button>
+		<p class="bf-muted">{t("Not filled in today yet – it takes under half a minute.")}</p>
+		<button type="button" class="mod-cta" onclick={() => plugin.openCheckIn(today)}>{t("Morning check-in")}</button>
 	{/if}
 </section>
 
@@ -104,17 +104,17 @@
 
 <section class="bf-card">
 	<header class="bf-card-header">
-		<h4>{t("Dnešní plán")}</h4>
-		<button type="button" onclick={() => plugin.showTab("plan")}>{t("Plán týdne")}</button>
+		<h4>{t("Today's plan")}</h4>
+		<button type="button" onclick={() => plugin.showTab("plan")}>{t("Weekly plan")}</button>
 	</header>
 	{#if planned.today.length === 0}
-		<p class="bf-muted">{programs.length > 0 ? t("Kromě programů níže není na dnešek v plánu týdne nic.") : t("Na dnešek není v plánu týdne nic.")}</p>
+		<p class="bf-muted">{programs.length > 0 ? t("Apart from the programs below, nothing is planned for today in the weekly plan.") : t("Nothing is planned for today in the weekly plan.")}</p>
 	{:else}
 		<ul class="bf-list bf-today-plan">
 			{#each planned.today as entry (entry.item.id)}
 				<li>
 					<span>
-						<button type="button" class="bf-link-button" title={t("Upravit, přesunout nebo smazat")} onclick={() => plugin.openPlanItem({ date: today, item: entry.item })}>
+						<button type="button" class="bf-link-button" title={t("Edit, move or delete")} onclick={() => plugin.openPlanItem({ date: today, item: entry.item })}>
 							{planItemTitle(entry.item)}
 						</button>
 						<span class="bf-muted"> · {planItemDetails(entry.item, entry.minutes)}{entry.item.notes ? ` · ${entry.item.notes}` : ""}</span>
@@ -122,19 +122,19 @@
 					{#if entry.status === "done"}
 						<span class="bf-tag bf-tag-done">{PLAN_STATUS_LABELS.done}</span>
 					{:else}
-						<button type="button" onclick={() => logPlanned(entry)}>{t("Zapsat")}</button>
+						<button type="button" onclick={() => logPlanned(entry)}>{t("Log")}</button>
 					{/if}
 				</li>
 			{/each}
 		</ul>
 	{/if}
 	{#if planned.tomorrow.length > 0}
-		<p class="bf-muted bf-small">{t("Zítra: {v}", { v: planned.tomorrow.map(itemText).join("; ") })}</p>
+		<p class="bf-muted bf-small">{t("Tomorrow: {v}", { v: planned.tomorrow.map(itemText).join("; ") })}</p>
 	{/if}
 </section>
 
 {#if programs.length > 0}
-	<h4 class="bf-section-title">{t("Programy na dnešek")}</h4>
+	<h4 class="bf-section-title">{t("Programs for today")}</h4>
 	{#each programs as item (item.entry.file.path)}
 		<ProgramCard today={item} date={today} />
 	{/each}
@@ -142,11 +142,11 @@
 
 <section class="bf-card">
 	<header class="bf-card-header">
-		<h4>{t("Dnešní tréninky")}</h4>
-		<button type="button" class="mod-cta" onclick={() => plugin.openWorkout({ date: today })}>{t("Zapsat trénink")}</button>
+		<h4>{t("Today's workouts")}</h4>
+		<button type="button" class="mod-cta" onclick={() => plugin.openWorkout({ date: today })}>{t("Log workout")}</button>
 	</header>
 	{#if workouts.length === 0}
-		<p class="bf-muted">{t("Zatím žádný zapsaný trénink.")}</p>
+		<p class="bf-muted">{t("No workout logged yet.")}</p>
 	{:else}
 		<ul class="bf-list">
 			{#each workouts as w (w.file.path)}
@@ -154,7 +154,7 @@
 					<button type="button" class="bf-link-button" onclick={() => plugin.openWorkout({ file: w.file })}>
 						{workoutLabel(w.note)}
 					</button>
-					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("doplnit RPE")}</span>{/if}
+					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("add RPE")}</span>{/if}
 					{#if workoutDetails(w.note, false)}<span class="bf-muted"> · {workoutDetails(w.note, false)}</span>{/if}
 				</li>
 			{/each}
@@ -164,20 +164,20 @@
 
 <section class="bf-card">
 	<header class="bf-card-header">
-		<h4>{t("Výživa na dnešek")}</h4>
-		<button type="button" onclick={() => plugin.showTab("nutrition")}>{t("Rozpad výpočtu")}</button>
+		<h4>{t("Nutrition for today")}</h4>
+		<button type="button" onclick={() => plugin.showTab("nutrition")}>{t("Calculation breakdown")}</button>
 	</header>
 	{#if nutrition}
 		<p class="bf-nutri-line">{nutrition}</p>
 	{:else}
-		<p class="bf-muted">{t("Pro výpočet chybí údaje v profilu (pohlaví, rok narození, výška, hmotnost).")}</p>
-		<button type="button" onclick={() => plugin.openOnboarding()}>{t("Doplnit profil")}</button>
+		<p class="bf-muted">{t("Your profile is missing details for the calculation (sex, year of birth, height, weight).")}</p>
+		<button type="button" onclick={() => plugin.openOnboarding()}>{t("Complete profile")}</button>
 	{/if}
 </section>
 
 <div class="bf-actions">
-	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Otevřít denní poznámku")}</button>
-	<button type="button" title={t("Jednoduchý režim: základní cviky, běh a rychlý zápis")} onclick={() => void plugin.setMode("basic")}>{t("Režim Základ")}</button>
+	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Open daily note")}</button>
+	<button type="button" title={t("Simple mode: basic exercises, running and quick logging")} onclick={() => void plugin.setMode("basic")}>{t("Basic mode")}</button>
 </div>
 
 <style>

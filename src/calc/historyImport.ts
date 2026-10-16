@@ -25,7 +25,7 @@ export const KG_PER_LB = 0.45359237;
  * konce řádků v uvozovkách). Oddělovač pozná z hlavičky: středník, jinak čárka.
  */
 export function parseCsv(text: string): string[][] {
-	const source = text.replace(/^﻿/, "");
+	const source = text.replace(/^\uFEFF/, "");
 	const firstLine = source.slice(0, source.search(/\r?\n|$/));
 	const delimiter = (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0) ? ";" : ",";
 	const rows: string[][] = [];
@@ -136,7 +136,7 @@ export function parseHistoryCsv(text: string, unit: WeightUnit): ParsedHistory {
 	const col = (name: string) => header.indexOf(name);
 	const isStrong = col("exercise name") >= 0 && col("date") >= 0;
 	const isHevy = col("exercise_title") >= 0 && col("start_time") >= 0;
-	if (!isStrong && !isHevy) throw new Error(t("Soubor není export ze Strong ani z Hevy (CSV se sloupci „Exercise Name“ nebo „exercise_title“)."));
+	if (!isStrong && !isHevy) throw new Error(t("The file isn't an export from Strong or Hevy (CSV with the columns “Exercise Name” or “exercise_title”)."));
 
 	const format: HistoryFormat = isStrong ? "strong" : "hevy";
 	const hevyUnit: WeightUnit = col("weight_lbs") >= 0 ? "lb" : "kg";
@@ -288,9 +288,9 @@ export function isImportedAlready(note: WorkoutNote, existing: readonly Pick<Wor
 /** Shrnutí před importem: „Hevy: 212 tréninků od 3. 1. 2023 do 5. 10. 2026, 8 412 sérií.“ */
 export function describeHistory(parsed: ParsedHistory, formatDate: (iso: string) => string): string {
 	const { workouts } = parsed;
-	if (workouts.length === 0) return t("{v}: v souboru není žádný použitelný trénink.", { v: HISTORY_FORMAT_LABELS[parsed.format] });
+	if (workouts.length === 0) return t("{v}: there's no usable workout in the file.", { v: HISTORY_FORMAT_LABELS[parsed.format] });
 	const sets = workouts.reduce((sum, w) => sum + w.sets.length, 0);
-	return t("{v}: tréninků {workouts_length} ({v2} – {v3}), sérií {sets}.", { v: HISTORY_FORMAT_LABELS[parsed.format], workouts_length: workouts.length, v2: formatDate(workouts[0]!.date), v3: formatDate(workouts[workouts.length - 1]!.date), sets });
+	return t("{v}: workouts {workouts_length} ({v2} – {v3}), sets {sets}.", { v: HISTORY_FORMAT_LABELS[parsed.format], workouts_length: workouts.length, v2: formatDate(workouts[0]!.date), v3: formatDate(workouts[workouts.length - 1]!.date), sets });
 }
 
 /**

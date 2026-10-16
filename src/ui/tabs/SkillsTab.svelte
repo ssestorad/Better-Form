@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Karta Dovednosti (SPEC 5.6): žebříčky kalistenických progresí z knihovny cviků,
 	// splněné stupně, nejlepší výkon a další krok.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { SKILL_BASIS, criterionText, ladderStatus, laddersFrom, type StepStatus } from "../../calc/skills";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { usePlugin } from "../context";
@@ -37,23 +37,23 @@
 	}
 
 	const bestText = (step: StepStatus) =>
-		step.best === null ? t("zatím nezkoušeno") : t("nejlépe {v}", { v: step.unit === "sec" ? formatSeconds(step.best.value) : t("{n} opak.", { n: step.best.value }) });
+		step.best === null ? t("not tried yet") : t("best {v}", { v: step.unit === "sec" ? formatSeconds(step.best.value) : tn(step.best.value, ["{n} rep", "{n} reps"]) });
 
 	/** Krátký název žebříčku bez přípony „– progrese“. */
 	const title = (name: string) => name.replace(/\s*[–-]\s*progrese$/i, "");
 </script>
 
 <p class="bf-muted bf-small">
-	{t("Stupeň je splněný, když v jednom tréninku uděláš {v} (u výdrží {v2}); série s gumou nebo jinou dopomocí se nepočítají. Pořadí stupňů i kritérium jsou trenérská zvyklost", { v: criterionText("reps", criteria), v2: criterionText("sec", criteria) })} <BasisTag basis={SKILL_BASIS} /> {t("– kritérium změníš v nastavení, stupně v poznámkách cviků (pole")} <code>{t("progression")}</code>).
+	{t("A level is complete when you do {v} in one workout ({v2} for holds); sets with a band or other assistance don't count. The order of levels and the criterion are coaching convention", { v: criterionText("reps", criteria), v2: criterionText("sec", criteria) })} <BasisTag basis={SKILL_BASIS} /> {t("– change the criterion in the settings, the levels in the exercise notes (field")} <code>{t("progression")}</code>).
 </p>
 
 {#if statuses.length === 0}
 	<section class="bf-card">
-		<p class="bf-muted">{t("V knihovně cviků zatím nejsou žádné žebříčky.")}</p>
+		<p class="bf-muted">{t("There are no skill ladders in the exercise library yet.")}</p>
 		<div class="bf-actions">
-			<button type="button" class="mod-cta" disabled={busy} onclick={() => void fill()}>{t("Doplnit žebříčky do knihovny")}</button>
+			<button type="button" class="mod-cta" disabled={busy} onclick={() => void fill()}>{t("Add skill ladders to the library")}</button>
 		</div>
-		<p class="bf-muted bf-small">{t("Přidá chybějící cviky a k vestavěným cvikům zapíše žebříček a stupeň. Tvoje úpravy cviků se nepřepíšou.")}</p>
+		<p class="bf-muted bf-small">{t("Adds missing exercises and writes the ladder and level to the built-in exercises. Your edits to exercises aren't overwritten.")}</p>
 	</section>
 {/if}
 
@@ -61,9 +61,9 @@
 	<section class="bf-card">
 		<header class="bf-sk-head">
 			<h4>{title(status.ladder.name)}</h4>
-			<span class="bf-tag" class:bf-tag-done={status.next === null}>{t("stupeň {level} z {steps_length}", { level: status.level, steps_length: status.steps.length })}</span>
+			<span class="bf-tag" class:bf-tag-done={status.next === null}>{t("level {level} of {steps_length}", { level: status.level, steps_length: status.steps.length })}</span>
 		</header>
-		<div class="bf-sk-bar" role="img" aria-label={t("Splněno {filter_length} z {steps_length} stupňů", { filter_length: status.steps.filter((s) => s.achieved).length, steps_length: status.steps.length })}>
+		<div class="bf-sk-bar" role="img" aria-label={t("Completed {filter_length} of {steps_length} levels", { filter_length: status.steps.filter((s) => s.achieved).length, steps_length: status.steps.length })}>
 			{#each status.steps as step (step.exercise)}
 				<span class="bf-sk-seg" class:is-done={step.achieved !== null} class:is-next={status.next?.exercise === step.exercise}></span>
 			{/each}
@@ -75,9 +75,9 @@
 					<button type="button" class="bf-link-button bf-sk-name" onclick={() => plugin.openLibrary({ exercise: step.exercise })}>{step.exercise}</button>
 					<span class="bf-sk-state bf-muted">
 						{#if step.achieved}
-							<span class="bf-sk-ok">{t("splněno {v}", { v: formatCzechDate(step.achieved, false) })}</span> · {bestText(step)}
+							<span class="bf-sk-ok">{t("completed {v}", { v: formatCzechDate(step.achieved, false) })}</span> · {bestText(step)}
 						{:else}
-							{bestText(step)}{step.best ? t(" · {bestSets} z {sets} sérií", { bestSets: step.bestSets, sets: criteria.sets }) : ""}
+							{bestText(step)}{step.best ? tn(criteria.sets, [" · {bestSets} of {n} set", " · {bestSets} of {n} sets"], { bestSets: step.bestSets }) : ""}
 						{/if}
 					</span>
 				</li>
@@ -85,10 +85,10 @@
 		</ol>
 		<p class="bf-small">
 			{#if status.next}
-				<strong>{t("Další krok:")}</strong>
+				<strong>{t("Next step:")}</strong>
 				{status.next.exercise} – {criterionText(status.next.unit, criteria)}.
 			{:else}
-				<strong>{t("Hotovo")}</strong> {t("– všechny stupně žebříčku máš splněné.")}
+				<strong>{t("Done", undefined, "finished")}</strong> {t("– you've completed every level of the ladder.")}
 			{/if}
 		</p>
 	</section>
@@ -96,7 +96,7 @@
 
 {#if statuses.length > 0}
 	<div class="bf-actions">
-		<button type="button" disabled={busy} onclick={() => void fill()}>{t("Doplnit chybějící žebříčky")}</button>
+		<button type="button" disabled={busy} onclick={() => void fill()}>{t("Add missing skill ladders")}</button>
 	</div>
 {/if}
 

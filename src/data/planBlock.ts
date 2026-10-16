@@ -22,7 +22,7 @@ export function planItemDetails(item: PlanItem, minutes?: { minutes: number; est
 	const duration = minutes ?? (item.duration_min !== undefined ? { minutes: item.duration_min, estimated: false } : null);
 	return [
 		item.distance_km !== undefined ? `${formatNumber(item.distance_km)} km` : null,
-		duration ? `${duration.estimated ? "asi " : ""}${formatDurationMin(duration.minutes)}` : null,
+		duration ? (duration.estimated ? t("about {v}", { v: formatDurationMin(duration.minutes) }) : formatDurationMin(duration.minutes)) : null,
 		PLAN_INTENSITY_LABELS[item.intensity],
 	]
 		.filter((part): part is string => part !== null)
@@ -41,7 +41,7 @@ export interface PlanProgramRow {
 
 /** Přehled týdne po dnech jako tabulka: naplánované položky a dny aktivních programů; prázdný den má „volno“. */
 export function planBlock(week: string, items: readonly PlanItem[], programs: readonly PlanProgramRow[] = [], off: readonly PlanDayOff[] = []): string {
-	const lines = [t("| Den | Plán |"), "| --- | --- |"];
+	const lines = [t("| Day | Plan |"), "| --- | --- |"];
 	for (const date of weekDates(week)) {
 		const reason = off.find((o) => o.date === date)?.reason;
 		const texts = [

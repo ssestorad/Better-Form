@@ -5,7 +5,7 @@
 import { SCHEMA_VERSION, type Sport } from "../model/constants";
 import type { RunData, WorkoutNote } from "../model/types";
 import { BEST_EFFORT_KM, type BestEffortKey } from "../strava/activities";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 export const RUN_FILE_EXTENSIONS = [".gpx", ".tcx", ".fit"] as const;
 
@@ -68,7 +68,7 @@ function attribute(attributes: string, name: string): string | undefined {
 	return attributes.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]*)"`))?.[1];
 }
 
-const compactPoint = (point: TrackPoint): TrackPoint => Object.fromEntries(Object.entries(point).filter(([, v]) => v !== undefined)) as TrackPoint;
+const compactPoint = (point: TrackPoint): TrackPoint => Object.fromEntries(Object.entries(point).filter(([, v]) => v !== undefined));
 
 function parseGpx(xml: string): ParsedRunFile {
 	const track = tag(xml, "trk") ?? xml;
@@ -122,10 +122,10 @@ function parseTcx(xml: string): ParsedRunFile {
 
 /** Přečte GPX nebo TCX; formát pozná podle obsahu, ne podle přípony. Chyby vrací česky. */
 export function parseRunFile(text: string): ParsedRunFile {
-	const xml = text.replace(/^﻿/, "");
+	const xml = text.replace(/^\uFEFF/, "");
 	if (/<gpx[\s>]/i.test(xml)) return parseGpx(xml);
 	if (/<TrainingCenterDatabase[\s>]/i.test(xml)) return parseTcx(xml);
-	throw new Error(t("Soubor není GPX, TCX ani FIT. Ze Stravy exportuj GPX, z MapMyRun TCX."));
+	throw new Error(t("The file isn't GPX, TCX or FIT. Export GPX from Strava, TCX from MapMyRun."));
 }
 
 // ---------- Výpočty ze záznamu ----------
@@ -280,7 +280,7 @@ export function localDateTimeOf(ms: number, offsetMin: number = -new Date(ms).ge
  */
 export function runFileToWorkout(file: ParsedRunFile, offsetMin?: number, schema: number = SCHEMA_VERSION): WorkoutNote {
 	const totals = runTotals(file);
-	if (totals.startMs === undefined) throw new Error(t("V souboru nejsou časy – vypadá to na naplánovanou trasu, ne na záznam aktivity."));
+	if (totals.startMs === undefined) throw new Error(t("The file has no timestamps – it looks like a planned route, not a recorded activity."));
 	const when = localDateTimeOf(totals.startMs, offsetMin);
 	const sport = sportOfFileType(file.type);
 	const note: WorkoutNote = { forma: "workout", schema, date: when.date, start: when.start, sport, source: "file", blocks: [], pain: [] };
@@ -341,14 +341,14 @@ export interface RunImportCounts {
 /** „Import ze souboru: 2 nové běhy, 1 sloučen s ručním zápisem, 1 už v deníku byl.“ */
 export function describeRunImport(counts: RunImportCounts): string {
 	const parts: string[] = [];
-	if (counts.created > 0) parts.push(counts.created === 1 ? t("1 nový trénink") : t("nových tréninků: {created}", { created: counts.created }));
-	if (counts.merged > 0) parts.push(t("sloučeno s ručním zápisem: {merged}", { merged: counts.merged }));
-	if (counts.duplicates > 0) parts.push(t("už v deníku: {duplicates}", { duplicates: counts.duplicates }));
-	const lines = [parts.length > 0 ? t("Import ze souboru – {v}.", { v: parts.join(", ") }) : t("Import ze souboru: nic nového.")];
-	if (counts.created + counts.merged > 0) lines.push(t("Doplň RPE, typ běhu a boty – běhy jsou v seznamu k doplnění."));
+	if (counts.created > 0) parts.push(tn(counts.created, ["{n} new workout", "new workouts: {n}"]));
+	if (counts.merged > 0) parts.push(t("merged with a manual entry: {merged}", { merged: counts.merged }));
+	if (counts.duplicates > 0) parts.push(t("already in the journal: {duplicates}", { duplicates: counts.duplicates }));
+	const lines = [parts.length > 0 ? t("File import – {v}.", { v: parts.join(", ") }) : t("File import: nothing new.")];
+	if (counts.created + counts.merged > 0) lines.push(t("Add RPE, run type and shoes – the runs are in the list to complete."));
 	if (counts.withoutHr > 0) {
 		const which = counts.withoutHr === counts.created + counts.merged ? "" : ` (${counts.withoutHr}×)`;
-		lines.push(t("Soubor neobsahuje tep{which} – aplikace ho k aktivitě nemá, nebo ho do exportu nezapsala. Tep jde doplnit ručně.", { which }));
+		lines.push(t("The file has no heart rate{which} – the app doesn't have it for the activity, or didn't include it in the export. You can add heart rate manually.", { which }));
 	}
 	for (const failure of counts.failed) lines.push(`${failure.name}: ${failure.reason}`);
 	return lines.join("\n");

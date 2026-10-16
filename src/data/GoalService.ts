@@ -87,8 +87,8 @@ export class GoalService {
 	/** Založí cíl; výchozí stav se zapíše, aby šel počítat průběh. */
 	async create(draft: GoalDraft, today: string): Promise<TFile> {
 		const name = draft.name.trim();
-		if (!name) throw new Error(t("Chybí název cíle."));
-		if (this.index.all("goal").some((e) => sameName(e.note.name, name))) throw new Error(t("Cíl „{name}“ už existuje.", { name }));
+		if (!name) throw new Error(t("The goal needs a name."));
+		if (this.index.all("goal").some((e) => sameName(e.note.name, name))) throw new Error(t("The goal “{name}” already exists.", { name }));
 		const note: GoalNote = { ...draft, forma: "goal", schema: SCHEMA_VERSION, name, created: today, status: "active" };
 		const current = evaluateGoal(note, this.data(today), today).current;
 		if (current !== null) note.start_value = current;
@@ -107,7 +107,7 @@ export class GoalService {
 	}
 
 	private async writeGoal(entry: GoalEntry, note: GoalNote): Promise<void> {
-		if (entry.schemaStatus === "newer") throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
+		if (entry.schemaStatus === "newer") throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
 		const next = goalToFrontmatter(note);
 		await this.writer.updateFrontmatter(entry.file, (frontmatter) => {
 			for (const key of GOAL_KEYS) delete frontmatter[key];
@@ -143,11 +143,11 @@ export class GoalService {
 	/** Uloží normu: novou založí, existující přepíše (jen spravované klíče). */
 	async saveNorm(note: Omit<NormNote, "forma" | "schema">, existing?: NormEntry): Promise<TFile> {
 		const name = note.name.trim();
-		if (!name) throw new Error(t("Chybí název normy."));
-		if (note.items.length === 0) throw new Error(t("Norma nemá žádnou disciplínu."));
+		if (!name) throw new Error(t("The standard needs a name."));
+		if (note.items.length === 0) throw new Error(t("The standard has no events."));
 		const next = normToFrontmatter({ ...note, name, forma: "norm", schema: SCHEMA_VERSION });
 		if (existing) {
-			if (existing.schemaStatus === "newer") throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
+			if (existing.schemaStatus === "newer") throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
 			await this.writer.updateFrontmatter(existing.file, (frontmatter) => {
 				for (const key of NORM_KEYS) delete frontmatter[key];
 				Object.assign(frontmatter, next);
@@ -155,7 +155,7 @@ export class GoalService {
 			this.onChange();
 			return existing.file;
 		}
-		if (this.findNorm(name)) throw new Error(t("Norma „{name}“ už existuje.", { name }));
+		if (this.findNorm(name)) throw new Error(t("The standard “{name}” already exists.", { name }));
 		// Normy patří podle SPEC kap. 3 do složky Testy.
 		const file = await this.writer.createNote(namedNotePath(this.settings().folders, "tests", name), next);
 		this.onChange();

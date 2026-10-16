@@ -2,7 +2,7 @@
 // Čisté funkce bez závislosti na Obsidianu – síť a zápis řeší StravaSync.
 
 import type { RunData, WorkoutNote } from "../model/types";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 /** Pole aktivity ze seznamu `GET /athlete/activities`, která plugin používá. */
 export interface StravaActivity {
@@ -260,11 +260,11 @@ export interface SyncResult {
 /** Shrnutí synchronizace do jedné hlášky. */
 export function describeSync(result: SyncResult): string {
 	const parts: string[] = [];
-	if (result.created > 0) parts.push(t("nové běhy: {created}", { created: result.created }));
-	if (result.merged > 0) parts.push(t("sloučeno s ručním zápisem: {merged}", { merged: result.merged }));
-	if (result.details > 0) parts.push(t("doplněn detail: {details}", { details: result.details }));
-	let text = parts.length > 0 ? `Strava – ${parts.join(", ")}.` : t("Strava – nic nového.");
-	if (result.rateLimited) text += t(" Strava omezila počet požadavků, zbytek detailů se doplní příště.");
-	else if (result.detailsPending > 0) text += t(" Detail zbývá doplnit u {detailsPending} běhů – spusť synchronizaci znovu později.", { detailsPending: result.detailsPending });
+	if (result.created > 0) parts.push(t("new runs: {created}", { created: result.created }));
+	if (result.merged > 0) parts.push(t("merged with a manual entry: {merged}", { merged: result.merged }));
+	if (result.details > 0) parts.push(t("details added: {details}", { details: result.details }));
+	let text = parts.length > 0 ? `Strava – ${parts.join(", ")}.` : t("Strava – nothing new.");
+	if (result.rateLimited) text += t(" Strava limited the number of requests; the remaining details will be added next time.");
+	else if (result.detailsPending > 0) text += tn(result.detailsPending, [" Details still missing for {n} run – run the sync again later.", " Details still missing for {n} runs – run the sync again later."]);
 	return text;
 }

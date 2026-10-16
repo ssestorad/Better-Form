@@ -1,6 +1,7 @@
 // Výkony u cviků: poslední výkon, zkrácený zápis sérií, časy a tempo běhu.
 // Bez závislosti na Obsidianu.
 
+import { t } from "../i18n";
 import { SET_TAG_LABELS, SET_TAGS, type ExerciseMeasure } from "../model/constants";
 import type { Block, SetEntry, WorkoutNote } from "../model/types";
 import { formatNumber } from "../ui/format";
@@ -86,12 +87,12 @@ function formatWorking(sets: SetEntry[], measure: ExerciseMeasure): string {
 		.join(", ") + (measure === "reps_bw" ? "" : " kg");
 }
 
-/** Celý zápis sérií včetně rozcvičení a RIR: „rozcv. 10×40, 5×60 kg · 3×6 × 80 kg (RIR 2, 2, 1)“. */
+/** Celý zápis sérií včetně rozcvičení a RIR: „warm-up 10×40, 5×60 kg · 3×6 × 80 kg (RIR 2, 2, 1)“. */
 export function formatSets(sets: SetEntry[], measure: ExerciseMeasure): string {
 	const warmups = sets.filter((s) => s.warmup);
 	const working = sets.filter((s) => !s.warmup);
 	const parts: string[] = [];
-	if (warmups.length > 0) parts.push(`rozcv. ${formatWorking(warmups, measure)}`);
+	if (warmups.length > 0) parts.push(t("warm-up {v}", { v: formatWorking(warmups, measure) }, "sets"));
 	if (working.length > 0) {
 		const rirs = working.map((s) => s.rir);
 		const rirText = rirs.some((r) => r !== undefined)

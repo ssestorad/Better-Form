@@ -26,13 +26,13 @@ export const SPORTS = ["run", "strength", "swim", "calisthenics", "kettlebell", 
 export type Sport = (typeof SPORTS)[number];
 
 export const SPORT_LABELS: Record<Sport, string> = translated({
-	run: "Běh",
-	strength: "Posilovna",
-	swim: "Plavání",
-	calisthenics: "Kalistenika",
+	run: "Run",
+	strength: "Gym",
+	swim: "Swim",
+	calisthenics: "Calisthenics",
 	kettlebell: "Kettlebell",
-	rope: "Švihadlo",
-	other: "Jiné",
+	rope: "Jump rope",
+	other: "Other",
 });
 
 /** Svalové partie (ID pro panáček), SPEC 4.3. */
@@ -55,42 +55,42 @@ export const MUSCLES = [
 export type MuscleId = (typeof MUSCLES)[number];
 
 export const MUSCLE_LABELS: Record<MuscleId, string> = translated({
-	chest: "Hrudník",
-	shoulders: "Ramena",
+	chest: "Chest",
+	shoulders: "Shoulders",
 	biceps: "Biceps",
 	triceps: "Triceps",
-	forearms: "Předloktí",
-	abs: "Břicho",
-	obliques: "Šikmé břišní",
-	traps: "Trapézy",
-	lats: "Záda",
-	lowback: "Spodní záda",
-	glutes: "Hýždě",
-	quads: "Stehna přední",
-	hamstrings: "Stehna zadní",
-	calves: "Lýtka",
+	forearms: "Forearms",
+	abs: "Abs",
+	obliques: "Obliques",
+	traps: "Traps",
+	lats: "Back",
+	lowback: "Lower back",
+	glutes: "Glutes",
+	quads: "Quads",
+	hamstrings: "Hamstrings",
+	calves: "Calves",
 });
 
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
 
 export const WEEKDAY_LABELS: Record<Weekday, string> = translated({
-	mon: "Po",
-	tue: "Út",
-	wed: "St",
-	thu: "Čt",
-	fri: "Pá",
-	sat: "So",
-	sun: "Ne",
+	mon: "Mon",
+	tue: "Tue",
+	wed: "Wed",
+	thu: "Thu",
+	fri: "Fri",
+	sat: "Sat",
+	sun: "Sun",
 });
 
 export const EVIDENCE_LEVELS = ["research", "consensus", "practice"] as const;
 export type EvidenceLevel = (typeof EVIDENCE_LEVELS)[number];
 
 export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = translated({
-	research: "výzkum",
-	consensus: "konsenzus",
-	practice: "praxe",
+	research: "research",
+	consensus: "consensus",
+	practice: "practice",
 });
 
 /** Kdy se suplement bere. */
@@ -98,25 +98,25 @@ export const SUPPLEMENT_TIMINGS = ["morning", "pre_workout", "post_workout", "ev
 export type SupplementTiming = (typeof SUPPLEMENT_TIMINGS)[number];
 
 export const SUPPLEMENT_TIMING_LABELS: Record<SupplementTiming, string> = translated({
-	morning: "ráno",
-	pre_workout: "před tréninkem",
-	post_workout: "po tréninku",
-	evening: "večer",
-	with_meal: "s jídlem",
-	any: "kdykoli",
+	morning: "morning",
+	pre_workout: "before training",
+	post_workout: "after training",
+	evening: "evening",
+	with_meal: "with a meal",
+	any: "any time",
 });
 
 export const BLOCK_TYPES = ["sets", "hold", "emom", "amrap", "ladder", "complex", "timed"] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
 export const BLOCK_LABELS: Record<BlockType, string> = translated({
-	sets: "Série",
-	hold: "Výdrž",
+	sets: "Sets",
+	hold: "Hold",
 	emom: "EMOM",
 	amrap: "AMRAP",
-	ladder: "Žebřík",
-	complex: "Komplex",
-	timed: "Na čas",
+	ladder: "Ladder",
+	complex: "Complex",
+	timed: "For time",
 });
 
 export const EXERCISE_CATEGORIES = ["strength", "calisthenics", "kettlebell", "cardio", "mobility"] as const;
@@ -142,28 +142,28 @@ export const PAIN_STATUSES = ["active", "improving", "resolved"] as const;
 export type PainStatus = (typeof PAIN_STATUSES)[number];
 
 export const PAIN_STATUS_LABELS: Record<PainStatus, string> = translated({
-	active: "aktivní",
-	improving: "zlepšuje se",
-	resolved: "vyřešená",
+	active: "active",
+	improving: "improving",
+	resolved: "resolved",
 });
 
 export const BODY_SIDES = ["left", "right", "both"] as const;
 export type BodySide = (typeof BODY_SIDES)[number];
 
-export const BODY_SIDE_LABELS: Record<BodySide, string> = translated({ left: "vlevo", right: "vpravo", both: "obě strany" });
+export const BODY_SIDE_LABELS: Record<BodySide, string> = translated({ left: "left", right: "right", both: "both sides" });
 
 /** Typy cílů (SPEC 4.6). */
 export const GOAL_TYPES = ["run_time", "lift_1rm", "reps_max", "skill_level", "weekly_volume", "body_weight", "norm"] as const;
 export type GoalType = (typeof GOAL_TYPES)[number];
 
 export const GOAL_TYPE_LABELS: Record<GoalType, string> = translated({
-	run_time: "Čas na trati",
-	lift_1rm: "Síla (1RM)",
-	reps_max: "Maximum opakování nebo výdrže",
-	skill_level: "Stupeň dovednosti",
-	weekly_volume: "Kilometry běhu za týden",
-	body_weight: "Tělesná hmotnost",
-	norm: "Splnění normy",
+	run_time: "Race time",
+	lift_1rm: "Strength (1RM)",
+	reps_max: "Max reps or hold",
+	skill_level: "Skill level",
+	weekly_volume: "Running km per week",
+	body_weight: "Body weight",
+	norm: "Standard met",
 });
 
 export const GOAL_STATUSES = ["active", "done", "dropped"] as const;
@@ -174,30 +174,30 @@ export const NORM_KINDS = ["reps", "hold", "run_time"] as const;
 export type NormKind = (typeof NORM_KINDS)[number];
 
 export const NORM_KIND_LABELS: Record<NormKind, string> = translated({
-	reps: "opakování",
-	hold: "výdrž",
-	run_time: "čas běhu",
+	reps: "reps",
+	hold: "hold",
+	run_time: "run time",
 });
 
 /** Plánovaná intenzita tréninku v plánu týdne (SPEC 4.8). */
 export const PLAN_INTENSITIES = ["low", "mid", "high"] as const;
 export type PlanIntensity = (typeof PLAN_INTENSITIES)[number];
 
-export const PLAN_INTENSITY_LABELS: Record<PlanIntensity, string> = translated({ low: "lehká", mid: "střední", high: "těžká" });
+export const PLAN_INTENSITY_LABELS: Record<PlanIntensity, string> = translated({ low: "easy", mid: "moderate", high: "hard" });
 
 /** Označení pracovní série: drop série (hned po předchozí s nižší vahou) nebo série do selhání. */
 export const SET_TAGS = ["drop", "failure"] as const;
 export type SetTag = (typeof SET_TAGS)[number];
 
-export const SET_TAG_LABELS: Record<SetTag, string> = translated({ drop: "drop série", failure: "do selhání" });
+export const SET_TAG_LABELS: Record<SetTag, string> = translated({ drop: "drop set", failure: "to failure" });
 /** Zkratka v tabulce sérií – česky D / S (selhání), anglicky D / F (failure). */
-export const SET_TAG_SHORT: Record<SetTag, string> = translated({ drop: "D", failure: "S" });
+export const SET_TAG_SHORT: Record<SetTag, string> = translated({ drop: "D", failure: "F" });
 
 /** Důvod volného dne v plánu týdne (SPEC 5.16). Nemoc a dovolená omlouvají série dnů; běžné volno ne. */
 export const DAY_OFF_REASONS = ["rest", "illness", "vacation"] as const;
 export type DayOffReason = (typeof DAY_OFF_REASONS)[number];
 
-export const DAY_OFF_LABELS: Record<DayOffReason, string> = translated({ rest: "volno", illness: "nemoc", vacation: "dovolená" });
+export const DAY_OFF_LABELS: Record<DayOffReason, string> = translated({ rest: "rest", illness: "illness", vacation: "vacation" });
 
 export const PROGRESSION_RULES = ["none", "weekly_add", "retest_pct_of_max"] as const;
 export type ProgressionRule = (typeof PROGRESSION_RULES)[number];

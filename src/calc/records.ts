@@ -7,7 +7,7 @@ import { formatNumber, formatSeconds } from "../ui/format";
 import { estimateSet1RM } from "./oneRm";
 import { formatClockDuration } from "./performance";
 import { longestRun, runRecords } from "./running";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 
 export interface RecordExercise {
 	/** Jednotný název cviku (stejný pro všechny aliasy). */
@@ -177,15 +177,15 @@ export function allRecords(workouts: readonly WorkoutNote[], tests: readonly Tes
 	const items: RecordItem[] = [];
 	for (const rec of exerciseRecords(workouts, tests, ctx)) {
 		if (rec.oneRm) {
-			items.push({ key: `${rec.name}|1rm`, text: t("{rec_name} – odhad 1RM {v}", { rec_name: rec.name, v: kgText(rec.oneRm.value) }), value: rec.oneRm.value, better: "higher", date: rec.oneRm.date });
+			items.push({ key: `${rec.name}|1rm`, text: t("{rec_name} – estimated 1RM {v}", { rec_name: rec.name, v: kgText(rec.oneRm.value) }), value: rec.oneRm.value, better: "higher", date: rec.oneRm.date });
 		}
 		for (const n of REP_MAX_COUNTS) {
 			const r = rec.repMax[n];
 			if (!r) continue;
-			const weight = rec.measure === "reps_bw" ? t("přívažkem {v}", { v: kgText(r.value) }) : kgText(r.value);
+			const weight = rec.measure === "reps_bw" ? t("added weight {v}", { v: kgText(r.value) }) : kgText(r.value);
 			items.push({
 				key: `${rec.name}|rep${n}`,
-				text: t("{rec_name} – {n} opak. s {weight}", { rec_name: rec.name, n, weight }),
+				text: tn(n, ["{rec_name} – {n} rep with {weight}", "{rec_name} – {n} reps with {weight}"], { rec_name: rec.name, weight }),
 				value: r.value,
 				better: "higher",
 				date: r.date,
@@ -194,26 +194,26 @@ export function allRecords(workouts: readonly WorkoutNote[], tests: readonly Tes
 			});
 		}
 		if (rec.maxReps) {
-			items.push({ key: `${rec.name}|reps`, text: t("{rec_name} – {maxReps_value} opakování", { rec_name: rec.name, maxReps_value: rec.maxReps.value }), value: rec.maxReps.value, better: "higher", date: rec.maxReps.date });
+			items.push({ key: `${rec.name}|reps`, text: tn(rec.maxReps.value, ["{rec_name} – {n} rep", "{rec_name} – {n} reps"], { rec_name: rec.name }), value: rec.maxReps.value, better: "higher", date: rec.maxReps.date });
 		}
 		if (rec.longestHold) {
-			items.push({ key: `${rec.name}|hold`, text: t("{rec_name} – výdrž {v}", { rec_name: rec.name, v: formatSeconds(rec.longestHold.value) }), value: rec.longestHold.value, better: "higher", date: rec.longestHold.date });
+			items.push({ key: `${rec.name}|hold`, text: t("{rec_name} – hold {v}", { rec_name: rec.name, v: formatSeconds(rec.longestHold.value) }), value: rec.longestHold.value, better: "higher", date: rec.longestHold.date });
 		}
 		if (rec.heaviest) {
 			items.push({ key: `${rec.name}|heaviest`, text: `${rec.name} – ${kgText(rec.heaviest.kg)} × ${rec.heaviest.reps}`, value: rec.heaviest.kg * 1000 + rec.heaviest.reps, better: "higher", date: rec.heaviest.date });
 		}
 	}
 	for (const run of runRecords(workouts)) {
-		items.push({ key: `run|${run.distance.key}`, text: t("Běh {distance_label} – {v}", { distance_label: run.distance.label, v: formatClockDuration(run.seconds) }), value: run.seconds, better: "lower", date: run.date });
+		items.push({ key: `run|${run.distance.key}`, text: t("Run {distance_label} – {v}", { distance_label: run.distance.label, v: formatClockDuration(run.seconds) }), value: run.seconds, better: "lower", date: run.date });
 	}
 	const longest = longestRun(workouts);
-	if (longest) items.push({ key: "run|longest", text: t("Nejdelší běh – {v} km", { v: formatNumber(longest.km, 2) }), value: longest.km, better: "higher", date: longest.date });
+	if (longest) items.push({ key: "run|longest", text: t("Longest run – {v} km", { v: formatNumber(longest.km, 2) }), value: longest.km, better: "higher", date: longest.date });
 	const swim = swimRecords(workouts);
 	if (swim.longest) {
-		items.push({ key: "swim|longest", text: t("Nejdelší plavání – {v} m", { v: formatNumber(swim.longest.value, 0) }), value: swim.longest.value, better: "higher", date: swim.longest.date });
+		items.push({ key: "swim|longest", text: t("Longest swim – {v} m", { v: formatNumber(swim.longest.value, 0) }), value: swim.longest.value, better: "higher", date: swim.longest.date });
 	}
 	if (swim.fastest100) {
-		items.push({ key: "swim|100", text: t("Plavání – průměr {v} na 100 m", { v: formatClockDuration(swim.fastest100.value) }), value: swim.fastest100.value, better: "lower", date: swim.fastest100.date });
+		items.push({ key: "swim|100", text: t("Swim – average {v} per 100 m", { v: formatClockDuration(swim.fastest100.value) }), value: swim.fastest100.value, better: "lower", date: swim.fastest100.date });
 	}
 	return items;
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Heatmapa roku (SPEC 5.4): den = čtverec podle zátěže, sloupec = týden.
-	import { getLanguage, t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { heatmap } from "../../calc/overview";
-	import { formatNumber, formatShortDate } from "../format";
+	import { formatNumber, formatShortDate, monthNamesShort } from "../format";
 
 	interface Props {
 		byDate: Map<string, number>;
@@ -15,10 +15,7 @@
 	const CELL = 10;
 	const STEP = 12;
 	const TOP = 14;
-	const MONTHS =
-		getLanguage() === "cs"
-			? ["led", "úno", "bře", "dub", "kvě", "čvn", "čvc", "srp", "zář", "říj", "lis", "pro"] // i18n-ignore: české zkratky měsíců
-			: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	const MONTHS = monthNamesShort();
 	const LEVELS = [0, 1, 2, 3, 4] as const;
 
 	const grid = $derived(heatmap(byDate, workoutDates, today, WEEKS));
@@ -36,17 +33,17 @@
 
 	function tip(cell: (typeof grid)[number][number]): string {
 		const date = formatShortDate(cell.date);
-		if (cell.load > 0) return t("{date}: zátěž {v}", { date, v: formatNumber(cell.load, 0) });
-		return cell.untracked ? t("{date}: trénink bez RPE nebo délky", { date }) : t("{date}: bez tréninku", { date });
+		if (cell.load > 0) return t("{date}: load {v}", { date, v: formatNumber(cell.load, 0) });
+		return cell.untracked ? t("{date}: workout without RPE or duration", { date }) : t("{date}: no workout", { date });
 	}
 </script>
 
 <section class="bf-card">
 	<div class="bf-heat-head">
-		<h4>{t("Posledních 12 měsíců")}</h4>
-		<span class="bf-muted bf-heat-count">{t("{activeDays} dní s tréninkem", { activeDays })}</span>
+		<h4>{t("Last 12 months")}</h4>
+		<span class="bf-muted bf-heat-count">{tn(activeDays, ["{n} day with training", "{n} days with training"])}</span>
 	</div>
-	<svg viewBox={`0 0 ${WEEKS * STEP} ${TOP + 7 * STEP}`} role="img" aria-label={t("Zátěž po dnech za posledních 12 měsíců")}>
+	<svg viewBox={`0 0 ${WEEKS * STEP} ${TOP + 7 * STEP}`} role="img" aria-label={t("Daily load over the last 12 months")}>
 		{#each months as m (m.x)}
 			<text class="bf-heat-month" x={m.x} y="9">{m.text}</text>
 		{/each}
@@ -61,12 +58,12 @@
 		{/each}
 	</svg>
 	<div class="bf-heat-legend bf-muted">
-		<span>{t("méně")}</span>
+		<span>{t("less")}</span>
 		{#each LEVELS as level (level)}
 			<span class={`bf-heat-swatch bf-heat-${level}`}></span>
 		{/each}
-		<span>{t("více")}</span>
-		<span class="bf-heat-note">{t("odstín podle zátěže (sRPE), v porovnání s tvými ostatními dny")}</span>
+		<span>{t("more")}</span>
+		<span class="bf-heat-note">{t("shade by load (sRPE), compared with your other days")}</span>
 	</div>
 </section>
 

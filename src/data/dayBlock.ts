@@ -36,19 +36,19 @@ export function daySummary(day: DayNote | undefined): DaySummary {
 	return {
 		sleep: join([
 			length,
-			scale(t("kvalita"), sleep.quality),
-			sleep.awakenings !== undefined && t("probuzení {awakenings}×", { awakenings: sleep.awakenings }),
-			scale(t("ráno"), sleep.morning_feeling),
+			scale(t("quality"), sleep.quality),
+			sleep.awakenings !== undefined && t("woke up {awakenings}×", { awakenings: sleep.awakenings }),
+			scale(t("morning"), sleep.morning_feeling),
 		]),
 		feelings: join([
-			scale(t("únava"), feel.fatigue),
-			scale(t("svaly"), feel.soreness),
-			scale(t("nálada"), feel.mood),
-			scale(t("stres"), feel.stress),
+			scale(t("fatigue"), feel.fatigue),
+			scale(t("muscles"), feel.soreness),
+			scale(t("mood"), feel.mood),
+			scale(t("stress"), feel.stress),
 		]),
 		hrv: join([
 			hrv.rmssd_ms !== undefined && `rMSSD ${formatNumber(hrv.rmssd_ms)} ms`,
-			hrv.resting_hr !== undefined && t("klidový tep {v}", { v: formatNumber(hrv.resting_hr) }),
+			hrv.resting_hr !== undefined && t("resting heart rate {v}", { v: formatNumber(hrv.resting_hr) }),
 			hrv.elonga_readiness !== undefined && `Elonga ${formatNumber(hrv.elonga_readiness)}`,
 		]),
 		weight: body.weight_kg === undefined ? null : `${formatNumber(body.weight_kg)} kg`,
@@ -70,8 +70,8 @@ export function workoutDetails(workout: WorkoutNote, remindRpe = true): string |
 	return join([
 		workout.duration_min !== undefined && `${formatNumber(workout.duration_min)} min`,
 		workout.rpe !== undefined && `RPE ${formatNumber(workout.rpe)}`,
-		load !== null && t("zátěž {v}", { v: formatNumber(load, 0) }),
-		remindRpe && workout.rpe === undefined && t("chybí RPE"),
+		load !== null && t("load {v}", { v: formatNumber(load, 0) }),
+		remindRpe && workout.rpe === undefined && t("missing RPE"),
 	]);
 }
 
@@ -87,23 +87,23 @@ export interface BlockWorkout {
 export function renderDayBlock(day: DayNote | undefined, workouts: BlockWorkout[], nutrition: string | null = null): string {
 	const summary = daySummary(day);
 	const lines: string[] = [];
-	if (summary.sleep) lines.push(t("**Spánek:** {sleep}", { sleep: summary.sleep }));
-	if (summary.feelings) lines.push(t("**Pocity** (5 = nejlepší): {feelings}", { feelings: summary.feelings }));
+	if (summary.sleep) lines.push(t("**Sleep:** {sleep}", { sleep: summary.sleep }));
+	if (summary.feelings) lines.push(t("**How you feel** (5 = best): {feelings}", { feelings: summary.feelings }));
 	if (summary.hrv) lines.push(`**HRV:** ${summary.hrv}`);
-	if (summary.weight) lines.push(t("**Váha:** {weight}", { weight: summary.weight }));
-	if (day?.steps !== undefined) lines.push(t("**Kroky:** {v}", { v: formatNumber(day.steps, 0) }));
-	if (lines.length === 0) lines.push(t("Check-in zatím není vyplněný."));
+	if (summary.weight) lines.push(t("**Weight:** {weight}", { weight: summary.weight }));
+	if (day?.steps !== undefined) lines.push(t("**Steps:** {v}", { v: formatNumber(day.steps, 0) }));
+	if (lines.length === 0) lines.push(t("The check-in isn't filled in yet."));
 	// Řádky oddělit tvrdým zalomením, aby se v náhledu nespojily do jednoho odstavce.
-	if (day?.supplements && day.supplements.length > 0) lines.push(t("**Suplementy:** {v}", { v: day.supplements.join(", ") }));
+	if (day?.supplements && day.supplements.length > 0) lines.push(t("**Supplements:** {v}", { v: day.supplements.join(", ") }));
 	const header = lines.join("  \n");
 
 	const workoutLines =
 		workouts.length === 0
-			? [t("Žádný zapsaný trénink.")]
+			? [t("No workout logged.")]
 			: workouts.map(({ note, link, counter }) => {
 					const details = workoutDetails(note, !counter);
 					return `- [[${link}|${workoutLabel(note)}]]${details ? ` · ${details}` : ""}`;
 				});
-	const food = nutrition ? t("\n\n**Výživa – doporučení:** {nutrition}", { nutrition }) : "";
-	return t("{header}\n\n**Tréninky**\n{v}{food}", { header, v: workoutLines.join("\n"), food });
+	const food = nutrition ? t("\n\n**Nutrition – recommendation:** {nutrition}", { nutrition }) : "";
+	return t("{header}\n\n**Workouts**\n{v}{food}", { header, v: workoutLines.join("\n"), food });
 }

@@ -51,33 +51,33 @@
 <section class="bf-card">
 	<header class="bf-basic-head">
 		<span class="bf-basic-name">{exercise}</span>
-		{#if plan?.task.done}<span class="bf-tag bf-tag-done">{t("dnes splněno")}</span>{/if}
+		{#if plan?.task.done}<span class="bf-tag bf-tag-done">{t("done today")}</span>{/if}
 	</header>
 
 	<dl class="bf-basic-stats">
-		<dt>{t("Dnes")}</dt>
+		<dt>{t("Today")}</dt>
 		<dd>
 			{#if plan}
 				{describeTarget(plan.task.target)}
 				<span class="bf-muted">· {plan.program.entry.note.name}</span>
 			{:else}
-				<span class="bf-muted">{t("bez programu – např. „Od gauče k 5 km“")}</span>
+				<span class="bf-muted">{t("no program – e.g. “Couch to 5K”")}</span>
 			{/if}
 		</dd>
-		<dt>{t("Naposledy")}</dt>
-		<dd>{#if lastText}{lastText}{:else}<span class="bf-muted">{t("zatím nic")}</span>{/if}</dd>
-		<dt>{t("Tento týden")}</dt>
+		<dt>{t("Last time")}</dt>
+		<dd>{#if lastText}{lastText}{:else}<span class="bf-muted">{t("nothing yet")}</span>{/if}</dd>
+		<dt>{t("This week")}</dt>
 		<dd>
 			{stats.weekCount}× {stats.weekKm > 0 ? `· ${formatNumber(stats.weekKm, 1)} km` : ""}
 		</dd>
-		<dt>{t("Nejdelší")}</dt>
+		<dt>{t("Longest")}</dt>
 		<dd>
 			{#if stats.longest}{formatNumber(stats.longest.value, 2)} km <span class="bf-muted">({formatShortDate(stats.longest.date)})</span>{:else}<span class="bf-muted">–</span>{/if}
 		</dd>
 	</dl>
 
 	<div class="bf-actions">
-		<button type="button" class:mod-cta={!plan?.task.done} onclick={log}>{t("Zapsat {toLowerCase}", { toLowerCase: SPORT_LABELS[sport].toLowerCase() })}</button>
+		<button type="button" class:mod-cta={!plan?.task.done} onclick={log}>{t("Log {toLowerCase}", { toLowerCase: SPORT_LABELS[sport].toLowerCase() })}</button>
 	</div>
 </section>
 

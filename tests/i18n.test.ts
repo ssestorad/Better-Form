@@ -1,12 +1,13 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { EN } from "../src/i18n/en";
-import { getLanguage, setLanguage, t, tn, translated } from "../src/i18n";
+import { CONTEXT_SEPARATOR, getLanguage, inContext, initialLanguage, LANGUAGE_LABELS, LANGUAGES, setLanguage, t, tn, translated } from "../src/i18n";
+import { LOCALES } from "../src/locales";
+import type { Dictionary } from "../src/locales/types";
 import { describeDays } from "../src/calc/programText";
 import { parseDays } from "../src/calc/programFile";
 import { WEEKDAYS } from "../src/model/constants";
-import { formatCzechDate, formatNumber } from "../src/ui/format";
+import { formatCzechDate, formatNumber, formatShortDate } from "../src/ui/format";
 
 const ROOT = join(__dirname, "..");
 const CZECH = /[áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/;
@@ -19,21 +20,7 @@ function files(dir: string): string[] {
 	});
 }
 
-const ALL = files(join(ROOT, "src")).filter((f) => !f.includes(`${join("src", "i18n")}`));
-/** Části přeložené celé (fáze 1 a 2): každý český text v nich musí mít anglický překlad. Obsah knihovny (src/seed, zdroje) přijde ve fázi 3. */
-const TRANSLATED_SCOPE = [
-	join("src", "ui"),
-	join("src", "settings"),
-	join("src", "strava"),
-	join("src", "main.ts"),
-	join("src", "calc"),
-	join("src", "rules"),
-	join("src", "data"),
-	join("src", "model"),
-	join("src", "evidence", "sourceTypes.ts"),
-	join("src", "evidence", "sources.ts"),
-];
-const inScope = (file: string) => TRANSLATED_SCOPE.some((part) => file.includes(part));
+const ALL = files(join(ROOT, "src")).filter((f) => !f.includes(join("src", "locales")));
 
 const source = (file: string) =>
 	readFileSync(file, "utf8")
@@ -46,47 +33,69 @@ const source = (file: string) =>
 
 const unquote = (literal: string) => JSON.parse(`"${literal}"`) as string;
 
-/** Klíče volané přes t("…") a tn(n, ["…", "…", "…"]). */
-function calls(text: string): { singular: string[]; plural: string[] } {
-	const singular = [...text.matchAll(/\bt\(\s*"((?:[^"\\]|\\.)*)"/g)].map((m) => unquote(m[1]!));
-	const plural = [...text.matchAll(/\btn\([^[]*\[\s*"(?:[^"\\]|\\.)*",\s*"(?:[^"\\]|\\.)*",\s*"((?:[^"\\]|\\.)*)"/g)].map((m) => unquote(m[1]!));
-	return { singular, plural };
+/** Konec řetězce (uvozovky) začínajícího na i. */
+function stringEnd(s: string, i: number): number {
+	for (let j = i + 1; j < s.length; j++) {
+		if (s[j] === "\\") j++;
+		else if (s[j] === s[i]) return j;
+	}
+	return s.length;
 }
 
-/** Vlastnosti v translated(…), které nejsou text (id, ikona, značka, jednotka). */
-const NOT_TEXT = new Set(["id", "icon", "key", "symbol", "unit"]);
-
-/** Textové hodnoty tabulek obalených translated(…), i v polích a vnořených tabulkách; čísla („5 km“) se nepřekládají. */
-function mapValues(text: string): string[] {
-	return blocks(text, "translated(").flatMap((block) =>
-		[...block.matchAll(/(\w+)\s*:\s*"((?:[^"\\]|\\.)*)"/g)].filter((m) => !NOT_TEXT.has(m[1]!) && !/^\d/.test(m[2]!)).map((m) => unquote(m[2]!)),
-	);
-}
-
-/** Obsah volání `start…)` se správně spárovanými závorkami. */
-function blocks(text: string, start: string): string[] {
-	const out: string[] = [];
-	for (let at = text.indexOf(start); at >= 0; at = text.indexOf(start, at + 1)) {
+/** Argumenty volání `name(…)` – každý jako text, rozdělené čárkami na nejvyšší úrovni. */
+function callArgs(text: string, name: string): string[][] {
+	const out: string[][] = [];
+	for (const m of text.matchAll(new RegExp(`(?<![\\w.$])${name}\\(`, "g"))) {
+		const args: string[] = [];
 		let depth = 0;
-		let end = at + start.length - 1;
-		for (; end < text.length; end++) {
-			if (text[end] === "(") depth++;
-			else if (text[end] === ")" && --depth === 0) break;
+		let start = m.index + m[0].length;
+		for (let j = start; j < text.length; j++) {
+			const c = text[j]!;
+			if (c === '"' || c === "'" || c === "`") j = stringEnd(text, j);
+			else if ("([{".includes(c)) depth++;
+			else if (")]}".includes(c)) {
+				if (depth === 0) {
+					args.push(text.slice(start, j).trim());
+					break;
+				}
+				depth--;
+			} else if (c === "," && depth === 0) {
+				args.push(text.slice(start, j).trim());
+				start = j + 1;
+			}
 		}
-		out.push(text.slice(at, end));
+		out.push(args);
 	}
 	return out;
 }
 
-/** Všechny řetězce uvnitř translated(…), i polí a vnořených tabulek – slovník je smí používat. */
-function tableLiterals(text: string): string[] {
-	return blocks(text, "translated(").flatMap((block) => [...block.matchAll(STRING)].map((m) => unquote(m[1]!)));
-}
+const literal = (arg: string | undefined) => (arg && /^"(?:[^"\\]|\\.)*"$/.test(arg) ? unquote(arg.slice(1, -1)) : undefined);
+const withContext = (text: string, context: string | undefined) => (context ? `${context}${CONTEXT_SEPARATOR}${text}` : text);
 
-/** České texty v souborech přeložené části, které nejsou klíčem t()/tn() – musí být ve slovníku (překládají se při použití). */
-function looseCzech(text: string): string[] {
-	const stripped = text.replace(/\btn\([^[]*\[[^\]]*\]/g, "").replace(/\bt\(\s*"(?:[^"\\]|\\.)*"/g, "");
-	return [...stripped.matchAll(STRING)].map((m) => unquote(m[1]!)).filter((s) => CZECH.test(s));
+/** Vlastnosti v translated(…), které nejsou text (id, ikona, značka, jednotka). */
+const NOT_TEXT = new Set(["id", "icon", "key", "symbol", "unit"]);
+
+/** Klíče slovníku použité v souboru: t(), tn() (anglický tvar „other“), inContext() a texty tabulek v translated(). */
+function usedKeys(text: string): { singular: string[]; plural: string[] } {
+	const singular: string[] = [];
+	const plural: string[] = [];
+	for (const [first, , context] of callArgs(text, "t")) {
+		const key = literal(first);
+		if (key !== undefined) singular.push(withContext(key, literal(context)));
+	}
+	for (const [, forms, , context] of callArgs(text, "tn")) {
+		const other = forms?.match(/^\[\s*"(?:[^"\\]|\\.)*"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\]$/);
+		if (other) plural.push(withContext(unquote(other[1]!), literal(context)));
+	}
+	for (const [context, key] of callArgs(text, "inContext")) {
+		if (literal(context) && literal(key)) singular.push(withContext(literal(key)!, literal(context)));
+	}
+	for (const [table] of callArgs(text, "translated")) {
+		for (const m of (table ?? "").matchAll(/(\w+)\s*:\s*"((?:[^"\\]|\\.)*)"/g)) {
+			if (!NOT_TEXT.has(m[1]!) && !/^\d/.test(m[2]!)) singular.push(unquote(m[2]!));
+		}
+	}
+	return { singular, plural };
 }
 
 /** Šablona bez výrazů {…} (i vnořených). */
@@ -101,69 +110,74 @@ function withoutExpressions(markup: string): string {
 	return out;
 }
 
-const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter((p) => p !== "n").sort().join();
 
-describe("překlad do angličtiny", () => {
-	afterEach(() => setLanguage("cs"));
+const singular = new Map<string, string>();
+const plural = new Map<string, string>();
+for (const file of ALL) {
+	const used = usedKeys(source(file));
+	const where = file.slice(ROOT.length + 1);
+	for (const key of used.singular) singular.set(key, where);
+	for (const key of used.plural) plural.set(key, where);
+}
+const literals = new Set(ALL.flatMap((file) => [...source(file).matchAll(STRING)].map((m) => unquote(m[1]!))));
 
-	const keys = new Set<string>();
-	const pluralKeys = new Set<string>();
-	const missing: string[] = [];
-	for (const file of ALL) {
-		const text = source(file);
-		const { singular, plural } = calls(text);
-		const loose = inScope(file) ? looseCzech(text) : [];
-		for (const key of tableLiterals(text)) keys.add(key);
-		for (const key of [...singular, ...mapValues(text), ...loose]) {
-			keys.add(key);
-			if (typeof EN[key] !== "string") missing.push(`${file.slice(ROOT.length + 1)}: ${key}`);
-		}
-		for (const key of plural) {
-			pluralKeys.add(key);
-			if (!Array.isArray(EN[key])) missing.push(`${file.slice(ROOT.length + 1)}: [tn] ${key}`);
-		}
-	}
-
-	it("každý text má anglický překlad", () => {
-		if (process.env.I18N_DUMP) require("node:fs").writeFileSync(process.env.I18N_DUMP, JSON.stringify({ missing, leftovers: null }, null, 1));
-		expect(missing).toEqual([]);
+describe("registr jazyků", () => {
+	it("angličtina je zdroj, ostatní jazyky z registru; volba podle jazyka Obsidianu", () => {
+		expect(LANGUAGES[0]).toBe("en");
+		expect(LANGUAGES).toEqual(["en", ...Object.keys(LOCALES)]);
+		for (const language of LANGUAGES) expect(LANGUAGE_LABELS[language]).toBeTruthy();
+		expect(initialLanguage("cs")).toBe("cs");
+		expect(initialLanguage("cs-CZ")).toBe("cs");
+		expect(initialLanguage("de")).toBe("en");
+		expect(initialLanguage(null)).toBe("en");
 	});
+});
 
-	it("v přeložené části nezůstal český text mimo t()", () => {
-		const leftovers = ALL.filter(inScope).flatMap((file) => {
-			if (!file.endsWith(".svelte")) return [];
-			// Text v šabloně Svelte (mimo <script>) bez t(): jakákoli česká písmena mezi tagy.
-			const markup = source(file).replace(/<script[\s\S]*?<\/script>/g, "");
-			const text = withoutExpressions(markup).replace(/<[^>]*>/g, "\n");
-			return text
-				.split("\n")
-				.map((line) => line.trim())
-				.filter((line) => CZECH.test(line))
-				.map((line) => `${file.slice(ROOT.length + 1)}: ${line}`);
-		});
-		expect(leftovers).toEqual([]);
+describe.each(Object.entries(LOCALES) as [string, { ui: Dictionary }][])("překlad %s", (code, locale) => {
+	it("každý text z kódu má překlad", () => {
+		const missing = [
+			...[...singular].filter(([key]) => typeof locale.ui[key] !== "string").map(([key, where]) => `${where}: ${key}`),
+			...[...plural].filter(([key]) => typeof locale.ui[key] !== "object").map(([key, where]) => `${where}: [tn] ${key}`),
+		];
+		if (process.env.I18N_DUMP) require("node:fs").writeFileSync(process.env.I18N_DUMP.replace("{code}", code), JSON.stringify(missing, null, 1));
+		expect(missing).toEqual([]);
 	});
 
 	it("slovník nemá nepoužité položky", () => {
 		// Text předaný do t() proměnnou (konstanta, tabulka) stačí najít jako řetězec ve zdrojácích.
-		const literals = new Set(ALL.flatMap((file) => [...source(file).matchAll(STRING)].map((m) => unquote(m[1]!))));
-		const unused = Object.keys(EN).filter((key) => !keys.has(key) && !pluralKeys.has(key) && !literals.has(key));
+		const unused = Object.keys(locale.ui).filter((key) => {
+			const text = key.slice(key.indexOf(CONTEXT_SEPARATOR) + 1);
+			return !singular.has(key) && !plural.has(key) && !literals.has(text);
+		});
 		expect(unused).toEqual([]);
 	});
 
-	it("zástupné značky {…} v překladu odpovídají originálu", () => {
-		const bad = Object.entries(EN).flatMap(([key, value]) => {
-			const forms = typeof value === "string" ? [value] : [...value];
-			return forms.filter((form) => {
-				const need = placeholders(key).filter((p) => p !== "n");
-				const have = placeholders(form).filter((p) => p !== "n");
-				return need.join() !== have.join();
-			}).map((form) => `${key} → ${form}`);
+	it("zástupné značky {…} v překladu odpovídají originálu; tvary podle čísla mají „other“", () => {
+		const bad = Object.entries(locale.ui).flatMap(([key, value]) => {
+			const forms = typeof value === "string" ? [value] : Object.values(value);
+			if (typeof value === "object" && value.other === undefined) return [`${key}: chybí other`];
+			return forms.filter((form) => placeholders(form) !== placeholders(key)).map((form) => `${key} → ${form}`);
 		});
 		expect(bad).toEqual([]);
 	});
+});
 
-	it("výpočty v angličtině: dny programu, čísla a data; import přečte anglické dny", () => {
+describe("zdrojový jazyk", () => {
+	afterEach(() => setLanguage("cs"));
+
+	it("v kódu mimo src/locales nezůstal český text", () => {
+		const leftovers = ALL.flatMap((file) => {
+			const text = source(file);
+			const markup = file.endsWith(".svelte") ? withoutExpressions(text.replace(/<script[\s\S]*?<\/script>/g, "")).replace(/<[^>]*>/g, "\n").split("\n") : [];
+			const strings = [...text.matchAll(STRING)].map((m) => m[1]!);
+			// Citace s rokem vydání („Fernández 2022“) mají diakritiku ve jménech autorů – nejde o češtinu.
+			return [...strings, ...markup].filter((s) => CZECH.test(s) && !/\b(19|20)\d{2}\b/.test(s)).map((s) => `${file.slice(ROOT.length + 1)}: ${s.trim().slice(0, 100)}`);
+		});
+		expect(leftovers).toEqual([]);
+	});
+
+	it("výpočty v obou jazycích: dny programu, čísla a data; import přečte anglické dny", () => {
 		setLanguage("en");
 		expect(describeDays([...WEEKDAYS])).toBe("every day");
 		expect(describeDays(["mon", "fri"])).toBe("mon, fri");
@@ -171,24 +185,40 @@ describe("překlad do angličtiny", () => {
 		expect(parseDays(describeDays([...WEEKDAYS]))).toEqual([...WEEKDAYS]);
 		expect(formatNumber(78.45, 1)).toBe("78.5");
 		expect(formatCzechDate("2026-09-30")).toBe("Wednesday 30 Sep 2026");
+		expect(formatShortDate("2026-09-30")).toBe("Wed 30 Sep");
 		setLanguage("cs");
 		expect(formatNumber(78.45, 1)).toBe("78,5");
 		expect(formatCzechDate("2026-09-30")).toBe("středa 30. 9. 2026");
+		expect(formatCzechDate("2026-09-30", false)).toBe("30. 9. 2026");
+		expect(formatShortDate("2026-09-30")).toBe("st 30. 9.");
 	});
 
-	it("t, tn a translated přepínají jazyk", () => {
+	it("t, tn, kontext a translated přepínají jazyk", () => {
 		expect(getLanguage()).toBe("cs");
-		const labels = translated({ a: "Uložit" });
-		expect(t("Uložit")).toBe("Uložit");
-		expect(tn(3, ["{n} den", "{n} dny", "{n} dní"])).toBe("3 dny");
-		expect(tn(5, ["{n} den", "{n} dny", "{n} dní"])).toBe("5 dní");
-		expect(tn(1.5, ["{n} den", "{n} dny", "{n} dní"])).toBe("1.5 dní");
+		const labels = translated({ a: "Save" });
+		expect(t("Save")).toBe("Uložit");
+		expect(labels.a).toBe("Uložit");
+		expect(tn(1, ["{n} day", "{n} days"])).toBe("1 den");
+		expect(tn(3, ["{n} day", "{n} days"])).toBe("3 dny");
+		expect(tn(5, ["{n} day", "{n} days"])).toBe("5 dní");
+		expect(tn(1.5, ["{n} day", "{n} days"])).toBe("1.5 dní");
+		// Věty s číslem mají tvar podle čísla v obou jazycích (dřív „2 týdnů“, „1 days“).
+		expect(tn(1, ["{n} day ago", "{n} days ago"])).toBe("Před 1 dnem");
+		expect(tn(3, ["{n} day ago", "{n} days ago"])).toBe("Před 3 dny");
+		expect([1, 3, 6].map((n) => tn(n, [" · {n} week", " · {n} weeks"]))).toEqual([" · 1 týden", " · 3 týdny", " · 6 týdnů"]);
+		expect(tn(2, ["Last {n} day", "Last {n} days"])).toBe("Poslední 2 dny");
+		// Stejný anglický text, jiný český tvar podle kontextu.
+		expect(t("high")).toBe("vysoká");
+		expect(t("high", undefined, "stress")).toBe("velký");
+		expect(t(inContext("stress", "high"))).toBe("velký");
 		setLanguage("en");
-		expect(t("Uložit")).toBe(EN["Uložit"]);
-		expect(labels.a).toBe(EN["Uložit"]);
-		expect(tn(1, ["{n} den", "{n} dny", "{n} dní"])).toBe("1 day");
-		expect(tn(3, ["{n} den", "{n} dny", "{n} dní"])).toBe("3 days");
-		// Neznámý text zůstane česky; značky se doplní v obou jazycích.
-		expect(t("Neznámý text {x}", { x: 5 })).toBe("Neznámý text 5");
+		expect(t("Save")).toBe("Save");
+		expect(labels.a).toBe("Save");
+		expect(t(inContext("stress", "high"))).toBe("high");
+		expect(tn(1, ["{n} day", "{n} days"])).toBe("1 day");
+		expect(tn(3, ["{n} day", "{n} days"])).toBe("3 days");
+		// Neznámý text zůstane anglicky; značky se doplní v obou jazycích.
+		setLanguage("cs");
+		expect(t("Unknown text {x}", { x: 5 })).toBe("Unknown text 5");
 	});
 });

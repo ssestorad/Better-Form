@@ -46,7 +46,7 @@ const VERSION = 20;
 
 /** Sestaví ZIP archiv z daných souborů. */
 export function createZip(entries: readonly ZipEntry[]): Uint8Array {
-	if (entries.length > 0xffff) throw new Error(t("Příliš mnoho souborů pro jeden archiv."));
+	if (entries.length > 0xffff) throw new Error(t("Too many files for one archive."));
 	const encoder = new TextEncoder();
 	const locals: Uint8Array[] = [];
 	const centrals: Uint8Array[] = [];

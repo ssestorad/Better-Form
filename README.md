@@ -4,19 +4,19 @@
 
 A training log plugin for [Obsidian](https://obsidian.md): workout logging, recovery, recommendations for today, a weekly plan and a suggested daily intake. All data are plain Markdown notes in your vault – readable without the plugin and without any third-party service.
 
-> **Status:** version 0.2.0, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Not yet verified](#not-yet-verified)). The interface is in English and Czech.
+> **Status:** version 0.3.0, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Not yet verified](#not-yet-verified)). The interface is in English and Czech.
 
 ## Screenshots
 
-Sample data, light theme, Czech interface.
+Sample data, light theme. The interface is also available in Czech (screenshots in [README.cs.md](README.cs.md)).
 
 | Today | Weekly plan |
 |---|---|
-| <img src="docs/screenshots/dnes.jpg" alt="Today tab: morning check-in, readiness with breakdown and trend, recommendations for today" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: the week day by day with item status and summary" width="400"> |
+| <img src="docs/screenshots/today.jpg" alt="Today tab: morning check-in, readiness with breakdown and trend, recommendations for today" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: the week day by day with item status and summary" width="400"> |
 
 | Overview | Body | Logging a workout |
 |---|---|---|
-| <img src="docs/screenshots/prehled.jpg" alt="Overview tab: weekly numbers, workout calendar, streaks and badges" width="270"> | <img src="docs/screenshots/telo.jpg" alt="Body tab: body figure with weekly volume per muscle group" width="270"> | <img src="docs/screenshots/zapis.jpg" alt="Workout form: sets and plate calculator with a barbell drawing" width="270"> |
+| <img src="docs/screenshots/overview.jpg" alt="Overview tab: weekly numbers, workout calendar, streaks and badges" width="270"> | <img src="docs/screenshots/body.jpg" alt="Body tab: body figure with weekly volume per muscle group" width="270"> | <img src="docs/screenshots/log.jpg" alt="Workout form: sets and plate calculator with a barbell drawing" width="270"> |
 
 ## Features
 
@@ -42,7 +42,7 @@ Sample data, light theme, Czech interface.
 
 Every workout, day, exercise, program or goal is one note with frontmatter (`forma: workout`, `forma: day`, …). The plugin reads and writes them only through the Obsidian API, needs no Dataview or other plugins and sends nothing off your device – the only exception is Strava, if you connect it yourself.
 
-Default folders in English (in Czech the root is `Forma/` with Czech subfolder names):
+Default folders (always in English; vaults created by version 0.2 or older keep their Czech `Forma/` folders):
 
 ```
 Better Form/
@@ -53,15 +53,15 @@ Better Form/
   Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
 ```
 
-Folder names can be changed in the settings. The language of folders and the library is chosen on first run; existing notes are not renamed when you switch languages later. The plugin never rewrites your own text in notes – generated content goes only between the `<!-- forma:start -->` and `<!-- forma:end -->` markers. Deleting from the interface moves the note to the trash according to Obsidian's settings, never deletes it permanently.
+Folder names can be changed in the settings. Existing notes are never renamed when you switch languages; the "Translate notes" button next to the language setting translates the built-in library (exercises, templates, programs) and the texts the plugin generated in your notes – texts you edited stay as they are. The plugin never rewrites your own text in notes – generated content goes only between the `<!-- forma:start -->` and `<!-- forma:end -->` markers. Deleting from the interface moves the note to the trash according to Obsidian's settings, never deletes it permanently.
 
 ## Language
 
-The interface is in English and Czech. On first run the language follows Obsidian's (Czech → Czech, anything else → English); change it any time in the plugin settings under "Language / Jazyk". The interface, recommendations, generated blocks in notes and the exercise, program and supplement library are all translated; whatever you wrote yourself stays as you wrote it. Built-in exercises keep their name in the other language as an alias, so links and history work in both languages. Command names in the command palette change after restarting Obsidian.
+The interface is in English and Czech. On first run the language follows Obsidian's (a supported language, otherwise English); change it any time in the plugin settings under "Language". The interface, recommendations, generated blocks in notes and the exercise, program and supplement library are all translated; whatever you wrote yourself stays as you wrote it. Your data – folders and library note names in a new vault – is always in English, whatever the interface language. Built-in exercises have their names in all languages as aliases, so links and history work in any combination of languages. Command names in the command palette change after restarting Obsidian.
 
 ## Installation
 
-The plugin isn't in the community plugin directory yet, so it's installed manually. You need Obsidian 1.6.0 or newer.
+The plugin isn't in the community plugin directory yet, so it's installed manually. You need Obsidian 1.8.7 or newer.
 
 **Manually (desktop and mobile):**
 
@@ -114,6 +114,17 @@ The date and time, distance, moving time, heart rate (if the file has it), eleva
 
 Since June 2026 Strava only lets accounts with a **paid subscription** create an API application. If you have one, the plugin settings walk you through it step by step: create your own API application, paste the Client ID and Client Secret and connect your account. Sync only runs when you start it. Credentials stay in the plugin's `data.json` file in your vault.
 
+## Adding a language
+
+English is the source language: interface texts and the built-in library are written in English in the code, and every other language is a translation in its own folder. To add one:
+
+1. Copy `src/locales/cs/` to `src/locales/<code>/` (for example `de`) and set `code` and `label` in its `index.ts`.
+2. Translate the values (never the keys): `ui.ts` for the interface, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` and `sources.ts` for the library. Plural forms follow `Intl.PluralRules` for the language (`one`, `few`, `many`, `other`).
+3. Register the language with one line in `src/locales/index.ts`.
+4. Run `npm test` – the tests list every missing or mismatched translation for each registered language. `I18N_DUMP=missing-{code}.json npm test` writes the missing interface texts to a file.
+
+The language then appears in the settings and is picked automatically when Obsidian uses it.
+
 ## Network and privacy
 
 - The plugin works **offline** and stores all data as notes in your vault. It sends nothing, has no telemetry or ads and needs no account.
@@ -139,7 +150,7 @@ A heuristic is never presented as research. The catalog contains over 350 verifi
 ### Not yet verified
 
 - Verified in Obsidian on desktop: workout logging (including from templates), the body figure, check-in and the daily note, the weekly plan with its summary, the Supplements tab, Overview, deleting, and GPX import from Strava. The Nutrition tab, monthly and yearly summaries and use on mobile have only been through tests and a preview.
-- The English interface has been through tests and a preview, not yet through Obsidian.
+- The English interface and translating an existing Czech vault with "Translate notes" have been tried in Obsidian.
 - Strava sync hasn't been tried against the real API.
 - TCX import from MapMyRun, FIT import, reading heart rate from a file, daily data import from CSV and history import from Strong and Hevy have only been tried on hand-built files. Try the history import on a backup first.
 - The plugin hasn't been tried on mobile yet.
@@ -166,14 +177,15 @@ To deploy, copy `.env.local.example` to `.env.local` and fill in `VAULT_PATH`. `
 | `src/data/` | reading and writing notes |
 | `src/model/` | note data model (frontmatter) |
 | `src/evidence/` | source catalog |
-| `src/i18n/` | translation: `t()` / `tn()`, English dictionary `en.ts` (key = Czech text) |
-| `src/seed/` | exercise library, programs, supplement catalog; English versions in `src/seed/en/` |
+| `src/i18n/` | translation: `t()` / `tn()` with plural forms and context, language selection |
+| `src/locales/` | one folder per language (key = English text or built-in content id) and the language registry |
+| `src/seed/` | exercise library, programs, templates, supplement catalog, research – English source with stable ids |
 | `src/ui/` | interface (Svelte 5) |
 | `tests/` | tests, including the data layer over an in-memory vault |
 
 Every push to `main` runs tests, the type check and the build on GitHub Actions.
 
-**Releasing:** bump the version in `manifest.json` and `package.json`, add `"<version>": "<minAppVersion>"` to `versions.json`, commit, and push a tag with the same number without a `v` (e.g. `git tag 0.2.1` and `git push origin 0.2.1`). The "Vydání" (release) workflow checks that the tag matches all three files, runs the tests and build and creates a release with `main.js`, `manifest.json` and `styles.css`.
+**Releasing:** bump the version in `manifest.json` and `package.json`, add `"<version>": "<minAppVersion>"` to `versions.json`, commit, and push a tag with the same number without a `v` (e.g. `git tag 0.2.2` and `git push public 0.2.2`). The "Vydání" (release) workflow checks that the tag matches all three files, runs the tests and build and creates a release with `main.js`, `manifest.json` and `styles.css`.
 
 ## License
 

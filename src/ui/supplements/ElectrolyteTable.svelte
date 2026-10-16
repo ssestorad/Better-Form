@@ -45,18 +45,18 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Elektrolyty a tekutiny")}</h4>
+	<h4>{t("Electrolytes and fluids")}</h4>
 	<div class="bf-elec-inputs">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Váha (kg)")}</span>
-			<NumInput bind:value={weight} label={t("Váha v kg")} decimals />
+			<span class="bf-field-label">{t("Weight (kg)")}</span>
+			<NumInput bind:value={weight} label={t("Weight in kg")} decimals />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Délka tréninku (min)")}</span>
-			<NumInput bind:value={minutes} label={t("Délka tréninku v minutách")} />
+			<span class="bf-field-label">{t("Workout duration (min)")}</span>
+			<NumInput bind:value={minutes} label={t("Workout duration in minutes")} />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Pocení")}</span>
+			<span class="bf-field-label">{t("Sweating")}</span>
 			<select class="dropdown" bind:value={level}>
 				{#each LEVELS as l (l)}<option value={l}>{SWEAT_LEVEL_LABELS[l]}</option>{/each}
 			</select>
@@ -65,10 +65,10 @@
 
 	<div class="bf-elec" role="table">
 		<div class="bf-elec-tr bf-muted" role="row">
-			<span role="columnheader">{t("Elektrolyt")}</span>
-			<span role="columnheader" class="bf-elec-num">{t("Den bez tréninku")}</span>
-			<span role="columnheader" class="bf-elec-num">{t("Ztráta potem")}</span>
-			<span role="columnheader" class="bf-elec-num">{t("Den s tréninkem")}</span>
+			<span role="columnheader">{t("Electrolyte")}</span>
+			<span role="columnheader" class="bf-elec-num">{t("Rest day")}</span>
+			<span role="columnheader" class="bf-elec-num">{t("Sweat loss")}</span>
+			<span role="columnheader" class="bf-elec-num">{t("Training day")}</span>
 		</div>
 		{#each rows as row (row.electrolyte.id)}
 			<div class="bf-elec-tr" role="row" title={row.electrolyte.note}>
@@ -86,41 +86,41 @@
 		{/each}
 	</div>
 	{#if sex === null}
-		<p class="bf-muted bf-small">{t("Hořčík: 350 mg platí pro muže, pro ženy 300 mg. Pohlaví nastavíš v profilu.")}</p>
+		<p class="bf-muted bf-small">{t("Magnesium: 350 mg applies to men, 300 mg to women. Set your sex in your profile.")}</p>
 	{/if}
 
 	<dl class="bf-elec-fluids">
-		<dt>{t("Před tréninkem")}</dt>
+		<dt>{t("Before training")}</dt>
 		<dd>
 			{#if fluids.preMl}
-				{t("{v}–{v2} ml tekutin nejméně 4 hodiny předem (5–7 ml/kg)", { v: formatNumber(fluids.preMl.min, 0), v2: formatNumber(fluids.preMl.max, 0) })}
+				{t("{v}–{v2} ml of fluid at least 4 hours before (5–7 ml/kg)", { v: formatNumber(fluids.preMl.min, 0), v2: formatNumber(fluids.preMl.max, 0) })}
 			{:else}
-				{t("5–7 ml tekutin na kg hmotnosti nejméně 4 hodiny předem – zadej váhu")}
+				{t("5–7 ml of fluid per kg of body weight at least 4 hours before – enter your weight")}
 			{/if}
 		</dd>
-		<dt>{t("Odhad ztráty potem")}</dt>
-		<dd>{t("{v} l za trénink (asi {v} kg hmotnosti)", { v: formatNumber(fluids.sweatL, 1) })}</dd>
-		<dt>{t("Po tréninku")}</dt>
+		<dt>{t("Estimated sweat loss")}</dt>
+		<dd>{t("{v} l per workout (about {v} kg of body weight)", { v: formatNumber(fluids.sweatL, 1) })}</dd>
+		<dt>{t("After training")}</dt>
 		<dd>
-			{t("asi 1,5 l na každý ztracený kilogram – při tomto odhadu do {v} l včetně toho, co vypiješ během tréninku", { v: formatNumber(fluids.rehydrateL, 1) })}
+			{t("about 1.5 l for every kilogram lost – with this estimate up to {v} l, including what you drink during training", { v: formatNumber(fluids.rehydrateL, 1) })}
 		</dd>
-		<dt>{t("Nápoj při delší zátěži")}</dt>
-		<dd>{t("{v}–{v2} mg sodíku na litr", { v: formatNumber(DRINK_SODIUM_MG_PER_L.min, 0), v2: formatNumber(DRINK_SODIUM_MG_PER_L.max, 0) })}</dd>
+		<dt>{t("Drink for longer sessions")}</dt>
+		<dd>{t("{v}–{v2} mg of sodium per liter", { v: formatNumber(DRINK_SODIUM_MG_PER_L.min, 0), v2: formatNumber(DRINK_SODIUM_MG_PER_L.max, 0) })}</dd>
 	</dl>
 
 	<ul class="bf-muted bf-small bf-elec-notes">
 		<li>
-			<strong>{t("Den bez tréninku")}</strong> {t("je referenční příjem pro dospělé podle EFSA. Tyto hodnoty na váze nezávisí – údaj v mg/kg je jen přepočet na tvou váhu pro orientaci.")}
+			<strong>{t("Rest day")}</strong> {t("is the reference intake for adults according to EFSA. These values don't depend on weight – the mg/kg figure is just a conversion to your weight for orientation.")}
 		</li>
 		<li>
-			<strong>{t("Den s tréninkem")}</strong> {t("= referenční příjem + průměrná ztráta potem. Skutečná ztráta se mezi lidmi liší až několikanásobně (rozsah je pod průměrem), přesněji ji zjistíš vážením před tréninkem a po něm.")}
+			<strong>{t("Training day")}</strong> {t("= reference intake + average sweat loss. Actual loss varies several-fold between people (the range is below the average); you'll find it more precisely by weighing yourself before and after training.")}
 		</li>
-		<li>{t("Sodíku má běžná strava obvykle víc než 2 g denně, takže krátký trénink ho navíc nevyžaduje.")}</li>
-		<li>{t("Rychlost pocení je odhad z nabídky výše")} <span class="bf-tag">{t("praxe")}</span>{t(", ostatní čísla ze zdrojů")} <span class="bf-tag">{EVIDENCE_LABELS[ELECTROLYTE_BASIS.evidence]}</span>.</li>
-		<li>{t("Při onemocnění srdce, ledvin nebo vysokém tlaku se o soli a draslíku poraď s lékařem.")}</li>
+		<li>{t("A normal diet usually has more than 2 g of sodium a day, so a short workout doesn't need extra.")}</li>
+		<li>{t("The sweat rate is an estimate from the options above")} <span class="bf-tag">{t("practice")}</span>{t(", the other numbers come from sources")} <span class="bf-tag">{EVIDENCE_LABELS[ELECTROLYTE_BASIS.evidence]}</span>.</li>
+		<li>{t("If you have heart or kidney disease or high blood pressure, ask your doctor about salt and potassium.")}</li>
 	</ul>
 	<details class="bf-small">
-		<summary class="bf-muted">{t("Zdroje")}</summary>
+		<summary class="bf-muted">{t("Sources")}</summary>
 		<ul>
 			{#each sources as source (source.short)}
 				<li>

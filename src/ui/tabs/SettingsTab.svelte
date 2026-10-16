@@ -6,18 +6,18 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Průvodce nastavením")}</h4>
-	<p class="bf-muted">{t("Profil pro výpočty, cíl, běžný den, režim a sporty na jednom místě.")}</p>
+	<h4>{t("Setup guide")}</h4>
+	<p class="bf-muted">{t("Profile for calculations, goal, typical day, mode and sports in one place.")}</p>
 	<div class="bf-actions">
-		<button type="button" class="mod-cta" onclick={() => plugin.openOnboarding()}>{t("Spustit průvodce")}</button>
+		<button type="button" class="mod-cta" onclick={() => plugin.openOnboarding()}>{t("Start guide")}</button>
 	</div>
 </section>
 
 <section class="bf-card">
-	<h4>{t("Všechna nastavení")}</h4>
-	<p class="bf-muted">{t("Složky, vybavení, Strava, výživa, export a záloha, prahy výpočtů.")}</p>
+	<h4>{t("All settings")}</h4>
+	<p class="bf-muted">{t("Folders, equipment, Strava, nutrition, export and backup, calculation thresholds.")}</p>
 	<div class="bf-actions">
-		<button type="button" onclick={() => plugin.openSettings()}>{t("Otevřít nastavení")}</button>
+		<button type="button" onclick={() => plugin.openSettings()}>{t("Open settings")}</button>
 	</div>
 </section>
 

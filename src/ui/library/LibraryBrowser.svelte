@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Knihovna cviků: hledání, filtr podle kategorie a partie (kliknutím na panáčka), detail cviku.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { untrack } from "svelte";
 	import { EXERCISE_CATEGORIES, MUSCLE_LABELS, type ExerciseCategory, type MuscleId } from "../../model/constants";
 	import type { ExerciseHistory } from "../../calc/exerciseHistory";
@@ -47,20 +47,20 @@
 
 {#if current}
 	<div class="bf-library">
-		<button type="button" class="bf-link-button" onclick={() => (selected = null)}>{t("← Zpět na seznam")}</button>
+		<button type="button" class="bf-link-button" onclick={() => (selected = null)}>{t("← Back to the list")}</button>
 		<ExerciseDetail exercise={current} last={lastText(current.name)} history={history?.(current)} onOpenNote={() => onOpenNote(current.name)} />
 	</div>
 {:else}
 	<div class="bf-library">
-		<input type="search" placeholder={t("Hledat cvik (název nebo alias)…")} bind:value={query} />
+		<input type="search" placeholder={t("Search exercises (name or alias)…")} bind:value={query} />
 
 		<div class="bf-library-filters">
 			<div class="bf-library-figure">
-				<MuscleFigure selected={muscle} onSelect={(m) => (muscle = muscle === m ? null : m)} label={t("Filtr podle svalové partie")} />
+				<MuscleFigure selected={muscle} onSelect={(m) => (muscle = muscle === m ? null : m)} label={t("Filter by muscle group")} />
 			</div>
 			<div class="bf-library-side">
-				<div class="bf-chips" role="group" aria-label={t("Kategorie")}>
-					<button type="button" class="bf-chip" class:is-selected={category === null} onclick={() => (category = null)}>{t("Vše")}</button>
+				<div class="bf-chips" role="group" aria-label={t("Category")}>
+					<button type="button" class="bf-chip" class:is-selected={category === null} onclick={() => (category = null)}>{t("All")}</button>
 					{#each EXERCISE_CATEGORIES as c (c)}
 						<button type="button" class="bf-chip" class:is-selected={category === c} onclick={() => (category = category === c ? null : c)}>
 							{CATEGORY_LABELS[c]}
@@ -70,13 +70,13 @@
 				<!-- Pevná výška řádku, aby se seznam při výběru partie neposouval. -->
 				<div class="bf-library-muscle">
 					{#if muscle}
-						{t("Partie:")} <strong>{MUSCLE_LABELS[muscle]}</strong>
-						<button type="button" class="bf-link-button" onclick={() => (muscle = null)}>{t("zrušit")}</button>
+						{t("Muscle group:")} <strong>{MUSCLE_LABELS[muscle]}</strong>
+						<button type="button" class="bf-link-button" onclick={() => (muscle = null)}>{t("clear")}</button>
 					{:else}
-						<span class="bf-muted">{t("Klikni na panáčka pro výběr partie.")}</span>
+						<span class="bf-muted">{t("Click the figure to choose a muscle group.")}</span>
 					{/if}
 				</div>
-				<div class="bf-muted bf-library-count">{t("{results_length} z {exercises_length} cviků", { results_length: results.length, exercises_length: exercises.length })}</div>
+				<div class="bf-muted bf-library-count">{tn(exercises.length, ["{results_length} of {n} exercise", "{results_length} of {n} exercises"], { results_length: results.length })}</div>
 			</div>
 		</div>
 
@@ -89,7 +89,7 @@
 					</button>
 				</li>
 			{:else}
-				<li class="bf-muted">{t("Žádný cvik neodpovídá filtru.")}</li>
+				<li class="bf-muted">{t("No exercise matches the filter.")}</li>
 			{/each}
 		</ul>
 	</div>

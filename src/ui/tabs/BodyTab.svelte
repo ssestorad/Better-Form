@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Karta Tělo (SPEC 5.5): panáček obarvený podle objemu, regenerace nebo bolestí,
 	// najetí = náhled partie, kliknutí = připnutí detailu. Pod ním evidence bolestí.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import {
 		RECOVERY_BASIS,
 		VOLUME_BASIS,
@@ -78,7 +78,7 @@
 		);
 	});
 	const measureChange = (change: { change: number; days: number }, unit: string) =>
-		change.change === 0 ? t("beze změny za {v}", { v: formatDays(change.days) }) : t("{change} {unit} za {days}", { change: `${change.change > 0 ? "+" : "−"}${formatNumber(Math.abs(change.change), 1)}`, unit, days: formatDays(change.days) });
+		change.change === 0 ? t("no change over {v}", { v: formatDays(change.days) }) : t("{change} {unit} over {days}", { change: `${change.change > 0 ? "+" : "−"}${formatNumber(Math.abs(change.change), 1)}`, unit, days: formatDays(change.days) });
 	// Stejný kontext jako u doporučení (prahy z nastavení, váha, testy maxima).
 	const ctx = $derived.by((): VolumeContext => {
 		void $indexVersion;
@@ -130,10 +130,10 @@
 	});
 	const hint = $derived(
 		mode === "volume"
-			? t("Efektivní série za posledních 7 dní · doporučený rozsah {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })
+			? t("Effective sets in the last 7 days · recommended range {targetMin}–{targetMax}", { targetMin: range.targetMin, targetMax: range.targetMax })
 			: mode === "recovery"
-				? t("Čas od posledního tréninku partie · orientačně {hours2}–{hours3} h mezi těžkými tréninky", { hours2: recoveryThresholds.hours2, hours3: recoveryThresholds.hours3 })
-				: t("Evidované bolesti podle intenzity 0–10 · bolest se přiřazuje k nejbližší svalové partii; plugin nediagnostikuje"),
+				? t("Time since the muscle group was last trained · roughly {hours2}–{hours3} h between hard sessions", { hours2: recoveryThresholds.hours2, hours3: recoveryThresholds.hours3 })
+				: t("Logged pain by intensity 0–10 · pain is assigned to the nearest muscle group; the plugin doesn't diagnose"),
 	);
 
 	// Souhrn, když není vybraná žádná partie.
@@ -161,7 +161,7 @@
 </script>
 
 <section class="bf-card">
-	<div class="bf-body-modes" role="tablist" aria-label={t("Obarvení panáčka")}>
+	<div class="bf-body-modes" role="tablist" aria-label={t("Figure coloring")}>
 		{#each MODES as m (m)}
 			<button type="button" role="tab" aria-selected={mode === m} class:is-active={mode === m} onclick={() => (mode = m)}>{MODE_LABELS[m]}</button>
 		{/each}
@@ -172,7 +172,7 @@
 	</p>
 
 	<div class="bf-body-figure">
-		<MuscleFigure {fills} active={pinned} onSelect={pin} onHover={(m) => (hovered = m)} label={t("Svalové partie – výběr detailu")} />
+		<MuscleFigure {fills} active={pinned} onSelect={pin} onHover={(m) => (hovered = m)} label={t("Muscle groups – choose detail")} />
 	</div>
 
 	<div class="bf-body-legend">
@@ -195,32 +195,32 @@
 	{:else}
 		<div class="bf-body-summary">
 			<div>
-				<div class="bf-body-eyebrow">{t("Posledních 7 dní")}</div>
-				<h4>{t("Najeď na partii nebo na ni klikni")}</h4>
-				<p class="bf-muted bf-small">{t("Uvidíš jen její statistiky. Kliknutím ji připneš, druhým kliknutím odepneš.")}</p>
+				<div class="bf-body-eyebrow">{t("Last 7 days")}</div>
+				<h4>{t("Hover over or click a muscle group")}</h4>
+				<p class="bf-muted bf-small">{t("You'll see only its statistics. Click to pin it, click again to unpin.")}</p>
 			</div>
 			{#if !hasStrength}
 				<p class="bf-muted">
-					{t("Sbírám data – zatím tu není žádný trénink s efektivními sériemi. Zapisuj u sérií RIR (kolik opakování ti zbývalo), podle něj se série počítají.")}
+					{t("Collecting data – there's no workout with effective sets here yet. Log RIR for your sets (how many reps you had left); sets are counted by it.")}
 				</p>
 			{:else}
 				<div class="bf-body-tiles">
 					<div class="bf-body-tile">
-						<div class="bf-muted bf-small">{t("Nejvíc sérií")}</div>
+						<div class="bf-muted bf-small">{t("Most sets")}</div>
 						<div class="bf-body-value">{MUSCLE_LABELS[top]} · {formatSetCount(sets[top])}</div>
 					</div>
 					<div class="bf-body-tile">
-						<div class="bf-muted bf-small">{t("V optimu ({targetMin}–{targetMax})", { targetMin: range.targetMin, targetMax: range.targetMax })}</div>
-						<div class="bf-body-value">{t("{inRange} ze {MUSCLES_length} partií", { inRange, MUSCLES_length: MUSCLES.length })}</div>
+						<div class="bf-muted bf-small">{t("In the optimum ({targetMin}–{targetMax})", { targetMin: range.targetMin, targetMax: range.targetMax })}</div>
+						<div class="bf-body-value">{t("{inRange} of {MUSCLES_length} muscle groups", { inRange, MUSCLES_length: MUSCLES.length })}</div>
 					</div>
 				</div>
 				<div class="bf-body-tile">
-					<div class="bf-muted bf-small">{t("Pod doporučeným objemem")}</div>
-					<div>{below.length > 0 ? below.map((m) => `${MUSCLE_LABELS[m]} ${formatSetCount(sets[m])}`).join(" · ") : t("Žádná partie.")}</div>
+					<div class="bf-muted bf-small">{t("Below recommended volume")}</div>
+					<div>{below.length > 0 ? below.map((m) => `${MUSCLE_LABELS[m]} ${formatSetCount(sets[m])}`).join(" · ") : t("No muscle group.")}</div>
 				</div>
 			{/if}
 			<div>
-				<div class="bf-muted bf-small">{t("Všechny partie")}</div>
+				<div class="bf-muted bf-small">{t("All muscle groups")}</div>
 				<div class="bf-body-chips">
 					{#each MUSCLES as m (m)}
 						<button type="button" class="bf-body-chip" onclick={() => (pinned = m)}>
@@ -236,13 +236,13 @@
 <PainCard muscle={pinned} />
 
 <section class="bf-card">
-	<h4>{t("Tělesné míry")}</h4>
+	<h4>{t("Body measurements")}</h4>
 	{#if measures.length === 0}
-		<p class="bf-muted">{t("Zatím žádné měření. Míry (pas, boky, hrudník, paže, stehno, lýtko, podíl tuku) zapíšeš v ranním check-inu – stačí jednou za 2–4 týdny.")}</p>
+		<p class="bf-muted">{t("No measurements yet. Log measurements (waist, hips, chest, arm, thigh, calf, body fat) in the morning check-in – once every 2–4 weeks is enough.")}</p>
 	{:else}
 		<table class="bf-measure-table">
 			<thead>
-				<tr><th>{t("Míra")}</th><th>{t("Teď")}</th><th>{t("Od minula")}</th><th>{t("Od začátku")}</th></tr>
+				<tr><th>{t("Measurement")}</th><th>{t("Now")}</th><th>{t("Since last time")}</th><th>{t("Since the start")}</th></tr>
 			</thead>
 			<tbody>
 				{#each measures as row (row.id)}
@@ -252,31 +252,31 @@
 							<strong>{formatNumber(row.value, 1)} {row.unit}</strong>
 							<span class="bf-muted bf-small"> · {formatShortDate(row.date)}</span>
 						</td>
-						<td>{row.previous ? measureChange(row.previous, row.unit) : t("první měření")}</td>
+						<td>{row.previous ? measureChange(row.previous, row.unit) : t("first measurement")}</td>
 						<td>{row.first ? measureChange(row.first, row.unit) : "—"}</td>
 					</tr>
 				{/each}
 			</tbody>
 		</table>
-		<p class="bf-muted bf-small">{t("Měř ráno, vždy na stejném místě. Rozdíl do 1 cm bývá v chybě měření.")}</p>
+		<p class="bf-muted bf-small">{t("Measure in the morning, always at the same spot. A difference of up to 1 cm is usually measurement error.")}</p>
 	{/if}
-	<div class="bf-actions"><button type="button" onclick={() => plugin.openCheckIn()}>{t("Zapsat míry v check-inu")}</button></div>
+	<div class="bf-actions"><button type="button" onclick={() => plugin.openCheckIn()}>{t("Log measurements in the check-in")}</button></div>
 </section>
 
 {#if uncounted > 0}
 	<p class="bf-muted bf-small">
-		{t("{uncounted} {v} za posledních 7 dní se nezapočítalo, protože u nich chybí RIR. Bez RIR se počítají série v posilovně od {effectiveMinPct1rm} % odhadu 1RM a série cviků s vlastní vahou.", { uncounted, v: uncounted === 1 ? t("pracovní série") : t("pracovních sérií"), effectiveMinPct1rm: thresholds.effectiveMinPct1rm })}
+		{tn(uncounted, ["{n} working set in the last 7 days wasn't counted because it's missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted.", "{n} working sets in the last 7 days weren't counted because they're missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted."], { effectiveMinPct1rm: thresholds.effectiveMinPct1rm })}
 	</p>
 {/if}
 {#if assumed > 0}
 	<p class="bf-muted bf-small">
-		{t("U {assumed} {v} s vlastní vahou za posledních 7 dní nezná plugin tvoje maximum opakování a bere za něj tvoji nejdelší zapsanou sérii. Když cvičíš dál od maxima, objem tím vychází vyšší, než je. Zpřesníš to testem maxima, nebo když u jedné série zapíšeš RIR.", { assumed, v: assumed === 1 ? t("série") : t("sérií") })}
-		<button type="button" class="bf-link-button" onclick={() => plugin.openTest({})}>{t("Test maxima")}</button>
+		{tn(assumed, ["For {n} bodyweight set in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate.", "For {n} bodyweight sets in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate."])}
+		<button type="button" class="bf-link-button" onclick={() => plugin.openTest({})}>{t("Max test")}</button>
 		<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
 	</p>
 {/if}
 <div class="bf-actions">
-	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Knihovna cviků")}</button>
+	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Exercise library")}</button>
 </div>
 
 <style>

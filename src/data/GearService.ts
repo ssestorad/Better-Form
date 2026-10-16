@@ -57,9 +57,9 @@ export class GearService {
 
 	async create(draft: ShoeDraft): Promise<TFile> {
 		const name = draft.name.trim();
-		if (!name) throw new Error(t("Chybí název bot."));
+		if (!name) throw new Error(t("The shoes need a name."));
 		if (this.shoes().some((e) => normalize(e.note.name) === normalize(name))) {
-			throw new Error(t("Boty „{name}“ už v seznamu jsou.", { name }));
+			throw new Error(t("The shoes “{name}” are already in the list.", { name }));
 		}
 		const note: GearNote = {
 			forma: "gear",
@@ -75,7 +75,7 @@ export class GearService {
 
 	/** Vyřadí nebo vrátí boty; kilometry a historie zůstávají. */
 	async setActive(entry: ShoeEntry, active: boolean): Promise<void> {
-		if (entry.schemaStatus === "newer") throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
+		if (entry.schemaStatus === "newer") throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
 		await this.writer.updateFrontmatter(entry.file, (frontmatter) => {
 			frontmatter.active = active;
 		});

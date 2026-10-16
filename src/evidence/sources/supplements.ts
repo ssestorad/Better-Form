@@ -52,7 +52,7 @@ export const SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1179/147683008X301513",
-		note: "Autoři pracovali pro výrobce čaje (Unilever).",
+		note: "The authors worked for a tea manufacturer (Unilever).",
 	},
 	giesbrecht2010: {
 		short: "Giesbrecht 2010",
@@ -60,7 +60,7 @@ export const SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1179/147683010X12611460764840",
-		note: "Autoři pracovali pro výrobce čaje (Unilever).",
+		note: "The authors worked for a tea manufacturer (Unilever).",
 	},
 	rezende2020: {
 		short: "Rezende 2020",
@@ -119,14 +119,14 @@ export const SUPPLEMENT_SOURCES = {
 		url: "https://doi.org/10.1007/s40279-025-02194-6",
 	},
 	grgic2021bicarb: {
-		short: "ISSN 2021 (Grgic, bikarbonát)",
+		short: "ISSN 2021 (Grgic, bicarbonate)",
 		citation: "Grgic J. et al. (2021) International Society of Sports Nutrition position stand: sodium bicarbonate and exercise performance. J Int Soc Sports Nutr 18:61.",
 		evidence: "consensus",
 		kind: "position",
 		url: "https://doi.org/10.1186/s12970-021-00458-w",
 	},
 	grgic2021bicarbUmbrella: {
-		short: "Grgic 2021 (souhrn metaanalýz)",
+		short: "Grgic 2021 (umbrella review)",
 		citation: "Grgic J. et al. (2021) Effects of sodium bicarbonate supplementation on exercise performance: an umbrella review. J Int Soc Sports Nutr 18:71.",
 		evidence: "research",
 		kind: "meta",
@@ -140,7 +140,7 @@ export const SUPPLEMENT_SOURCES = {
 		url: "https://doi.org/10.2165/11591440-000000000-00000",
 	},
 	grgic2020bicarb: {
-		short: "Grgic 2020 (bikarbonát)",
+		short: "Grgic 2020 (bicarbonate)",
 		citation: "Grgic J. et al. (2020) Effects of sodium bicarbonate supplementation on muscular strength and endurance: a systematic review and meta-analysis. Sports Med 50(7):1361–1375.",
 		evidence: "research",
 		kind: "meta",
@@ -355,7 +355,7 @@ export const SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "rct",
 		url: "https://doi.org/10.1017/S0007114515002810",
-		note: "K článku vyšla v roce 2025 oprava (Br J Nutr 134(5):440) a výsledky byly kritizovány jako nepravděpodobně velké.",
+		note: "A correction to the article was published in 2025 (Br J Nutr 134(5):440), and the results were criticized as implausibly large.",
 	},
 	khatri2021: {
 		short: "Khatri 2021",
@@ -601,7 +601,7 @@ export const SUPPLEMENT_SOURCES = {
 		evidence: "research",
 		kind: "meta",
 		url: "https://doi.org/10.22514/jomh.2023.003",
-		note: "Autory Crossref neuvádí; převzaty z podkladu uživatele.",
+		note: "Crossref lists no authors; taken from the user's source material.",
 	},
 	knapen2013: {
 		short: "Knapen 2013",

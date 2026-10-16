@@ -9,7 +9,7 @@ import {
 	uniquePath,
 	workoutNotePath,
 } from "../../src/data/paths";
-import { DEFAULT_FOLDERS } from "../../src/settings/settings";
+import { DEFAULT_FOLDERS, LEGACY_FOLDERS } from "../../src/settings/settings";
 
 describe("cesty", () => {
 	it("normalizeVaultPath", () => {
@@ -18,39 +18,39 @@ describe("cesty", () => {
 		expect(normalizeVaultPath("  ")).toBe("");
 	});
 
-	it("výchozí struktura podle SPEC kap. 3", () => {
-		expect(folderPath(DEFAULT_FOLDERS, "exercises")).toBe("Forma/Knihovna/Cviky");
-		expect(dayNotePath(DEFAULT_FOLDERS, "2026-09-28")).toBe("Forma/Deník/2026/2026-09-28.md");
-		expect(workoutNotePath(DEFAULT_FOLDERS, "2026-09-28", "Posilovna – Push")).toBe(
-			"Forma/Tréninky/2026/2026-09-28 Posilovna – Push.md",
-		);
-		expect(namedNotePath(DEFAULT_FOLDERS, "exercises", "Bench press")).toBe(
-			"Forma/Knihovna/Cviky/Bench press.md",
-		);
+	it("výchozí struktura podle SPEC kap. 3 – nový vault anglicky", () => {
+		expect(folderPath(DEFAULT_FOLDERS, "exercises")).toBe("Better Form/Library/Exercises");
+		expect(dayNotePath(DEFAULT_FOLDERS, "2026-09-28")).toBe("Better Form/Journal/2026/2026-09-28.md");
+		expect(workoutNotePath(DEFAULT_FOLDERS, "2026-09-28", "Gym – Push")).toBe("Better Form/Workouts/2026/2026-09-28 Gym – Push.md");
+		expect(namedNotePath(DEFAULT_FOLDERS, "exercises", "Bench press")).toBe("Better Form/Library/Exercises/Bench press.md");
+	});
+
+	it("starší vault s českými složkami (LEGACY_FOLDERS) dál funguje", () => {
+		expect(dayNotePath(LEGACY_FOLDERS, "2026-09-28")).toBe("Forma/Deník/2026/2026-09-28.md");
 	});
 
 	it("allFolderPaths obsahuje i nadřazené složky, od kořene", () => {
 		const paths = allFolderPaths(DEFAULT_FOLDERS);
-		expect(paths[0]).toBe("Forma");
-		expect(paths.indexOf("Forma/Knihovna")).toBeLessThan(paths.indexOf("Forma/Knihovna/Cviky"));
+		expect(paths[0]).toBe("Better Form");
+		expect(paths.indexOf("Better Form/Library")).toBeLessThan(paths.indexOf("Better Form/Library/Exercises"));
 		expect([...paths].sort()).toEqual(
 			[
-				"Forma",
-				"Forma/Cíle",
-				"Forma/Deník",
-				"Forma/Export",
-				"Forma/Knihovna",
-				"Forma/Knihovna/Cviky",
-				"Forma/Knihovna/Suplementy",
-				"Forma/Knihovna/Programy",
-				"Forma/Knihovna/Šablony tréninků",
-				"Forma/Plán",
-				"Forma/Souhrny",
-				"Forma/Testy",
-				"Forma/Tréninky",
-				"Forma/Vybavení",
-				"Forma/Zdraví",
-				"Forma/Zdraví/Bolesti",
+				"Better Form",
+				"Better Form/Equipment",
+				"Better Form/Export",
+				"Better Form/Goals",
+				"Better Form/Health",
+				"Better Form/Health/Pain",
+				"Better Form/Journal",
+				"Better Form/Library",
+				"Better Form/Library/Exercises",
+				"Better Form/Library/Programs",
+				"Better Form/Library/Supplements",
+				"Better Form/Library/Workout templates",
+				"Better Form/Plan",
+				"Better Form/Summaries",
+				"Better Form/Tests",
+				"Better Form/Workouts",
 			].sort(),
 		);
 	});

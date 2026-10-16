@@ -47,11 +47,11 @@
 
 <form class="bf-entry" onsubmit={submit}>
 	<p class="bf-muted">
-		{t("Po rozcvičení udělej u každého cviku co nejvíc čistých opakování v jedné sérii bez přestávky. Mezi cviky si odpočiň aspoň 3 minuty. Cvik, který teď netestuješ, nech prázdný.")}
+		{t("After warming up, do as many clean reps of each exercise as you can in one set without a break. Rest at least 3 minutes between exercises. Leave any exercise you're not testing now empty.")}
 	</p>
 
 	<label class="bf-field bf-entry-date">
-		<span class="bf-field-label">{t("Datum testu")}</span>
+		<span class="bf-field-label">{t("Test date")}</span>
 		<input type="date" value={date} onchange={(e) => (date = e.currentTarget.value)} />
 	</label>
 
@@ -65,8 +65,8 @@
 				<NumInput
 					bind:value={values[i]}
 					label={`${item.exercise} – maximum`}
-					placeholder={item.unit === "sec" ? t("sekundy") : t("opak.")}
-					error={invalid[i] ? t("Zadej celé kladné číslo.") : undefined}
+					placeholder={item.unit === "sec" ? t("seconds") : t("reps", undefined, "abbr")}
+					error={invalid[i] ? t("Enter a whole positive number.") : undefined}
 				/>
 			</div>
 		{/each}
@@ -75,15 +75,15 @@
 	{#if offerProgram}
 		<label class="bf-entry-check">
 			<input type="checkbox" checked={activate} onchange={(e) => (activate = e.currentTarget.checked)} />
-			<span>{t("Aktivovat program „{offerProgram}“ (začne dnes, cíle se spočítají z testu)", { offerProgram })}</span>
+			<span>{t("Activate the program “{offerProgram}” (starts today, targets are calculated from the test)", { offerProgram })}</span>
 		</label>
 	{/if}
 
 	{#if error}<p class="bf-error">{error}</p>{/if}
 
 	<div class="bf-form-buttons">
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
-		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Ukládám…") : t("Uložit test ({filled})", { filled })}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
+		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Saving…") : t("Save test ({filled})", { filled })}</button>
 	</div>
 </form>
 

@@ -59,12 +59,12 @@
 	}
 	const kindTitle = (set: SetEntry) =>
 		set.warmup
-			? t("Rozcvičovací série – klepni pro drop sérii")
+			? t("Warm-up set – tap for a drop set")
 			: set.tag === "drop"
-				? t("Drop série – klepni pro sérii do selhání")
+				? t("Drop set – tap for a set to failure")
 				: set.tag === "failure"
-					? t("Série do selhání (počítá se jako RIR 0) – klepni pro běžnou pracovní")
-					: t("Pracovní série – klepni pro rozcvičovací");
+					? t("Set to failure (counts as RIR 0) – tap for a normal working set")
+					: t("Working set – tap for a warm-up set");
 
 	function workingNumber(index: number): number {
 		return block.sets.slice(0, index + 1).filter((s) => !s.warmup).length;
@@ -95,9 +95,9 @@
 <div class="bf-sets" class:has-rir={showRir} bind:this={table}>
 	<div class="bf-sets-row bf-sets-head">
 		<span></span>
-		<span>{timed ? t("Sekundy") : t("Opak.")}</span>
-		<span>{bodyweight ? t("Přívažek kg") : "kg"}</span>
-		{#if showRir}<span title={t("Kolik opakování ti ještě zbývalo do selhání")}>RIR</span>{/if}
+		<span>{timed ? t("Seconds") : t("Reps", undefined, "abbr")}</span>
+		<span>{bodyweight ? t("Added weight kg") : "kg"}</span>
+		{#if showRir}<span title={t("How many more reps you had left before failure")}>RIR</span>{/if}
 		<span></span>
 	</div>
 	{#each block.sets as set, i (i)}
@@ -107,59 +107,59 @@
 				class="bf-set-kind"
 				class:is-tagged={!set.warmup && set.tag !== undefined}
 				title={kindTitle(set)}
-				aria-label={set.warmup ? t("Rozcvičovací série") : set.tag ? t("Série {v}: {v2}", { v: workingNumber(i), v2: SET_TAG_LABELS[set.tag] }) : t("Pracovní série {v}", { v: workingNumber(i) })}
+				aria-label={set.warmup ? t("Warm-up set") : set.tag ? t("Set {v}: {v2}", { v: workingNumber(i), v2: SET_TAG_LABELS[set.tag] }) : t("Working set {v}", { v: workingNumber(i) })}
 				onclick={() => cycleKind(set)}
 			>
-				{set.warmup ? t("R") : set.tag ? SET_TAG_SHORT[set.tag] : workingNumber(i)}
+				{set.warmup ? t("W") : set.tag ? SET_TAG_SHORT[set.tag] : workingNumber(i)}
 			</button>
 			{#if timed}
-				<NumInput bind:value={set.sec} label={t("Sekundy")} error={err(i, "sec")} onkeydown={(e) => onKeydown(e, i)} />
+				<NumInput bind:value={set.sec} label={t("Seconds")} error={err(i, "sec")} onkeydown={(e) => onKeydown(e, i)} />
 			{:else}
-				<NumInput bind:value={set.reps} label={t("Opakování")} error={err(i, "reps")} onkeydown={(e) => onKeydown(e, i)} />
+				<NumInput bind:value={set.reps} label={t("Reps")} error={err(i, "reps")} onkeydown={(e) => onKeydown(e, i)} />
 			{/if}
 			{#if bodyweight}
-				<NumInput bind:value={set.added_kg} label={t("Přívažek (kg)")} signed placeholder="0" error={err(i, "added_kg")} onkeydown={(e) => onKeydown(e, i)} />
+				<NumInput bind:value={set.added_kg} label={t("Added weight (kg)")} signed placeholder="0" error={err(i, "added_kg")} onkeydown={(e) => onKeydown(e, i)} />
 			{:else}
-				<WeightInput bind:value={set.kg} label={t("Váha (kg)")} {bells} error={err(i, "kg")} onkeydown={(e) => onKeydown(e, i)} />
+				<WeightInput bind:value={set.kg} label={t("Weight (kg)")} {bells} error={err(i, "kg")} onkeydown={(e) => onKeydown(e, i)} />
 			{/if}
 			{#if showRir}
 				<NumInput bind:value={set.rir} label="RIR" error={err(i, "rir")} onkeydown={(e) => onKeydown(e, i)} />
 			{/if}
-			<button type="button" class="clickable-icon bf-set-remove" aria-label={t("Smazat sérii")} onclick={() => block.sets.splice(i, 1)}>×</button>
+			<button type="button" class="clickable-icon bf-set-remove" aria-label={t("Delete set")} onclick={() => block.sets.splice(i, 1)}>×</button>
 		</div>
 	{/each}
 	<div class="bf-sets-actions">
-		<button type="button" onclick={() => addSet()}>{t("+ série")}</button>
+		<button type="button" onclick={() => addSet()}>{t("+ set")}</button>
 		{#if canLoad}
-			<button type="button" aria-expanded={showPlates} title={t("Kolik kotoučů naložit na každou stranu osy a návrh rozcvičovacích sérií")} onclick={() => (showPlates = !showPlates)}>{t("Kotouče")}</button>
+			<button type="button" aria-expanded={showPlates} title={t("How many plates to load on each side of the bar, and suggested warm-up sets")} onclick={() => (showPlates = !showPlates)}>{t("Plates")}</button>
 		{/if}
-		<span class="bf-hint">{t("Klepnutím na číslo série: R = rozcvičovací, D = drop série, S = do selhání · RIR = kolik opakování zbývalo do selhání")}</span>
+		<span class="bf-hint">{t("Tap the set number: W = warm-up, D = drop set, F = to failure · RIR = reps left before failure")}</span>
 	</div>
 	{#if canLoad && showPlates && barbell}
 		<div class="bf-plates">
 			{#if loads.length === 0}
-				<span class="bf-hint">{t("Zadej váhu pracovní série – ukážu kotouče na každou stranu osy ({v} kg).", { v: kgText(barbell.barKg) })}</span>
+				<span class="bf-hint">{t("Enter the working set weight – I'll show the plates for each side of the bar ({v} kg).", { v: kgText(barbell.barKg) })}</span>
 			{:else}
 				{#each loads as row (row.kg)}
 					<div>
 						<strong>{kgText(row.kg)} kg</strong>
 						{#if row.load === null}
-							<span class="bf-hint">{t("– méně než osa ({v} kg)", { v: kgText(barbell.barKg) })}</span>
+							<span class="bf-hint">{t("– less than the bar ({v} kg)", { v: kgText(barbell.barKg) })}</span>
 						{:else}
-							{t("– na stranu {v}", { v: plateText(row.load, kgText) })}
-							{#if row.load.missingKg > 0}<span class="bf-hint"> {t("· přesně to nejde, vyjde {v} kg (chybí {v2} kg)", { v: kgText(row.load.loadedKg), v2: kgText(row.load.missingKg) })}</span>{/if}
+							{t("– per side {v}", { v: plateText(row.load, kgText) })}
+							{#if row.load.missingKg > 0}<span class="bf-hint"> {t("· can't be loaded exactly, it comes to {v} kg ({v2} kg short)", { v: kgText(row.load.loadedKg), v2: kgText(row.load.missingKg) })}</span>{/if}
 							<PlateBar perSide={row.load.perSide} />
 						{/if}
 					</div>
 				{/each}
-				<span class="bf-hint">{t("Osa {v} kg; osu a kotouče změníš v nastavení. Barvy podle závodního značení, kotouče mimo něj šedě.", { v: kgText(barbell.barKg) })}</span>
+				<span class="bf-hint">{t("Bar {v} kg; change the bar and plates in the settings. Colors follow competition markings, other plates are gray.", { v: kgText(barbell.barKg) })}</span>
 			{/if}
 			{#if warmups.length > 0}
 				<div class="bf-plates-warmup">
-					<span>{t("Rozcvičení: {v}", { v: warmups.map((w) => `${kgText(w.kg)} kg × ${w.reps}`).join(", ") })}</span>
-					<button type="button" disabled={hasWarmup} title={hasWarmup ? t("Rozcvičovací série už v tabulce jsou") : t("Přidá rozcvičovací série na začátek tabulky")} onclick={addWarmups}>{t("Přidat")}</button>
+					<span>{t("Warm-up: {v}", { v: warmups.map((w) => `${kgText(w.kg)} kg × ${w.reps}`).join(", ") })}</span>
+					<button type="button" disabled={hasWarmup} title={hasWarmup ? t("Warm-up sets are already in the table") : t("Adds warm-up sets to the top of the table")} onclick={addWarmups}>{t("Add")}</button>
 				</div>
-				<span class="bf-hint">{t("Prázdná osa a 40, 60, 80 % pracovní váhy – uprav si podle sebe.")} <BasisTag basis={WARMUP_BASIS} /></span>
+				<span class="bf-hint">{t("Empty bar and 40, 60, 80 % of the working weight – adjust to suit you.")} <BasisTag basis={WARMUP_BASIS} /></span>
 			{/if}
 		</div>
 	{/if}

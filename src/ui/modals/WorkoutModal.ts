@@ -60,12 +60,12 @@ export class WorkoutModal extends Modal {
 		this.modalEl.addClass("bf-modal", "bf-modal-wide");
 		const initial = this.initialDraft();
 		if (!initial) {
-			new Notice(t("Trénink nejde načíst – zkontroluj frontmatter poznámky."));
+			new Notice(t("Can't load the workout – check the note's front matter."));
 			this.closing = true;
 			this.close();
 			return;
 		}
-		this.titleEl.setText(this.options.file ? t("Upravit trénink") : t("Zapsat trénink"));
+		this.titleEl.setText(this.options.file ? t("Edit workout") : t("Log workout"));
 		const settings = this.plugin.settings;
 		const sports = (Object.keys(settings.sports) as Sport[]).filter((s) => settings.sports[s]);
 		this.component = mount(WorkoutForm, {
@@ -80,7 +80,7 @@ export class WorkoutModal extends Modal {
 			super.close();
 			return;
 		}
-		void confirmAction(this.app, t("Zahodit rozepsaný trénink?"), t("Neuložené změny se ztratí."), t("Zahodit")).then((ok) => {
+		void confirmAction(this.app, t("Discard the unsaved workout?"), t("Unsaved changes will be lost."), t("Discard")).then((ok) => {
 			if (!ok) return;
 			this.closing = true;
 			super.close();
@@ -153,7 +153,7 @@ export class WorkoutModal extends Modal {
 			createExercise: async (name, sport) => {
 				const { category, measure } = NEW_EXERCISE[sport];
 				await workouts.createExercise(name, measure, category);
-				new Notice(t("Cvik „{name}“ založen v knihovně – doplň mu svalové partie.", { name }));
+				new Notice(t("Exercise “{name}” added to the library – fill in its muscle groups.", { name }));
 			},
 			showExercise: (exercise) => this.plugin.openLibrary({ exercise }),
 			shoes: () => this.plugin.gear.activeShoeNames(),
@@ -167,13 +167,13 @@ export class WorkoutModal extends Modal {
 					delete draft.painReport;
 				}
 				await workouts.save(draft, this.options.file);
-				new Notice(this.options.file ? t("Trénink upraven.") : t("Trénink uložen."));
+				new Notice(this.options.file ? t("Workout updated.") : t("Workout saved."));
 				this.closing = true;
 				this.close();
 			},
 			saveTemplate: async (draft, name) => {
 				const file = await workouts.saveTemplate(draft, name);
-				new Notice(t("Šablona „{basename}“ uložena.", { basename: file.basename }));
+				new Notice(t("Template “{basename}” saved.", { basename: file.basename }));
 			},
 			cancel: () => this.close(),
 			remove: exclude

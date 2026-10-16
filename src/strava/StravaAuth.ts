@@ -65,7 +65,7 @@ export class StravaAuth {
 	 */
 	async connectWithLocalServer(): Promise<void> {
 		this.requireCredentials();
-		if (!this.canUseLocalServer) throw new Error(t("Na mobilu použij ruční připojení."));
+		if (!this.canUseLocalServer) throw new Error(t("On mobile, use manual connection."));
 		const state = randomState(secureRandom);
 		const code = await this.waitForLocalCallback(state, () => {
 			window.open(buildAuthorizeUrl(this.settings().strava.clientId, LOCAL_REDIRECT_URI, state));
@@ -103,7 +103,7 @@ export class StravaAuth {
 	/** Platný access token; podle potřeby ho nejdřív obnoví. */
 	async accessToken(): Promise<string> {
 		const strava = this.settings().strava;
-		if (!this.isConnected) throw new Error(t("Strava není připojená – připoj ji v nastavení."));
+		if (!this.isConnected) throw new Error(t("Strava isn't connected – connect it in the settings."));
 		if (strava.accessToken && !needsRefresh(strava.expiresAt, Date.now() / 1000)) return strava.accessToken;
 		this.requireCredentials();
 		const tokens = await this.requestTokens(refreshBody(strava.clientId, strava.clientSecret, strava.refreshToken));
@@ -119,7 +119,7 @@ export class StravaAuth {
 	// ---------- Vnitřní ----------
 
 	private requireCredentials(): void {
-		if (!this.hasCredentials) throw new Error(t("Nejdřív vyplň Client ID a Client Secret."));
+		if (!this.hasCredentials) throw new Error(t("Fill in the Client ID and Client Secret first."));
 	}
 
 	private async exchange(code: string): Promise<void> {
@@ -146,11 +146,11 @@ export class StravaAuth {
 			}
 		} catch {
 			// Záměrně bez původní chyby – mohla by obsahovat tělo požadavku s tajným klíčem.
-			throw new Error(t("Ke Stravě se nepodařilo připojit – zkontroluj internet."));
+			throw new Error(t("Couldn't connect to Strava – check your internet connection."));
 		}
 		if (status < 200 || status >= 300) throw new Error(describeStravaError(status, json));
 		const tokens = parseTokenResponse(json);
-		if (!tokens) throw new Error(t("Strava vrátila neočekávanou odpověď."));
+		if (!tokens) throw new Error(t("Strava returned an unexpected response."));
 		return tokens;
 	}
 
@@ -171,7 +171,7 @@ export class StravaAuth {
 	private waitForLocalCallback(state: string, onListening: () => void): Promise<string> {
 		this.stopServer();
 		// Node je dostupný jen v desktopové aplikaci (kontrola v connectWithLocalServer).
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		// eslint-disable-next-line @typescript-eslint/no-require-imports -- modul http jen v desktopové aplikaci, načítá se až při přihlášení
 		const http = require("http") as typeof Http;
 		return new Promise<string>((resolve, reject) => {
 			let settled = false;
@@ -190,18 +190,18 @@ export class StravaAuth {
 				}
 				const result = readCallback(url.searchParams, state);
 				res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-				res.end(DONE_PAGE(result.ok ? t("Hotovo – můžeš se vrátit do Obsidianu a toto okno zavřít.") : result.error));
+				res.end(DONE_PAGE(result.ok ? t("Done – you can go back to Obsidian and close this window.") : result.error));
 				finish(() => (result.ok ? resolve(result.code) : reject(new Error(result.error))));
 			});
 			const timer = window.setTimeout(
-				() => finish(() => reject(new Error(t("Přihlášení nebylo dokončeno do 5 minut. Zkus to znovu.")))),
+				() => finish(() => reject(new Error(t("Sign-in wasn't completed within 5 minutes. Try again.")))),
 				LOCAL_AUTH_TIMEOUT_MS,
 			);
 			server.on("error", (err: NodeJS.ErrnoException) => {
 				const message =
 					err.code === "EADDRINUSE"
-						? t("Port {LOCAL_AUTH_PORT} je obsazený – použij ruční připojení.", { LOCAL_AUTH_PORT })
-						: t("Lokální server pro přihlášení se nepodařilo spustit – použij ruční připojení.");
+						? t("Port {LOCAL_AUTH_PORT} is in use – use manual connection.", { LOCAL_AUTH_PORT })
+						: t("Couldn't start the local sign-in server – use manual connection.");
 				finish(() => reject(new Error(message)));
 			});
 			this.server = server;

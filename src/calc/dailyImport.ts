@@ -13,11 +13,11 @@ export const DAILY_FIELDS = ["steps", "duration_min", "rmssd_ms", "resting_hr", 
 export type DailyField = (typeof DAILY_FIELDS)[number];
 
 export const DAILY_FIELD_LABELS: Record<DailyField, string> = translated({
-	steps: "kroky",
-	duration_min: "délka spánku",
+	steps: "steps",
+	duration_min: "sleep duration",
 	rmssd_ms: "HRV",
-	resting_hr: "klidový tep",
-	weight_kg: "váha",
+	resting_hr: "resting heart rate",
+	weight_kg: "weight",
 });
 
 export type DailyRow = { date: string } & Partial<Record<DailyField, number>>;
@@ -54,7 +54,7 @@ const fold = (text: string) =>
 		.normalize("NFD")
 		.replace(/\p{M}/gu, "")
 		.toLowerCase()
-		.replace(/[_\-]+/g, " ")
+		.replace(/[_-]+/g, " ")
 		.trim();
 
 /** Jak poznat sloupec veličiny: co v názvu být musí a co nesmí (skóre, cíle, fáze spánku…). */
@@ -119,11 +119,11 @@ function valueOf(field: DailyField, text: string): number | undefined {
 /** Přečte CSV s denními hodnotami. Chyby vrací česky. */
 export function parseDailyCsv(text: string): ParsedDaily {
 	const [header, ...lines] = parseCsv(text);
-	if (!header || lines.length === 0) throw new Error(t("Soubor je prázdný nebo to není CSV."));
+	if (!header || lines.length === 0) throw new Error(t("The file is empty or isn't a CSV."));
 	const names = header.map(fold);
 	let dateColumn = names.findIndex((name) => /^(date|datum|day|den|cas|time|timestamp)$|date|datum/.test(name));
 	if (dateColumn < 0) dateColumn = lines[0]!.findIndex((cell) => parseDailyDate(cell) !== null);
-	if (dateColumn < 0) throw new Error(t("V souboru jsem nenašel sloupec s datem."));
+	if (dateColumn < 0) throw new Error(t("I didn't find a date column in the file."));
 
 	const columns = new Map<DailyField, number>();
 	for (const field of DAILY_FIELDS) {
@@ -131,7 +131,7 @@ export function parseDailyCsv(text: string): ParsedDaily {
 		if (index >= 0) columns.set(field, index);
 	}
 	if (columns.size === 0) {
-		throw new Error(t("V souboru není sloupec, který umím načíst ({v}). Sloupce v souboru: {v2}.", { v: Object.values(DAILY_FIELD_LABELS).join(", "), v2: header.join(", ") }));
+		throw new Error(t("The file has no column I can read ({v}). Columns in the file: {v2}.", { v: Object.values(DAILY_FIELD_LABELS).join(", "), v2: header.join(", ") }));
 	}
 
 	const byDate = new Map<string, DailyRow>();

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { builtinName } from "../../seed/localize";
 	// Režim Základ (SPEC 5.11): karty základních cviků a běhu, rychlý zápis, vstupní test.
 	import { t } from "../../i18n";
 	import { hasCheckIn } from "../../calc/checkIn";
@@ -13,8 +14,8 @@
 	const indexVersion = plugin.indexVersion;
 	const settingsVersion = plugin.settingsVersion;
 
-	const SITUPS = "Sedy-lehy"; // i18n-ignore: název cviku v knihovně (data)
-	const ALTERNATIVES = ["Zkracovačky", "Plank"]; // i18n-ignore: názvy cviků v knihovně (data)
+	const SITUPS = builtinName("exercise", "sit-up");
+	const ALTERNATIVES = ["crunch", "plank"].map((id) => builtinName("exercise", id));
 
 	const today = $derived.by(() => {
 		void $indexVersion;
@@ -57,9 +58,9 @@
 
 <section class="bf-card">
 	<header class="bf-basic-row">
-		<h4>{t("Ranní check-in")}</h4>
+		<h4>{t("Morning check-in")}</h4>
 		<button type="button" class:mod-cta={!hasCheckIn(day)} onclick={() => plugin.openCheckIn(today)}>
-			{hasCheckIn(day) ? t("Upravit") : t("Vyplnit")}
+			{hasCheckIn(day) ? t("Edit") : t("Fill in")}
 		</button>
 	</header>
 	{#if hasCheckIn(day)}
@@ -69,10 +70,10 @@
 
 {#if needsEntryTest}
 	<section class="bf-card">
-		<h4>{t("Začni vstupním testem")}</h4>
-		<p class="bf-muted bf-small">{t("Zjisti své maximum u každého cviku. Podle něj se počítají cíle programu Základ 4.")}</p>
+		<h4>{t("Start with an entry test")}</h4>
+		<p class="bf-muted bf-small">{t("Find your max for each exercise. The targets of the Basic 4 program are calculated from it.")}</p>
 		<div class="bf-actions">
-			<button type="button" class="mod-cta" onclick={() => plugin.openEntryTest()}>{t("Vstupní test")}</button>
+			<button type="button" class="mod-cta" onclick={() => plugin.openEntryTest()}>{t("Entry test")}</button>
 		</div>
 	</section>
 {/if}
@@ -85,7 +86,7 @@
 		{#if card.isSitup}
 			<!-- Šetrnější alternativa k sedům-lehům (SPEC 5.11). -->
 			<label class="bf-situp">
-				<span class="bf-muted">{t("Nepotřebuješ sedy-lehy kvůli testu? Šetrnější varianta:")}</span>
+				<span class="bf-muted">{t("Don't want sit-ups for the test? A gentler option:")}</span>
 				<select class="dropdown" value={situpAlternative} onchange={(e) => void setAlternative(e.currentTarget.value)}>
 					<option value="">{plugin.exerciseInfo(SITUPS)?.name ?? SITUPS}</option>
 					{#each ALTERNATIVES as alt (alt)}<option value={alt}>{alt}</option>{/each}
@@ -97,10 +98,10 @@
 
 <div class="bf-actions">
 	{#if !needsEntryTest}
-		<button type="button" onclick={() => plugin.openEntryTest()}>{t("Přetestovat maxima")}</button>
+		<button type="button" onclick={() => plugin.openEntryTest()}>{t("Retest your max")}</button>
 	{/if}
-	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Denní poznámka")}</button>
-	<button type="button" onclick={() => void plugin.setMode("full")}>{t("Přepnout na plný režim")}</button>
+	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Daily note")}</button>
+	<button type="button" onclick={() => void plugin.setMode("full")}>{t("Switch to full mode")}</button>
 </div>
 
 <style>

@@ -35,17 +35,17 @@
 	}
 
 	function weekLabel(from: number, to: number): string {
-		if (entry.note.duration_weeks === undefined && overview.length === 1) return t("Každý týden");
-		return from === to ? t("Týden {from}", { from }) : t("Týden {from}–{to}", { from, to });
+		if (entry.note.duration_weeks === undefined && overview.length === 1) return t("Every week");
+		return from === to ? t("Week {from}", { from }) : t("Weeks {from}–{to}", { from, to });
 	}
 </script>
 
 <details class="bf-program-details" ontoggle={toggle}>
-	<summary>{t("Podrobnosti")}</summary>
+	<summary>{t("Details")}</summary>
 	{#if open}
 		{#if overview.length > 0 && entry.note.items.length > 0}
 			<div class="bf-overview">
-				<div class="bf-overview-title">{t("Rozpis")}</div>
+				<div class="bf-overview-title">{t("Schedule")}</div>
 				{#each overview as week (week.from)}
 					<div class="bf-overview-week">
 						<div class="bf-overview-label">{weekLabel(week.from, week.to)}</div>
@@ -57,18 +57,18 @@
 			</div>
 		{/if}
 		{#if body === null}
-			<p class="bf-muted">{t("Načítám popis…")}</p>
+			<p class="bf-muted">{t("Loading description…")}</p>
 		{:else if body !== ""}
 			<div class="bf-program-body markdown-rendered" use:markdown={{ app: plugin.app, text: body, sourcePath: entry.file.path }}></div>
 		{/if}
 		{#if sources.length > 0}
 			<div class="bf-sources">
-				<div class="bf-overview-title">{t("Zdroje")}</div>
+				<div class="bf-overview-title">{t("Sources")}</div>
 				<ul>
 					{#each sources as source (source.short)}
 						<li>
 							{source.citation}
-							{#if source.evidence}<span class="bf-tag">{source.evidence === "research" ? t("výzkum") : source.evidence === "consensus" ? t("konsenzus") : t("praxe")}</span>{/if}
+							{#if source.evidence}<span class="bf-tag">{source.evidence === "research" ? t("research") : source.evidence === "consensus" ? t("consensus") : t("practice")}</span>{/if}
 						</li>
 					{/each}
 				</ul>

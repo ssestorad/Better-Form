@@ -1,11 +1,12 @@
 <script lang="ts">
 	// Série a odznaky (SPEC 9.2) a měsíční souhrn (9.5).
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { Notice } from "obsidian";
 	import { previousMonth } from "../../calc/monthlySummary";
 	import { periodLabel, periodOf } from "../../calc/overview";
 	import { badges, dayStreak, weekStreak } from "../../calc/streaks";
 	import type { WorkoutNote } from "../../model/types";
+	import { exerciseId } from "../../seed/localize";
 	import { PULL_UP_EXERCISES } from "../../seed/skills";
 	import { icon } from "../actions";
 	import { usePlugin } from "../context";
@@ -61,7 +62,7 @@
 	const pullUps = new Set(PULL_UP_EXERCISES);
 	const list = $derived.by(() => {
 		void $indexVersion;
-		return badges(workouts, sessions, (exercise) => pullUps.has(plugin.exerciseInfo(exercise)?.name ?? exercise), today);
+		return badges(workouts, sessions, (exercise) => pullUps.has(exerciseId(plugin.exerciseInfo(exercise)?.name ?? exercise) ?? ""), today);
 	});
 
 	const months = $derived([previousMonth(today.slice(0, 7)), today.slice(0, 7)]);
@@ -73,36 +74,36 @@
 			const file = await plugin.summaries.generate(month);
 			await plugin.app.workspace.getLeaf(false).openFile(file);
 		} catch (err) {
-			new Notice(t("Souhrn se nepodařilo vytvořit: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Couldn't create the summary: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 </script>
 
 {#if showStreaks}
 <section class="bf-card">
-	<h4>{t("Série")}</h4>
+	<h4>{t("Sets")}</h4>
 	<div class="bf-st-row">
-		<span>{t("Tento týden")}</span>
-		<strong>{t("{thisWeek} z {goal} tréninků", { thisWeek: week.thisWeek, goal: week.goal })}</strong>
+		<span>{t("This week")}</span>
+		<strong>{tn(week.goal, ["{thisWeek} of {n} workout", "{thisWeek} of {n} workouts"], { thisWeek: week.thisWeek })}</strong>
 	</div>
 	<div class="bf-st-bar"><div class="bf-st-fill" style:width={`${Math.min(100, week.goal > 0 ? (week.thisWeek / week.goal) * 100 : 0)}%`}></div></div>
 	<div class="bf-st-row">
-		<span>{t("Splněných týdnů v řadě")}</span>
-		<strong>{week.current} <span class="bf-muted bf-st-small">{t("(nejdelší {best})", { best: week.best })}</span></strong>
+		<span>{t("Completed weeks in a row")}</span>
+		<strong>{week.current} <span class="bf-muted bf-st-small">{t("(longest {best})", { best: week.best })}</span></strong>
 	</div>
 	{#each programStreaks as p, i (i)}
 		<div class="bf-st-row">
 			<span>{p.name}</span>
-			<strong>{t("{streak} dní v řadě", { streak: p.streak >= STREAK_DAYS ? `${STREAK_DAYS}+` : p.streak })}</strong>
+			<strong>{tn(p.streak, ["{v} day in a row", "{v} days in a row"], { v: p.streak >= STREAK_DAYS ? `${STREAK_DAYS}+` : p.streak })}</strong>
 		</div>
 	{/each}
 	<p class="bf-muted bf-st-small">
-		{t("Týdenní cíl změníš v nastavení. Rozdělaný týden sérii nepřeruší; tréninky z denního počítadla se počítají jen ve dnech bez jiného tréninku. Nemoc a dovolená zapsané v plánu týdne sérii nepřeruší – cíl týdne se podle nich sníží. Série jdou v nastavení vypnout.")}
+		{t("Change the weekly goal in the settings. An unfinished week doesn't break the streak; workouts from the daily counter count only on days without another workout. Illness and vacation logged in the weekly plan don't break the streak – the week's goal is lowered instead. Streaks can be turned off in the settings.")}
 	</p>
 </section>
 
 <section class="bf-card">
-	<h4>{t("Odznaky")}</h4>
+	<h4>{t("Badges")}</h4>
 	<div class="bf-st-badges">
 		{#each list as badge (badge.id)}
 			<div class="bf-st-badge" class:is-done={badge.achieved !== null} title={badge.description}>
@@ -113,7 +114,7 @@
 						{#if badge.achieved}
 							{formatCzechDate(badge.achieved, false)}
 						{:else}
-							{t("{v} z {target} {unit}", { v: formatNumber(badge.progress.value, 1), target: badge.progress.target, unit: badge.progress.unit })}
+							{t("{v} of {target} {unit}", { v: formatNumber(badge.progress.value, 1), target: badge.progress.target, unit: badge.progress.unit })}
 						{/if}
 					</div>
 				</div>
@@ -125,9 +126,9 @@
 {/if}
 
 <section class="bf-card">
-	<h4>{t("Měsíční souhrn")}</h4>
+	<h4>{t("Monthly summary")}</h4>
 	<p class="bf-muted bf-st-small">
-		{t("Poznámka se souhrnem čísel, rekordů a srovnáním s předchozím měsícem. Za uplynulý měsíc se vytvoří sama; tlačítkem ji vytvoříš nebo obnovíš ručně.")}
+		{t("A note with your numbers, records and a comparison with the previous month. It's created automatically for the past month; use the button to create or refresh it manually.")}
 	</p>
 	<div class="bf-actions">
 		{#each months as month (month)}
@@ -137,9 +138,9 @@
 </section>
 
 <section class="bf-card">
-	<h4>{t("Rok v číslech")}</h4>
+	<h4>{t("Year in numbers")}</h4>
 	<p class="bf-muted bf-st-small">
-		{t("Roční souhrn: srovnání s loňskem, přehled po měsících, nejdelší běh a trénink, nejaktivnější měsíc a rekordy roku. Tlačítkem poznámku vytvoříš nebo obnovíš.")}
+		{t("Yearly summary: comparison with last year, a month-by-month overview, the longest run and workout, the most active month and the year's records. Use the button to create or refresh the note.")}
 	</p>
 	<div class="bf-actions">
 		{#each years as year (year)}

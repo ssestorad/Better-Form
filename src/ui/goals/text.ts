@@ -5,7 +5,7 @@ import type { ForecastStatus, GoalEvaluation, GoalUnit } from "../../calc/goals"
 import { formatClockDuration, parseClockDuration } from "../../calc/performance";
 import type { GoalType } from "../../model/constants";
 import { formatCzechDate, formatNumber, formatSeconds } from "../format";
-import { t, translated } from "../../i18n";
+import { t, tn, translated } from "../../i18n";
 
 /** Hodnota cíle v jeho jednotce: „49:30“, „100 kg“, „15 opak.“, „stupeň 4“, „40 km“, „88 %“. */
 export function formatGoalValue(value: number, unit: GoalUnit): string {
@@ -15,11 +15,11 @@ export function formatGoalValue(value: number, unit: GoalUnit): string {
 		case "kg":
 			return `${formatNumber(value, 1)} kg`;
 		case "reps":
-			return t("{n} opak.", { n: formatNumber(value, 0) });
+			return tn(Math.round(value), ["{n} rep", "{n} reps"]);
 		case "sec":
 			return formatSeconds(value);
 		case "level":
-			return t("stupeň {v}", { v: formatNumber(value, 0) });
+			return t("level {v}", { v: formatNumber(value, 0) });
 		case "km":
 			return `${formatNumber(value, 1)} km`;
 		case "pct":
@@ -50,17 +50,17 @@ export function targetUnit(type: GoalType, holdExercise: boolean): GoalUnit {
 export function targetHint(unit: GoalUnit): string {
 	switch (unit) {
 		case "time":
-			return t("čas jako mm:ss nebo h:mm:ss");
+			return t("time as mm:ss or h:mm:ss");
 		case "kg":
 			return "kg";
 		case "reps":
-			return t("opakování");
+			return t("reps");
 		case "sec":
 			return "sekundy";
 		case "level":
-			return t("číslo stupně v žebříčku");
+			return t("level number in the ladder");
 		case "km":
-			return t("km za týden");
+			return t("km per week");
 		case "pct":
 			return "";
 	}
@@ -81,21 +81,21 @@ export function parseGoalTarget(text: string, unit: GoalUnit): number | null {
 }
 
 export const STATUS_LABELS: Record<ForecastStatus, string> = translated({
-	reached: "splněno",
-	on_track: "na dobré cestě",
-	at_risk: "ohrožený",
-	no_data: "sbírám data",
+	reached: "done",
+	on_track: "on track",
+	at_risk: "at risk",
+	no_data: "collecting data",
 });
 
 /** Věta o předpovědi splnění. */
 export function forecastText(e: GoalEvaluation, deadline: string | undefined): string {
-	if (e.status === "reached") return t("Cílová hodnota je dosažená – cíl můžeš označit jako splněný.");
-	if (e.current === null) return t("Zatím žádný výkon, ze kterého by šel stav určit.");
-	if (e.overdue) return t("Termín už uplynul. Posuň ho, nebo cíl uprav.");
-	if (e.status === "no_data") return t("Sbírám data pro předpověď – jsou potřeba aspoň 3 výkony v rozmezí 2 týdnů za poslední 2 měsíce.");
-	const pace = e.perWeek !== null ? t(" ({v}{v2} za týden)", { v: e.perWeek > 0 ? "+" : "−", v2: formatGoalValue(Math.abs(e.perWeek), e.unit === "time" ? "sec" : e.unit) }) : "";
-	if (e.eta === null) return t("Trend posledních týdnů k cíli nevede{pace}.", { pace });
-	const when = t("Podle trendu{pace} vyjde splnění na {v}", { pace, v: formatCzechDate(e.eta, false) });
-	if (e.status === "at_risk" && deadline) return t("{when} – to je po termínu {v}.", { when, v: formatCzechDate(deadline, false) });
+	if (e.status === "reached") return t("Target reached – you can mark the goal as done.");
+	if (e.current === null) return t("No result yet to determine progress from.");
+	if (e.overdue) return t("The deadline has passed. Move it or edit the goal.");
+	if (e.status === "no_data") return t("Collecting data for a forecast – at least 3 results spread over 2 weeks in the last 2 months are needed.");
+	const pace = e.perWeek !== null ? t(" ({v}{v2} per week)", { v: e.perWeek > 0 ? "+" : "−", v2: formatGoalValue(Math.abs(e.perWeek), e.unit === "time" ? "sec" : e.unit) }) : "";
+	if (e.eta === null) return t("The trend of recent weeks isn't heading towards the goal{pace}.", { pace });
+	const when = t("At the current trend{pace} you'll reach it on {v}", { pace, v: formatCzechDate(e.eta, false) });
+	if (e.status === "at_risk" && deadline) return t("{when} – that's after the deadline {v}.", { when, v: formatCzechDate(deadline, false) });
 	return `${when}.`;
 }

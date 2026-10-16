@@ -50,7 +50,8 @@ describe("mergeSettings", () => {
 		expect(settings.thresholds.acwrWarn).toBe(1.4);
 		expect(settings.thresholds.monotonyWarn).toBe(2);
 		expect(settings.folders.root).toBe("Trénink");
-		expect(settings.folders.days).toBe("Deník");
+		// Chybějící složky doplní výchozí (anglické) hodnoty.
+		expect(settings.folders.days).toBe("Journal");
 		expect("neznamy" in settings).toBe(false);
 	});
 
@@ -71,8 +72,11 @@ describe("mergeSettings", () => {
 describe("migrace nastavení", () => {
 	it("verze 1: do cviků režimu Základ přidá běh, zbytek zachová", () => {
 		const settings = mergeSettings({ settingsVersion: 1, basicExercises: ["Kliky", "Dipy"] });
-		expect(settings.basicExercises).toEqual(["Kliky", "Dipy", "Běh"]);
+		expect(settings.basicExercises).toEqual(["Kliky", "Dipy", "Running"]);
 		expect(settings.settingsVersion).toBe(2);
+		// Běh se doplní v jazyce vaultu; už zapsaný (v kterémkoli jazyce) se nezdvojí.
+		expect(mergeSettings({ settingsVersion: 1, language: "cs", basicExercises: ["Kliky"] }).basicExercises).toEqual(["Kliky", "Běh"]);
+		expect(mergeSettings({ settingsVersion: 1, basicExercises: ["Kliky", "Běh"] }).basicExercises).toEqual(["Kliky", "Běh"]);
 	});
 
 	it("aktuální verze: seznam cviků se nemění (běh mohl uživatel odebrat)", () => {
@@ -89,7 +93,7 @@ describe("migrace nastavení", () => {
 		expect(settings.nutrition).toEqual({ ...DEFAULT_SETTINGS.nutrition, lossRatePctMax: 0.8 });
 		expect(settings.nutrition.activityFactors).toEqual({ sedentary: 1.2, light: 1.4, active: 1.6 });
 		expect(settings.folders.exports).toBe("Export");
-		expect(settings.backupFolder).toBe("Forma zálohy");
+		expect(settings.backupFolder).toBe("Better Form backups");
 	});
 });
 

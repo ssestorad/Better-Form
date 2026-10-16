@@ -1,16 +1,12 @@
-// Katalog suplementů s doporučeními. Každá položka srovnává nejméně tři zdroje
-// (src/evidence/sources.ts), má štítek úrovně důkazu a hodnocení zvlášť v každé
-// oblasti přínosu (src/seed/supplementModel.ts). Texty jen shrnují, co zdroje
-// říkají – nejsou zdravotní radou. Látky jsou ve třech souborech stejného tvaru:
-// supplementsBase.ts, supplementsNew.ts a supplementsMore.ts. Bez závislosti na Obsidianu.
+// Katalog suplementů s doporučeními v jazyce rozhraní: data anglicky v supplementData.ts,
+// překlady v src/locales/<kód>/supplements.ts. Texty jen shrnují, co zdroje říkají –
+// nejsou zdravotní radou. Bez závislosti na Obsidianu.
 
 import type { Basis } from "../evidence/sources";
+import { getLanguage, LANGUAGES, type Language } from "../i18n";
+import { contentOf } from "./localize";
+import { SUPPLEMENT_DATA } from "./supplementData";
 import type { CatalogEntry, StudyFinding } from "./supplementModel";
-import { BASE_ENTRIES } from "./supplementsBase";
-import { MORE_ENTRIES } from "./supplementsMore";
-import { NEW_ENTRIES } from "./supplementsNew";
-import { getLanguage, type Language } from "../i18n";
-import { SUPPLEMENTS_EN } from "./en/supplements";
 
 export type { StudyFinding };
 
@@ -22,20 +18,21 @@ export interface CatalogSupplement extends CatalogEntry {
 	basis: Basis;
 }
 
-export const SUPPLEMENT_CATALOG: CatalogSupplement[] = [...BASE_ENTRIES, ...NEW_ENTRIES, ...MORE_ENTRIES].map((entry) => ({
+/** Katalog ve zdrojovém jazyce (angličtina). */
+export const SUPPLEMENT_CATALOG: CatalogSupplement[] = SUPPLEMENT_DATA.map((entry) => ({
 	...entry,
 	basis: { sourceIds: entry.studies.map((s) => s.source), evidence: entry.evidence },
 }));
 
 /** Obecná upozornění zobrazená pod doporučeními. */
 export const SUPPLEMENT_DISCLAIMER =
-	"Doplňky stravy nenahradí jídlo, spánek ani trénink a nejsou to léky. U každé látky jsou srovnané nejméně tři zdroje a důkazy jsou hodnocené zvlášť pro každou oblast přínosu; informace je shrnují a nejsou zdravotní radou – při nemoci, užívání léků nebo v těhotenství se poraď s lékařem nebo lékárníkem.";
+	"Supplements don't replace food, sleep or training, and they aren't medicines. Each substance is compared across at least three sources, and the evidence is graded separately for each area of benefit; the information summarizes those sources and isn't medical advice – if you're ill, take medication or are pregnant, ask a doctor or pharmacist.";
 
 export const SUPPLEMENT_CONTAMINATION_NOTE =
-	"Doplňky mohou obsahovat nedeklarované zakázané látky (v jedné analýze asi 15 % z více než 600 výrobků obsahovalo prohormony). Pokud podléháš dopingovým kontrolám, vybírej jen výrobky testované nezávislou laboratoří.";
+	"Supplements can contain undeclared banned substances (in one analysis about 15 % of more than 600 products contained prohormones). If you're subject to doping control, choose only products tested by an independent laboratory.";
 
 function normalize(text: string): string {
-	return text.trim().toLocaleLowerCase("cs");
+	return text.trim().toLowerCase();
 }
 
 /** Text bez diakritiky a velikosti písmen – pro hledání („horcik“ najde „Hořčík“). */
@@ -61,33 +58,33 @@ export function labelCatalogId(name: string): string | undefined {
 	return findCatalogSupplement(key)?.id;
 }
 
-/** Položka v angličtině; český název a aliasy zůstanou jako aliasy pro hledání. */
-function localizeEntry(item: CatalogSupplement): CatalogSupplement {
-	const en = SUPPLEMENTS_EN[item.id];
-	if (!en) return item;
+/** Položka v jazyce; názvy ve zdroji zůstanou jako aliasy pro hledání. */
+function localizeEntry(item: CatalogSupplement, language: Language): CatalogSupplement {
+	const local = contentOf(language)?.supplements[item.id];
+	if (!local) return item;
 	return {
 		...item,
-		name: en.name,
-		aliases: [...new Set([item.name, ...item.aliases, ...(en.aliases ?? [])])].filter((alias) => alias !== en.name),
-		summary: en.summary,
-		studies: item.studies.map((study, i) => ({ ...study, finding: en.studies[i] ?? study.finding })),
-		agreement: en.agreement,
-		dosing: en.dosing,
-		forWhom: en.forWhom,
-		risks: en.risks,
-		benefits: item.benefits.map((benefit, i) => (en.benefits[i] ? { ...benefit, note: en.benefits[i]! } : benefit)),
-		...(en.safetyNote !== undefined ? { safetyNote: en.safetyNote } : {}),
-		...(en.unit !== undefined ? { defaults: { ...item.defaults, unit: en.unit } } : {}),
+		name: local.name,
+		aliases: [...new Set([item.name, ...item.aliases, ...(local.aliases ?? [])])].filter((alias) => alias !== local.name),
+		summary: local.summary,
+		studies: item.studies.map((study, i) => ({ ...study, finding: local.studies[i] ?? study.finding })),
+		agreement: local.agreement,
+		dosing: local.dosing,
+		forWhom: local.forWhom,
+		risks: local.risks,
+		benefits: item.benefits.map((benefit, i) => (local.benefits[i] ? { ...benefit, note: local.benefits[i]! } : benefit)),
+		...(local.safetyNote !== undefined ? { safetyNote: local.safetyNote } : {}),
+		...(local.unit !== undefined ? { defaults: { ...item.defaults, unit: local.unit } } : {}),
 	};
 }
 
-let englishCatalog: CatalogSupplement[] | null = null;
+const catalogs = new Map<Language, CatalogSupplement[]>();
 
-/** Katalog v jazyce rozhraní. */
+/** Katalog v jazyce (výchozí = jazyk rozhraní). */
 export function catalog(language: Language = getLanguage()): CatalogSupplement[] {
-	if (language === "cs") return SUPPLEMENT_CATALOG;
-	englishCatalog ??= SUPPLEMENT_CATALOG.map(localizeEntry);
-	return englishCatalog;
+	let items = catalogs.get(language);
+	if (!items) catalogs.set(language, (items = SUPPLEMENT_CATALOG.map((item) => localizeEntry(item, language))));
+	return items;
 }
 
 export function catalogSupplement(id: string | undefined): CatalogSupplement | undefined {
@@ -99,6 +96,9 @@ export function findCatalogSupplement(name: string): CatalogSupplement | undefin
 	const key = normalize(name);
 	if (!key) return undefined;
 	const matches = (s: CatalogSupplement) => normalize(s.name) === key || s.aliases.some((a) => normalize(a) === key);
-	const found = SUPPLEMENT_CATALOG.find(matches) ?? catalog("en").find(matches);
-	return found && catalogSupplement(found.id);
+	for (const language of LANGUAGES) {
+		const found = catalog(language).find(matches);
+		if (found) return catalogSupplement(found.id);
+	}
+	return undefined;
 }

@@ -22,16 +22,16 @@ export const BENEFIT_AREAS = [
 export type BenefitArea = (typeof BENEFIT_AREAS)[number];
 
 export const AREA_LABELS: Record<BenefitArea, string> = translated({
-	performance: "Výkon",
-	recovery: "Regenerace",
-	body: "Svaly a složení těla",
-	immunity: "Imunita",
-	cognition: "Soustředění a paměť",
-	mood_stress: "Nálada a stres",
-	sleep: "Spánek",
-	cardio_metabolic: "Srdce a metabolismus",
-	hormones: "Hormony",
-	bones_joints: "Kosti a klouby",
+	performance: "Performance",
+	recovery: "Recovery",
+	body: "Muscle and body composition",
+	immunity: "Immunity",
+	cognition: "Focus and memory",
+	mood_stress: "Mood and stress",
+	sleep: "Sleep",
+	cardio_metabolic: "Heart and metabolism",
+	hormones: "Hormones",
+	bones_joints: "Bones and joints",
 });
 
 export function isBenefitArea(value: string): value is BenefitArea {
@@ -52,11 +52,11 @@ export type Grade = (typeof GRADES)[number];
 export const GRADE_SHORT: Record<Grade, string> = { A: "A", B: "B", C: "C", D: "D", X: "✗" };
 
 export const GRADE_HELP: Record<Grade, string> = translated({
-	A: "Stanovisko odborné společnosti nebo více kvalitních metaanalýz se shodným závěrem.",
-	B: "Metaanalýza nebo více kontrolovaných studií s převážně kladným výsledkem; účinek bývá malý nebo jen u určité skupiny lidí.",
-	C: "Jedna až tři malé studie u lidí, nejednotné výsledky nebo studie placené výrobcem.",
-	D: "Jen pokusy na zvířatech nebo buňkách – u lidí se neví.",
-	X: "U lidí testováno a účinek se nepotvrdil.",
+	A: "A position stand from a professional society or several good meta-analyses that agree.",
+	B: "A meta-analysis or several controlled trials with mostly positive results; the effect tends to be small or limited to certain groups.",
+	C: "One to three small human studies, mixed results, or studies paid for by the manufacturer.",
+	D: "Only animal or cell experiments – unknown in humans.",
+	X: "Tested in humans and the effect wasn't confirmed.",
 });
 
 export interface Benefit {
@@ -70,21 +70,21 @@ export interface Benefit {
 export type SafetyLevel = "ok" | "caution" | "risk";
 
 export const SAFETY_LABELS: Record<SafetyLevel, string> = translated({
-	ok: "bez známých problémů při běžných dávkách",
-	caution: "možné vedlejší účinky nebo interakce",
-	risk: "vážná rizika",
+	ok: "no known problems at usual doses",
+	caution: "possible side effects or interactions",
+	risk: "serious risks",
 });
 
 /** U látek s vedlejšími účinky nebo riziky vždy doporučit lékaře. */
-export const SAFETY_DOCTOR_NOTE = "Pokud bereš léky nebo máš zdravotní potíže, poraď se s lékařem.";
+export const SAFETY_DOCTOR_NOTE = "If you take medication or have health problems, ask your doctor.";
 
 /** Skupina podle shody s cíli uživatele – určuje pořadí a nadpis v knihovně. */
 export type MatchGroup = "fits" | "maybe" | "other";
 
 export const MATCH_TITLES: Record<MatchGroup, string> = translated({
-	fits: "Má smysl pro tvoje cíle – silné nebo střední důkazy",
-	maybe: "Možná pomáhá – předběžné důkazy",
-	other: "Pro tvoje cíle nepotvrzeno nebo mimo ně",
+	fits: "Makes sense for your goals – strong or moderate evidence",
+	maybe: "May help – preliminary evidence",
+	other: "Not confirmed for your goals, or outside them",
 });
 
 const GRADE_RANK: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, X: 0 };
@@ -176,7 +176,7 @@ export interface StudyFinding {
 	funded?: boolean;
 }
 
-/** Jedna látka katalogu – stejný tvar pro všechny části (supplementsBase / New / More). */
+/** Jedna látka katalogu (src/seed/supplementData.ts). */
 export interface CatalogEntry {
 	id: string;
 	name: string;

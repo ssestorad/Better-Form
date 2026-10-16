@@ -38,20 +38,20 @@
 	/** Ruční zátěž dne; prázdné = podle zapsaných tréninků. */
 	let loadChoice = $state<DayLoad | "">("");
 
-	const ACTIVITY_LABELS = { sedentary: t("sedavá"), light: t("lehce aktivní"), active: t("aktivní") } as const;
+	const ACTIVITY_LABELS = { sedentary: t("sedentary"), light: t("lightly active"), active: t("active") } as const;
 	const ACTIVITY_HELP = {
-		sedentary: t("většinu dne sedíš (škola, kancelář)"),
-		light: t("část dne jsi na nohou nebo hodně chodíš"),
-		active: t("fyzická práce, většinu dne v pohybu"),
+		sedentary: t("you sit most of the day (school, office)"),
+		light: t("you're on your feet part of the day or walk a lot"),
+		active: t("physical work, on the move most of the day"),
 	} as const;
 	// Jak přesná je která rovnice (Frankenfield 2005; metaanalýza u sportovců 2023).
 	const RMR_PRECISION = {
-		mifflin: t("U většiny lidí je odhad do ±10 % změřené hodnoty (Frankenfield 2005)."),
-		ten_haaf: t("U sportovců je asi 80 % odhadů do ±10 % změřené hodnoty."),
-		ten_haaf_ffm: t("Odhad z beztukové hmoty – záleží i na tom, jak přesně znáš podíl tuku."),
-		cunningham: t("U sportovců bez soustavné odchylky, ale s větším rozptylem než ten Haafova rovnice z hmotnosti; záleží i na přesnosti podílu tuku."),
+		mifflin: t("For most people the estimate is within ±10 % of the measured value (Frankenfield 2005)."),
+		ten_haaf: t("In athletes about 80 % of estimates are within ±10 % of the measured value."),
+		ten_haaf_ffm: t("Estimate from fat-free mass – it also depends on how accurately you know your body fat."),
+		cunningham: t("In athletes without a systematic bias, but with more spread than the ten Haaf weight equation; it also depends on how accurate your body fat is."),
 	} as const;
-	const GOAL_LABELS = { lose: t("hubnutí"), maintain: t("udržování"), gain: t("nabírání") } as const;
+	const GOAL_LABELS = { lose: t("lose weight"), maintain: t("maintain"), gain: t("gain") } as const;
 
 	const profile = $derived.by(() => {
 		void $indexVersion;
@@ -106,13 +106,13 @@
 		const text = raw.trim();
 		const value = text === "" ? undefined : Number(text);
 		if (value !== undefined && !(Number.isFinite(value) && value >= 0 && value <= MAX_STEPS)) {
-			new Notice(t("Kroky: zadej číslo 0–{MAX_STEPS}.", { MAX_STEPS }));
+			new Notice(t("Steps: enter a number from 0 to {MAX_STEPS}.", { MAX_STEPS }));
 			return;
 		}
 		try {
 			await plugin.days.setSteps(date, value);
 		} catch (err) {
-			new Notice(t("Kroky se nepodařilo uložit: {v}", { v: err instanceof Error ? err.message : String(err) }));
+			new Notice(t("Couldn't save steps: {v}", { v: err instanceof Error ? err.message : String(err) }));
 		}
 	}
 
@@ -131,27 +131,27 @@
 </script>
 
 <div class="bf-nutri-nav">
-	<button type="button" aria-label={t("Předchozí den")} onclick={() => shift(-1)}>‹</button>
+	<button type="button" aria-label={t("Previous day")} onclick={() => shift(-1)}>‹</button>
 	<span class="bf-nutri-date">{formatCzechDate(date)}</span>
-	<button type="button" aria-label={t("Následující den")} disabled={date >= lastDate} onclick={() => shift(1)}>›</button>
+	<button type="button" aria-label={t("Next day")} disabled={date >= lastDate} onclick={() => shift(1)}>›</button>
 </div>
 
 {#if plan === null}
 	<section class="bf-card">
-		<h4>{t("Doporučený příjem")}</h4>
-		<p>{t("Pro výpočet chybí v profilu:")} <strong>{missing.join(", ")}</strong>.</p>
-		<p class="bf-muted bf-small">{t("Hmotnost se bere z posledního ranního check-inu, ostatní údaje z profilu.")}</p>
-		<button type="button" class="mod-cta" onclick={() => plugin.openOnboarding()}>{t("Doplnit profil")}</button>
+		<h4>{t("Recommended intake")}</h4>
+		<p>{t("Missing from your profile for the calculation:")} <strong>{missing.join(", ")}</strong>.</p>
+		<p class="bf-muted bf-small">{t("Weight comes from the latest morning check-in, the other details from your profile.")}</p>
+		<button type="button" class="mod-cta" onclick={() => plugin.openOnboarding()}>{t("Complete profile")}</button>
 	</section>
 {:else}
 	<section class="bf-card">
-		<h4>{t("Doporučený příjem")}</h4>
-		<p class="bf-nutri-total">{t("asi {v} kcal", { v: formatWhole(plan.target) })}</p>
-		<p class="bf-small">{t("Rozsah {v} – {v2}.", { v: rangeText(plan.intake, "kcal"), v2: profile.goal === "maintain" ? t("tak přesný je odhad; skutečnou potřebu ukáže až vývoj hmotnosti za 2–3 týdny") : t("podle tempa, které si zvolíš") })}</p>
-		<p class="bf-muted bf-small">{t("Cíl: {v} · hmotnost {v2} kg{v3}", { v: GOAL_LABELS[profile.goal], v2: formatNumber(kg), v3: plan.ffmKg !== null ? t(" · beztuková hmota {v} kg", { v: formatNumber(plan.ffmKg) }) : "" })}</p>
-		<div class="bf-nutri-macros" role="table" aria-label={t("Makroživiny")}>
-			<span role="columnheader"></span><span role="columnheader">{t("g za den")}</span><span role="columnheader">{t("g/kg")}</span><span role="columnheader">{t("Zdroj")}</span>
-			<span role="cell">{t("Bílkoviny")}</span>
+		<h4>{t("Recommended intake")}</h4>
+		<p class="bf-nutri-total">{t("about {v} kcal", { v: formatWhole(plan.target) })}</p>
+		<p class="bf-small">{t("Range {v} – {v2}.", { v: rangeText(plan.intake, "kcal"), v2: profile.goal === "maintain" ? t("that's how accurate the estimate is; your actual need shows only in your weight trend over 2–3 weeks") : t("depending on the pace you choose") })}</p>
+		<p class="bf-muted bf-small">{t("Goal: {v} · weight {v2} kg{v3}", { v: GOAL_LABELS[profile.goal], v2: formatNumber(kg), v3: plan.ffmKg !== null ? t(" · fat-free mass {v} kg", { v: formatNumber(plan.ffmKg) }) : "" })}</p>
+		<div class="bf-nutri-macros" role="table" aria-label={t("Macronutrients")}>
+			<span role="columnheader"></span><span role="columnheader">{t("g per day")}</span><span role="columnheader">{t("g/kg")}</span><span role="columnheader">{t("Source")}</span>
+			<span role="cell">{t("Protein")}</span>
 			<span role="cell">{rangeText(plan.protein, "g")}</span>
 			<span role="cell">{perKg(plan.protein.min)}–{perKg(plan.protein.max)}</span>
 			<span role="cell">
@@ -161,11 +161,11 @@
 					<BasisTag basis={basis(["morton2018", "nunes2022"], "research")} named />
 				{/if}
 			</span>
-			<span role="cell">{t("Sacharidy")}</span>
+			<span role="cell">{t("Carbohydrates")}</span>
 			<span role="cell">{rangeText(plan.carbs, "g")}</span>
 			<span role="cell">{perKg(plan.carbs.min)}–{perKg(plan.carbs.max)}</span>
 			<span role="cell"><BasisTag basis={basis(["thomas2016"], "consensus")} named /></span>
-			<span role="cell">{t("Tuky")}</span>
+			<span role="cell">{t("Fats")}</span>
 			<span role="cell">{rangeText(plan.fat, "g")}</span>
 			<span role="cell">{perKg(plan.fat.min)}–{perKg(plan.fat.max)}</span>
 			<span role="cell"><BasisTag basis={basis(["thomas2016"], "consensus")} named /></span>
@@ -173,67 +173,67 @@
 		{#if plan.raisedFor.length > 0}
 			<p class="bf-nutri-warning">
 				{#if plan.raisedFor.includes("ea")}
-					{t("Doporučení je zvednuté, aby energetická dostupnost neklesla pod {v} kcal na kg beztukové hmoty – při delším nedostatku energie hrozí zdravotní potíže a horší výkon (IOC REDs 2023, konsenzus; práh je orientační).", { v: formatNumber(eaMin, 0) })}
+					{t("The recommendation is raised so energy availability doesn't drop below {v} kcal per kg of fat-free mass – a prolonged energy shortfall risks health problems and worse performance (IOC REDs 2023, consensus; the threshold is approximate).", { v: formatNumber(eaMin, 0) })}
 				{/if}
-				{#if plan.raisedFor.includes("rmr")}{t("Příjem nikdy neklesne pod klidový výdej.")}{/if}
+				{#if plan.raisedFor.includes("rmr")}{t("Intake never drops below resting expenditure.")}{/if}
 			</p>
 		{/if}
 		{#if plan.carbsShort}
 			<p class="bf-nutri-warning">
-				{t("Při tomto příjmu se doporučené sacharidy pro zátěž dne nevejdou. Přednost mají bílkoviny, pak minimum tuků (20 % energie), zbytek sacharidy.")}
+				{t("At this intake the recommended carbohydrates for the day's load don't fit. Protein comes first, then minimum fat (20 % of energy), carbohydrates take the rest.")}
 			</p>
 		{/if}
 	</section>
 
 	<section class="bf-card">
-		<h4>{t("Co říká váha")}</h4>
+		<h4>{t("What your weight says")}</h4>
 		{#if trend.ready}
-			<p>{t("Trend za {v} týdny:", { v: TREND_WINDOW_DAYS / 7 })} <strong>{trendText(trend)}</strong>.</p>
+			<p>{t("Trend over {v} weeks:", { v: TREND_WINDOW_DAYS / 7 })} <strong>{trendText(trend)}</strong>.</p>
 			{#if balance}<p>{balanceText(balance, profile.goal, plugin.settings.nutrition.lossRatePctMax)}</p>{/if}
 			<p class="bf-muted bf-small">
-				{t("Přímka přes {samples} vážení; 1 kg ≈ {v} kcal.", { samples: trend.samples, v: formatWhole(KCAL_PER_KG) })} <BasisTag basis={basis(["practice"], "practice")} />
+				{t("A line through {samples} weigh-ins; 1 kg ≈ {v} kcal.", { samples: trend.samples, v: formatWhole(KCAL_PER_KG) })} <BasisTag basis={basis(["practice"], "practice")} />
 				{#if profile.goal === "lose"}<BasisTag basis={basis(["helms2014contest"], "research")} named />{/if}
-				{t("Krátkodobě váhu mění i voda, sůl a sacharidy. Skutečný výdej by šel spočítat až se zápisem jídla – tohle říká jen, jestli jíš nad, nebo pod ním.")}
+				{t("In the short term, water, salt and carbohydrates change your weight too. Actual expenditure could only be calculated with food logging – this only tells you whether you're eating above or below it.")}
 			</p>
 			{#if advice.kind === "offer"}
 				<div class="bf-nutri-check">
 					<p>
-						<strong>{t("Týdenní kontrola:")}</strong> {t("pokud ses doporučení zhruba držel, odhad tvého výdeje je asi o {v} kcal {v2}, než má být. Můžu podle toho doporučení posunout.", { v: formatWhole(Math.abs(advice.stepKcal)), v2: advice.stepKcal > 0 ? t("nižší") : t("vyšší") })}
+						<strong>{t("Weekly check:")}</strong> {t("if you roughly followed the recommendation, your estimated expenditure is about {v} kcal {v2} than it should be. I can shift the recommendation accordingly.", { v: formatWhole(Math.abs(advice.stepKcal)), v2: advice.stepKcal > 0 ? t("lower") : t("higher") })}
 						<BasisTag basis={basis(["practice"], "practice")} />
 					</p>
 					<button type="button" class="mod-cta" onclick={() => void plugin.setNutritionCorrection(advice.totalKcal)}>
-						{t("Upravit doporučení o {v}", { v: signedKcal(advice.stepKcal) })}
+						{t("Adjust the recommendation by {v}", { v: signedKcal(advice.stepKcal) })}
 					</button>
 				</div>
 			{:else if advice.kind === "floor"}
 				<p class="bf-muted bf-small">
-					{t("Podle váhy by doporučení mělo být nižší, ale už stojí na spodní hranici, kterou drží pojistka (klidový výdej nebo energetická dostupnost) – níž plugin nedoporučí. Zkontroluj, jestli se doporučení opravdu držíš; pokud ano a váha dlouhodobě neklesá, poraď se s nutričním terapeutem nebo lékařem.")}
+					{t("Based on your weight the recommendation should be lower, but it's already at the floor held by the safeguard (resting expenditure or energy availability) – the plugin won't recommend less. Check whether you're really following the recommendation; if you are and your weight still isn't dropping over time, see a dietitian or doctor.")}
 				</p>
 			{:else if advice.kind === "locked"}
-				<p class="bf-muted bf-small">{t("Korekce je čerstvá – další kontrola od {v}, až se projeví ve váze.", { v: formatCzechDate(advice.until, false) })}</p>
+				<p class="bf-muted bf-small">{t("The correction is fresh – the next check from {v}, once it shows in your weight.", { v: formatCzechDate(advice.until, false) })}</p>
 			{/if}
 		{:else}
 			<p class="bf-muted">
-				{t("Sbírám data – {samples} z {TREND_MIN_SAMPLES} vážení za poslední {v} týdny{v2}. Važ se ráno po probuzení, aspoň dvakrát až třikrát týdně.", { samples: trend.samples, TREND_MIN_SAMPLES, v: TREND_WINDOW_DAYS / 7, v2: trend.samples >= TREND_MIN_SAMPLES
-					? t(", rozpětí {spanDays} z {TREND_MIN_SPAN_DAYS} dní", { spanDays: trend.spanDays, TREND_MIN_SPAN_DAYS })
+				{t("Collecting data – {samples} of {TREND_MIN_SAMPLES} weigh-ins in the last {v} weeks{v2}. Weigh yourself in the morning after waking up, at least two or three times a week.", { samples: trend.samples, TREND_MIN_SAMPLES, v: TREND_WINDOW_DAYS / 7, v2: trend.samples >= TREND_MIN_SAMPLES
+					? t(", spread {spanDays} of {TREND_MIN_SPAN_DAYS} days", { spanDays: trend.spanDays, TREND_MIN_SPAN_DAYS })
 					: "" })}
 			</p>
-			<p class="bf-muted bf-small">{t("Z vývoje váhy pak bude vidět, jestli doporučení sedí, nebo jestli jíš nad či pod svým výdejem.")}</p>
+			<p class="bf-muted bf-small">{t("Your weight trend will then show whether the recommendation fits or whether you're eating above or below your expenditure.")}</p>
 		{/if}
 		{#if correction.kcal !== 0}
 			<div class="bf-nutri-check">
 				<p class="bf-small">
-					{t("Osobní korekce výdeje:")} <strong>{t("{v} denně", { v: signedKcal(correction.kcal) })}</strong>{correction.date ? t(" (od {date})", { date: formatCzechDate(correction.date, false) }) : ""}.
+					{t("Personal expenditure correction:")} <strong>{t("{v} a day", { v: signedKcal(correction.kcal) })}</strong>{correction.date ? t(" (since {date})", { date: formatCzechDate(correction.date, false) }) : ""}.
 				</p>
-				<button type="button" onclick={() => void plugin.setNutritionCorrection(0)}>{t("Zrušit korekci")}</button>
+				<button type="button" onclick={() => void plugin.setNutritionCorrection(0)}>{t("Remove correction")}</button>
 			</div>
 		{/if}
 	</section>
 
 	<section class="bf-card">
-		<h4>{t("Jak se to spočítalo")}</h4>
+		<h4>{t("How it was calculated")}</h4>
 		<dl class="bf-nutri-steps">
-			<dt>{t("Klidový výdej")}</dt>
+			<dt>{t("Resting expenditure")}</dt>
 			<dd>
 				{t("{v} kcal ({v2}) – {v3}", { v: formatWhole(plan.rmr.kcal), v2: rangeText(plan.rmrRange, "kcal"), v3: RMR_FORMULA_LABELS[plan.rmr.formula] })}
 				{#if plan.rmr.formula === "mifflin"}
@@ -244,119 +244,119 @@
 				{#if better !== null}
 					<br /><span class="bf-nutri-note bf-small">
 						{#if better.formula === "cunningham"}
-							{t("Pravidelně trénuješ, ale jsi mimo skupinu, na které vznikla ten Haafova rovnice ({outside}). Máš zapsaný podíl tuku, takže se hodí rovnice z beztukové hmoty (Cunningham 1980): vychází z tvé stavby těla a u sportovců nemá soustavnou odchylku.", { outside: better.outside })}
+							{t("You train regularly, but you're outside the group the ten Haaf equation was developed on ({outside}). You've logged your body fat, so the fat-free mass equation (Cunningham 1980) fits: it's based on your body composition and has no systematic bias in athletes.", { outside: better.outside })}
 						{:else if better.formula === "mifflin"}
-							{t("Ten Haafova rovnice vznikla na sportovcích 18–35 let trénujících aspoň 3 h týdně a u lehčích a méně trénujících vychází výš. Tvůj profil je mimo tuto skupinu ({outside}); pro běžnou populaci je spolehlivější Mifflin–St Jeor.", { outside: better.outside })}
+							{t("The ten Haaf equation was developed in athletes aged 18–35 training at least 3 h a week, and it comes out higher for lighter and less-trained people. Your profile is outside this group ({outside}); for the general population Mifflin–St Jeor is more reliable.", { outside: better.outside })}
 						{:else}
-							{t("Podle profilu a tréninku patříš do skupiny pravidelně sportujících 18–35 let. U sportovců má rovnice pro běžnou populaci soustavnou odchylku; přesnější je ten Haaf & Weijs.")}
+							{t("Based on your profile and training you belong to the group of regular athletes aged 18–35. In athletes the general-population equation has a systematic bias; ten Haaf & Weijs is more accurate.")}
 						{/if}
-						{t("S ní by klidový výdej vyšel {v} kcal místo {v2}.", { v: formatWhole(better.kcal), v2: formatWhole(plan.rmr.kcal) })}
-						<button type="button" class="bf-link-button" onclick={() => void plugin.setRmrFormula(better.formula)}>{t("Přepnout")}</button>
+						{t("With it, resting expenditure would come out at {v} kcal instead of {v2}.", { v: formatWhole(better.kcal), v2: formatWhole(plan.rmr.kcal) })}
+						<button type="button" class="bf-link-button" onclick={() => void plugin.setRmrFormula(better.formula)}>{t("Switch")}</button>
 						<BasisTag basis={basis(["practice"], "practice")} />
 					</span>
 				{/if}
-				{#if plan.rmr.fallback}<br /><span class="bf-muted bf-small">{t("Zvolená rovnice potřebuje podíl tuku – použita rovnice z hmotnosti.")}</span>{/if}
+				{#if plan.rmr.fallback}<br /><span class="bf-muted bf-small">{t("The chosen equation needs body fat – the weight-based equation was used.")}</span>{/if}
 				<br /><span class="bf-muted bf-small">{RMR_PRECISION[plan.rmr.formula]}</span>
 			</dd>
-			<dt>{t("Běžná aktivita")}</dt>
+			<dt>{t("Everyday activity")}</dt>
 			<dd>
-				{t("× {v} ({v2})", { v: formatNumber(plan.activityFactor, 2), v2: profile.steps ? t("pásmo {v}", { v: ACTIVITY_LABELS[plan.activity] }) : `${ACTIVITY_LABELS[plan.activity]} – ${ACTIVITY_HELP[plan.activity]}` })} <BasisTag basis={basis(["practice"], "practice")} />
+				{t("× {v} ({v2})", { v: formatNumber(plan.activityFactor, 2), v2: profile.steps ? t("band {v}", { v: ACTIVITY_LABELS[plan.activity] }) : `${ACTIVITY_LABELS[plan.activity]} – ${ACTIVITY_HELP[plan.activity]}` })} <BasisTag basis={basis(["practice"], "practice")} />
 				<br />
 				{#if profile.steps}
 					<span class="bf-small">
-						{t("Podle kroků: {v} {v2} kroků mimo běh.", { v: profile.steps.source === "day" ? t("tento den") : t("průměr za {v} z posledního týdne", { v: formatDays(profile.steps.days) }), v2: formatWhole(profile.steps.steps) })}
+						{t("From steps: {v} {v2} steps outside running.", { v: profile.steps.source === "day" ? t("this day") : t("average over {v} of the last week", { v: formatDays(profile.steps.days) }), v2: formatWhole(profile.steps.steps) })}
 						<BasisTag basis={basis(["tudorLocke2004"], "research")} named />
 					</span>
 				{:else}
-					<span class="bf-muted bf-small">{t("Z nastavení. Když budeš zapisovat kroky, určí se úroveň podle nich.")}</span>
+					<span class="bf-muted bf-small">{t("From the settings. If you log steps, the level is set from them.")}</span>
 				{/if}
 				<label class="bf-nutri-stepsfield bf-small">
-					<span>{t("Kroky za tento den")}</span>
+					<span>{t("Steps on this day")}</span>
 					{#key `${date}:${daySteps ?? ""}`}
-						<input type="number" inputmode="numeric" min="0" max={MAX_STEPS} step="100" value={daySteps ?? ""} placeholder={t("např. 8000")} onchange={(e) => void saveSteps(e.currentTarget.value)} />
+						<input type="number" inputmode="numeric" min="0" max={MAX_STEPS} step="100" value={daySteps ?? ""} placeholder={t("e.g. 8000")} onchange={(e) => void saveSteps(e.currentTarget.value)} />
 					{/key}
 				</label>
 				<span class="bf-muted bf-small">
-					{t("Jen běžný den mimo trénink – tréninky se přičítají zvlášť níže a kroky z běhu se odečítají (asi 1 000 na km). Koeficient se z kroků dopočítává plynule: {v} kroků = {v2}, {v3} = {v4}, {v5} = {v6}. Pásma kroků jsou z výzkumu, jejich převod na koeficient je odhad.", { v: formatWhole(STEP_ANCHORS.sedentary), v2: formatNumber(plugin.settings.nutrition.activityFactors.sedentary, 2), v3: formatWhole(STEP_ANCHORS.light), v4: formatNumber(
+					{t("Only a normal day outside training – workouts are added separately below and steps from running are subtracted (about 1,000 per km). The factor is interpolated smoothly from steps: {v} steps = {v2}, {v3} = {v4}, {v5} = {v6}. The step bands come from research; converting them to a factor is an estimate.", { v: formatWhole(STEP_ANCHORS.sedentary), v2: formatNumber(plugin.settings.nutrition.activityFactors.sedentary, 2), v3: formatWhole(STEP_ANCHORS.light), v4: formatNumber(
 						plugin.settings.nutrition.activityFactors.light,
 						2,
 					), v5: formatWhole(STEP_ANCHORS.active), v6: formatNumber(plugin.settings.nutrition.activityFactors.active, 2) })}
 				</span>
 			</dd>
-			<dt>{t("Tréninky")}</dt>
+			<dt>{t("Workouts")}</dt>
 			<dd>
 				{#if plan.workouts.length === 0}
-					{t("žádný zapsaný ani naplánovaný trénink")}
+					{t("no workout logged or planned")}
 				{:else}
 					<ul class="bf-nutri-list">
 						{#each plan.workouts as row, i (i)}
 							<li>
-								{workoutLabel(row.workout)}{#if row.planned}&nbsp;<span class="bf-tag" title={t("Z plánu týdne – trénink ještě není zapsaný; délka a intenzita jsou plánované")}>{t("plán")}</span>{/if}:
+								{workoutLabel(row.workout)}{#if row.planned}&nbsp;<span class="bf-tag" title={t("From the weekly plan – the workout isn't logged yet; duration and intensity are planned")}>{t("plan")}</span>{/if}:
 								{#if row.energy.netKcal === null}
-									<span class="bf-muted">{t("bez délky – nepočítá se")}</span>
+									<span class="bf-muted">{t("no duration – not counted")}</span>
 								{:else}
 									{t("+{v} kcal", { v: formatWhole(row.energy.netKcal) })}
 									<span class="bf-muted bf-small">
 										{row.energy.method === "run_distance"
-											? t("(1 kcal × kg × km mínus klidový výdej)")
-											: t("(MET {v}, intenzita {v2} podle RPE, kód {code})", { v: formatNumber(row.energy.met ?? 0), v2: INTENSITY_LABELS[row.energy.intensity], code: row.energy.code ?? "" })}
+											? t("(1 kcal × kg × km minus resting expenditure)")
+											: t("(MET {v}, intensity {v2} by RPE, code {code})", { v: formatNumber(row.energy.met ?? 0), v2: INTENSITY_LABELS[row.energy.intensity], code: row.energy.code ?? "" })}
 									</span>
 								{/if}
 							</li>
 						{/each}
 					</ul>
 					<BasisTag basis={basis(["margaria1963", "compendium2024"], "research")} named />
-					<span class="bf-muted bf-small">{t("Počítá se čistý výdej nad klidový; kalorie ze Stravy se nepoužívají. Intenzita z RPE je odhad (praxe).")}</span>
+					<span class="bf-muted bf-small">{t("Net expenditure above resting is counted; calories from Strava aren't used. Intensity from RPE is an estimate (practice).")}</span>
 				{/if}
 			</dd>
 			{#if plan.correctionKcal !== 0}
-				<dt>{t("Korekce podle váhy")}</dt>
+				<dt>{t("Correction from weight")}</dt>
 				<dd>
 					{signedKcal(plan.correctionKcal)} <BasisTag basis={basis(["practice"], "practice")} />
-					<br /><span class="bf-muted bf-small">{t("Osobní posun odhadu výdeje z týdenní kontroly váhy; zrušíš ho v části „Co říká váha“.")}</span>
+					<br /><span class="bf-muted bf-small">{t("Your personal shift of the expenditure estimate from the weekly weight check; remove it under “What your weight says”.")}</span>
 				</dd>
 			{/if}
-			<dt>{t("Celkový výdej")}</dt>
+			<dt>{t("Total expenditure")}</dt>
 			<dd>{t("{v} kcal ({v2})", { v: formatWhole(plan.tdee), v2: rangeText(plan.tdeeRange, "kcal") })}</dd>
-			<dt>{t("Podle cíle")}</dt>
+			<dt>{t("By goal")}</dt>
 			<dd>
 				{#if profile.goal === "lose"}
-					{t("deficit {v}–{v2} kcal = tempo {v3}–{v4} % hmotnosti za týden", { v: formatWhole(-plan.goalAdjust.max), v2: formatWhole(-plan.goalAdjust.min), v3: formatNumber(plugin.settings.nutrition.lossRatePctMin), v4: formatNumber(
+					{t("deficit {v}–{v2} kcal = pace {v3}–{v4} % of body weight per week", { v: formatWhole(-plan.goalAdjust.max), v2: formatWhole(-plan.goalAdjust.min), v3: formatNumber(plugin.settings.nutrition.lossRatePctMin), v4: formatNumber(
 						plugin.settings.nutrition.lossRatePctMax,
 					) })}
 					<BasisTag basis={basis(["helms2014contest"], "research")} named />
-					<span class="bf-muted bf-small">{t("(1 kg ≈ {v} kcal – hrubý odhad)", { v: formatWhole(KCAL_PER_KG) })}</span>
+					<span class="bf-muted bf-small">{t("(1 kg ≈ {v} kcal – a rough estimate)", { v: formatWhole(KCAL_PER_KG) })}</span>
 				{:else if profile.goal === "gain"}
-					{t("přebytek {v}–{v2} % výdeje", { v: formatNumber(plugin.settings.nutrition.gainSurplusPctMin), v2: formatNumber(plugin.settings.nutrition.gainSurplusPctMax) })}
+					{t("surplus {v}–{v2} % of expenditure", { v: formatNumber(plugin.settings.nutrition.gainSurplusPctMin), v2: formatNumber(plugin.settings.nutrition.gainSurplusPctMax) })}
 					<BasisTag basis={basis(["practice"], "practice")} />
 				{:else}
-					{t("udržování – rozsah odpovídá přesnosti odhadu klidového výdeje")}
+					{t("maintenance – the range matches the accuracy of the resting expenditure estimate")}
 				{/if}
 			</dd>
-			<dt>{t("Energetická dostupnost")}</dt>
+			<dt>{t("Energy availability")}</dt>
 			<dd>
-				{t("{v} kcal/kg {v2} u spodní hranice (pojistka od {v3})", { v: formatNumber(plan.energyAvailability, 0), v2: plan.eaUsesBodyWeight ? "hmotnosti" : t("beztukové hmoty"), v3: formatNumber(eaMin, 0) })}
+				{t("{v} kcal/kg {v2} at the lower end (safeguard from {v3})", { v: formatNumber(plan.energyAvailability, 0), v2: plan.eaUsesBodyWeight ? "hmotnosti" : t("fat-free mass"), v3: formatNumber(eaMin, 0) })}
 				<BasisTag basis={basis(["mountjoy2023"], "consensus")} named />
 				{#if plan.eaUsesBodyWeight}
-					<br /><span class="bf-muted bf-small">{t("Bez podílu tuku se počítá s celou hmotností – přísnější odhad. Podíl tuku zadáš v check-inu nebo v profilu.")}</span>
+					<br /><span class="bf-muted bf-small">{t("Without body fat, your whole body weight is used – a stricter estimate. Enter body fat in the check-in or your profile.")}</span>
 				{/if}
 			</dd>
-			<dt>{t("Zátěž dne")}</dt>
+			<dt>{t("Daily load")}</dt>
 			<dd>
-				<select value={loadChoice} onchange={(e) => (loadChoice = e.currentTarget.value as DayLoad | "")} aria-label={t("Zátěž dne")}>
-					<option value="">{t("automaticky ({v})", { v: DAY_LOAD_LABELS[plan.load] })}</option>
+				<select value={loadChoice} onchange={(e) => (loadChoice = e.currentTarget.value as DayLoad | "")} aria-label={t("Daily load")}>
+					<option value="">{t("automatic ({v})", { v: DAY_LOAD_LABELS[plan.load] })}</option>
 					{#each DAY_LOADS as l (l)}<option value={l}>{DAY_LOAD_LABELS[l]}</option>{/each}
 				</select>
 				<br /><span class="bf-muted bf-small">
-					{t("Sacharidy {v}–{v2} g/kg. Automatická volba podle délky a RPE zapsaných tréninků a nesplněných položek plánu týdne (hranice jsou odhad – praxe); bez plánu si zátěž dne dopředu vyber ručně.", { v: CARB_RANGES[plan.load][0], v2: CARB_RANGES[plan.load][1] })}
+					{t("Carbohydrates {v}–{v2} g/kg. Chosen automatically from the duration and RPE of logged workouts and unfinished items in the weekly plan (the thresholds are an estimate – practice); without a plan, pick the day's load manually in advance.", { v: CARB_RANGES[plan.load][0], v2: CARB_RANGES[plan.load][1] })}
 				</span>
 			</dd>
-			<dt>{t("Bílkoviny")}</dt>
+			<dt>{t("Protein")}</dt>
 			<dd class="bf-muted bf-small">
 				{#if profile.goal === "lose" && plan.ffmKg !== null}
-					{t("v deficitu {v}–{v2} g na kg beztukové hmoty", { v: CUT_PROTEIN_G_PER_KG_FFM[0], v2: CUT_PROTEIN_G_PER_KG_FFM[1] })}
+					{t("in a deficit {v}–{v2} g per kg of fat-free mass", { v: CUT_PROTEIN_G_PER_KG_FFM[0], v2: CUT_PROTEIN_G_PER_KG_FFM[1] })}
 				{:else}
-					{t("{v}–{v2} g/kg; rozložit asi 0,3–0,4 g/kg na jídlo", { v: formatNumber(PROTEIN_G_PER_KG[0]), v2: formatNumber(Math.max(PROTEIN_G_PER_KG[1], plugin.settings.nutrition.proteinGPerKg)) })}
+					{t("{v}–{v2} g/kg; spread about 0.3–0.4 g/kg per meal", { v: formatNumber(PROTEIN_G_PER_KG[0]), v2: formatNumber(Math.max(PROTEIN_G_PER_KG[1], plugin.settings.nutrition.proteinGPerKg)) })}
 				{/if}
 			</dd>
 		</dl>
@@ -364,7 +364,7 @@
 {/if}
 
 <p class="bf-muted bf-small">
-	{t("Orientační odhad podle rovnic a tabulek, ne jídelníček od nutričního specialisty. Zápis jídla a doladění podle skutečného vývoje hmotnosti přijde později.")}
+	{t("A rough estimate from equations and tables, not a meal plan from a nutrition professional. Food logging and fine-tuning by your actual weight trend will come later.")}
 </p>
 
 <style>

@@ -17,7 +17,7 @@
 <div class="bf-field" role="group" aria-labelledby={id}>
 	<div class="bf-field-label">
 		<span {id}>{label}</span>
-		{#if hint !== undefined}<span class="bf-hint">{t("minule {hint}", { hint })}</span>{/if}
+		{#if hint !== undefined}<span class="bf-hint">{t("last time {hint}", { hint })}</span>{/if}
 	</div>
 	<div class="bf-scale">
 		{#each [1, 2, 3, 4, 5] as n (n)}

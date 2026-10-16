@@ -1,5 +1,6 @@
 import { Modal, Notice } from "obsidian";
 import { mount, unmount } from "svelte";
+import type { PlanDraft } from "../../data/PlanService";
 import { planItemTitle } from "../../data/planBlock";
 import type BetterFormPlugin from "../../main";
 import type { Sport } from "../../model/constants";
@@ -31,7 +32,7 @@ export class PlanItemModal extends Modal {
 		const { plugin } = this;
 		const { item, date } = this.options;
 		this.modalEl.addClass("bf-modal");
-		this.titleEl.setText(item ? t("Upravit plán") : t("Naplánovat trénink"));
+		this.titleEl.setText(item ? t("Edit plan") : t("Plan a workout"));
 		const sports = (Object.keys(plugin.settings.sports) as Sport[]).filter((s) => plugin.settings.sports[s]);
 		this.component = mount(PlanItemForm, {
 			target: this.contentEl,
@@ -43,15 +44,15 @@ export class PlanItemModal extends Modal {
 					.all("template")
 					.map((t) => ({ name: t.note.name, sport: t.note.sport }))
 					.sort((a, b) => a.name.localeCompare(b.name, "cs")),
-				onSave: async (draft) => {
+				onSave: async (draft: PlanDraft) => {
 					if (item) await plugin.plans.update(item, draft);
 					else await plugin.plans.add(draft);
-					new Notice(t("Plán uložen: {v}.", { v: formatShortDate(draft.date) }));
+					new Notice(t("Plan saved: {v}.", { v: formatShortDate(draft.date) }));
 					this.close();
 				},
 				onDelete: item
 					? async () => {
-							if (!(await confirmAction(this.app, t("Smazat z plánu?"), t("{v} ({v2}) zmizí z plánu týdne. Zapsané tréninky zůstanou.", { v: planItemTitle(item), v2: formatShortDate(item.date) }), t("Smazat")))) return;
+							if (!(await confirmAction(this.app, t("Remove from the plan?"), t("{v} ({v2}) will disappear from the weekly plan. Logged workouts stay.", { v: planItemTitle(item), v2: formatShortDate(item.date) }), t("Delete")))) return;
 							await plugin.plans.remove(item);
 							this.close();
 						}

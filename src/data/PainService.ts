@@ -55,8 +55,8 @@ export class PainService {
 
 	async create(draft: PainDraft, date: string): Promise<TFile> {
 		const name = draft.name.trim();
-		if (!name) throw new Error(t("Chybí popis bolesti."));
-		if (this.find(name)) throw new Error(t("Záznam „{name}“ už existuje – zapiš do něj novou intenzitu.", { name }));
+		if (!name) throw new Error(t("The pain needs a description."));
+		if (this.find(name)) throw new Error(t("The entry “{name}” already exists – log the new intensity in it.", { name }));
 		const level = Math.min(10, Math.max(0, Math.round(draft.level)));
 		const note: PainNote = {
 			forma: "pain",
@@ -77,7 +77,7 @@ export class PainService {
 
 	/** Zapíše intenzitu k datu; 0 záznam uzavře jako vyřešený. */
 	async record(entry: PainEntryRef, date: string, level: number): Promise<void> {
-		if (entry.schemaStatus === "newer") throw new Error(t("Poznámka je z novější verze pluginu – aktualizuj plugin."));
+		if (entry.schemaStatus === "newer") throw new Error(t("The note is from a newer version of the plugin – update the plugin."));
 		const next = painToFrontmatter(recordPain(entry.note, date, level));
 		await this.writer.updateFrontmatter(entry.file, (frontmatter) => {
 			for (const key of PAIN_KEYS) delete frontmatter[key];
@@ -90,11 +90,11 @@ export class PainService {
 	async report(report: PainReport, date: string): Promise<string> {
 		if (report.existing) {
 			const entry = this.find(report.existing);
-			if (!entry) throw new Error(t("Záznam bolesti „{existing}“ nejde najít.", { existing: report.existing }));
+			if (!entry) throw new Error(t("Can't find the pain entry “{existing}”.", { existing: report.existing }));
 			await this.record(entry, date, report.level);
 			return entry.file.basename;
 		}
-		if (!report.draft) throw new Error(t("Chybí popis bolesti."));
+		if (!report.draft) throw new Error(t("The pain needs a description."));
 		const file = await this.create({ ...report.draft, level: report.level }, date);
 		return file.basename;
 	}

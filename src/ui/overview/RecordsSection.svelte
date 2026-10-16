@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Osobní rekordy (SPEC 9.1) a odhad závodního času (8.7).
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { formatClockDuration, formatPace } from "../../calc/performance";
 	import { REP_MAX_COUNTS, exerciseRecords, swimRecords, type ExerciseRecords, type RecordContext } from "../../calc/records";
 	import { RECORD_DISTANCES, RIEGEL_BASIS, longestRun, riegelTime, runRecords } from "../../calc/running";
@@ -45,11 +45,11 @@
 	function parts(rec: ExerciseRecords): { text: string; date: string }[] {
 		const out: { text: string; date: string }[] = [];
 		if (rec.oneRm) out.push({ text: `1RM ${kgText(rec.oneRm.value)}`, date: rec.oneRm.date });
-		if (rec.maxReps) out.push({ text: t("{n} opak.", { n: rec.maxReps.value }), date: rec.maxReps.date });
+		if (rec.maxReps) out.push({ text: tn(rec.maxReps.value, ["{n} rep", "{n} reps"]), date: rec.maxReps.date });
 		if (rec.longestHold) out.push({ text: formatSeconds(rec.longestHold.value), date: rec.longestHold.date });
 		if (rec.heaviest) out.push({ text: `${kgText(rec.heaviest.kg)} × ${rec.heaviest.reps}`, date: rec.heaviest.date });
 		if (rec.density) {
-			out.push({ text: t("{n} opak./min", { n: rec.density.repsPerMin }) + (rec.density.kg ? ` (${kgText(rec.density.kg)})` : ""), date: rec.density.date });
+			out.push({ text: tn(rec.density.repsPerMin, ["{n} rep/min", "{n} reps/min"]) + (rec.density.kg ? ` (${kgText(rec.density.kg)})` : ""), date: rec.density.date });
 		}
 		// Nejtěžší série: stejná váha pro víc počtů se ukáže jen u nejvyššího.
 		let previous: number | null = null;
@@ -64,9 +64,9 @@
 </script>
 
 <section class="bf-card">
-	<h4>{t("Běh")}</h4>
+	<h4>{t("Run")}</h4>
 	{#if !hasRuns}
-		<p class="bf-muted">{t("Zatím žádný běh. Zapiš ho ručně nebo připoj Stravu v nastavení.")}</p>
+		<p class="bf-muted">{t("No runs yet. Log one manually or connect Strava in the settings.")}</p>
 	{:else}
 		<div class="bf-rec-table" role="table">
 			{#each runs as record (record.distance.key)}
@@ -74,12 +74,12 @@
 					<span role="cell">{record.distance.label}</span>
 					<span role="cell" class="bf-rec-num">{formatClockDuration(record.seconds)}</span>
 					<span role="cell" class="bf-muted bf-rec-num">{formatPace(record.seconds / record.distance.km)}</span>
-					<span role="cell" class="bf-muted">{formatShortDate(record.date)}{record.from === "segment" ? t(" · úsek") : ""}</span>
+					<span role="cell" class="bf-muted">{formatShortDate(record.date)}{record.from === "segment" ? t(" · split") : ""}</span>
 				</div>
 			{/each}
 			{#if longest}
 				<div class="bf-rec-run" role="row">
-					<span role="cell">{t("Nejdelší běh")}</span>
+					<span role="cell">{t("Longest run")}</span>
 					<span role="cell" class="bf-rec-num">{formatNumber(longest.km, 2)} km</span>
 					<span role="cell"></span>
 					<span role="cell" class="bf-muted">{formatShortDate(longest.date)}</span>
@@ -88,20 +88,20 @@
 		</div>
 		<p class="bf-muted bf-rec-small">
 			{runs.length === 0
-				? t("Rekord na trati se objeví, až poběžíš 1, 5, 10 km, půlmaraton nebo maraton (±2 %), nebo až Strava dodá nejrychlejší úseky.")
-				: t("„úsek“ = nejrychlejší úsek uvnitř delšího běhu podle Stravy; jinak celý běh dané délky (±2 %).")}
+				? t("A distance record appears once you run 1, 5 or 10 km, a half marathon or marathon (±2 %), or once Strava provides your fastest splits.")
+				: t("“split” = the fastest segment within a longer run according to Strava; otherwise a whole run of that length (±2 %).")}
 		</p>
 	{/if}
 </section>
 
 {#if base}
 	<section class="bf-card">
-		<h4>{t("Odhad závodního času")}</h4>
+		<h4>{t("Race time prediction")}</h4>
 		<label class="bf-rec-base bf-rec-small">
-			<span>{t("Vychází z rekordu")}</span>
+			<span>{t("Based on the record")}</span>
 			<select value={base.distance.key} onchange={(e) => (baseKey = e.currentTarget.value)}>
 				{#each runs as record (record.distance.key)}
-					<option value={record.distance.key}>{t("{distance_label} za {v} ({v2})", { distance_label: record.distance.label, v: formatClockDuration(record.seconds), v2: formatShortDate(record.date) })}</option>
+					<option value={record.distance.key}>{t("{distance_label} in {v} ({v2})", { distance_label: record.distance.label, v: formatClockDuration(record.seconds), v2: formatShortDate(record.date) })}</option>
 				{/each}
 			</select>
 		</label>
@@ -111,20 +111,20 @@
 					<span role="cell">{row.distance.label}</span>
 					<span role="cell" class="bf-rec-num">{row.seconds === null ? "—" : formatClockDuration(row.seconds)}</span>
 					<span role="cell" class="bf-muted bf-rec-num">{row.seconds === null ? "" : formatPace(row.seconds / row.distance.km)}</span>
-					<span role="cell" class="bf-muted">{row.actual ? t("skutečný čas") : "odhad"}</span>
+					<span role="cell" class="bf-muted">{row.actual ? t("actual time") : "odhad"}</span>
 				</div>
 			{/each}
 		</div>
 		<p class="bf-muted bf-rec-small">
-			{t("Riegel: T2 = T1 × (D2 / D1)^1,06")} <BasisTag basis={RIEGEL_BASIS} named />{t(". Počítá s tím, že na delší trať máš natrénováno; u půlmaratonu a maratonu z krátkého běhu bývá odhad příliš optimistický.")}
+			{t("Riegel: T2 = T1 × (D2 / D1)^1.06")} <BasisTag basis={RIEGEL_BASIS} named />{t(". It assumes you've trained for the longer distance; for a half marathon or marathon predicted from a short run it tends to be too optimistic.")}
 		</p>
 	</section>
 {/if}
 
 <section class="bf-card">
-	<h4>{t("Síla, vlastní váha a výdrže")}</h4>
+	<h4>{t("Strength, bodyweight and holds")}</h4>
 	{#if exercises.length === 0}
-		<p class="bf-muted">{t("Zatím žádný zapsaný výkon.")}</p>
+		<p class="bf-muted">{t("No results logged yet.")}</p>
 	{:else}
 		<div class="bf-rec-table">
 			{#each shown as rec (rec.name)}
@@ -140,35 +140,35 @@
 		</div>
 		{#if exercises.length > TOP}
 			<button type="button" class="bf-link-button" onclick={() => (showAll = !showAll)}>
-				{showAll ? t("Jen nejčastější cviky") : t("Zobrazit všech {exercises_length} cviků", { exercises_length: exercises.length })}
+				{showAll ? t("Only the most frequent exercises") : tn(exercises.length, ["Show all {n} exercise", "Show all {n} exercises"])}
 			</button>
 		{/if}
 		<p class="bf-muted bf-rec-small">
-			{t("1RM je odhad vzorcem Epley ze série do 10 opakování")} <BasisTag basis={EPLEY_BASIS} />{t("; u švihových cviků se nepočítá. „5× 80 kg“ = nejtěžší série s aspoň 5 opakováními. Datum rekordu se ukáže po najetí myší.")}
+			{t("1RM is estimated with the Epley formula from a set of up to 10 reps")} <BasisTag basis={EPLEY_BASIS} />{t("; not calculated for ballistic exercises. “5× 80 kg” = the heaviest set with at least 5 reps. Hover to see the record's date.")}
 		</p>
 	{/if}
 </section>
 
 {#if swim.longest}
 	<section class="bf-card">
-		<h4>{t("Plavání")}</h4>
+		<h4>{t("Swim")}</h4>
 		<div class="bf-rec-table" role="table">
 			<div class="bf-rec-run" role="row">
-				<span role="cell">{t("Nejdelší plavání")}</span>
+				<span role="cell">{t("Longest swim")}</span>
 				<span role="cell" class="bf-rec-num">{formatNumber(swim.longest.value, 0)} m</span>
 				<span role="cell"></span>
 				<span role="cell" class="bf-muted">{formatShortDate(swim.longest.date)}</span>
 			</div>
 			{#if swim.fastest100}
 				<div class="bf-rec-run" role="row">
-					<span role="cell">{t("Průměr na 100 m")}</span>
+					<span role="cell">{t("Average per 100 m")}</span>
 					<span role="cell" class="bf-rec-num">{formatClockDuration(swim.fastest100.value)}</span>
 					<span role="cell"></span>
 					<span role="cell" class="bf-muted">{formatShortDate(swim.fastest100.date)}</span>
 				</div>
 			{/if}
 		</div>
-		<p class="bf-muted bf-rec-small">{t("Průměr na 100 m se počítá z délky celého tréninku včetně přestávek.")}</p>
+		<p class="bf-muted bf-rec-small">{t("Average per 100 m is calculated from the whole workout's duration, rests included.")}</p>
 	</section>
 {/if}
 

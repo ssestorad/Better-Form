@@ -7,14 +7,14 @@ import { translated } from "../i18n";
 export type StudyKind = "position" | "meta" | "rct" | "study" | "review" | "cohort" | "biomech" | "case";
 
 export const STUDY_KIND_LABELS: Record<StudyKind, string> = translated({
-	position: "stanovisko",
-	meta: "metaanalýza",
+	position: "position stand",
+	meta: "meta-analysis",
 	rct: "RCT",
-	study: "studie",
-	review: "přehled",
-	cohort: "kohortová studie",
-	biomech: "EMG / biomechanika",
-	case: "kazuistika",
+	study: "study",
+	review: "review",
+	cohort: "cohort study",
+	biomech: "EMG / biomechanics",
+	case: "case report",
 });
 
 export interface Source {

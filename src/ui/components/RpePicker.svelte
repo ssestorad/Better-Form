@@ -8,27 +8,27 @@
 	let { value = $bindable(), error }: Props = $props();
 
 	const ANCHORS: Record<number, string> = {
-		0: t("klid"),
-		1: t("velmi, velmi lehké"),
-		2: t("lehké"),
-		3: t("střední"),
-		4: t("trochu těžké"),
-		5: t("těžké"),
-		7: t("velmi těžké"),
-		10: t("maximální"),
+		0: t("rest", undefined, "effort"),
+		1: t("very, very easy"),
+		2: t("easy", undefined, "effort"),
+		3: t("moderate"),
+		4: t("somewhat hard"),
+		5: t("hard", undefined, "effort"),
+		7: t("very hard"),
+		10: t("maximal"),
 	};
 
 	function describe(n: number): string {
 		if (ANCHORS[n]) return ANCHORS[n]!;
-		if (n === 6) return t("mezi těžkým a velmi těžkým");
-		return t("mezi velmi těžkým a maximálním");
+		if (n === 6) return t("between hard and very hard");
+		return t("between very hard and maximal");
 	}
 </script>
 
 <div class="bf-field">
 	<div class="bf-field-label">
-		<span>{t("RPE tréninku (0–10)")}</span>
-		<span class="bf-hint">{t("zadej asi 30 min po tréninku")}</span>
+		<span>{t("Session RPE (0–10)")}</span>
+		<span class="bf-hint">{t("enter about 30 min after training")}</span>
 	</div>
 	<div class="bf-rpe">
 		{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as n (n)}
@@ -45,7 +45,7 @@
 		{/each}
 	</div>
 	<div class="bf-rpe-label">
-		{#if value !== undefined && !Number.isNaN(value)}{value} – {describe(Math.round(value))}{:else}{t("nevyplněno – lze doplnit později")}{/if}
+		{#if value !== undefined && !Number.isNaN(value)}{value} – {describe(Math.round(value))}{:else}{t("not filled in – can be added later")}{/if}
 	</div>
 	{#if error}<div class="bf-error">{error}</div>{/if}
 </div>

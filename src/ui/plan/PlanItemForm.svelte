@@ -21,9 +21,9 @@
 	let { date: initialDate, item, sports, templates, onSave, onDelete, onCancel }: Props = $props();
 
 	const INTENSITY_HELP: Record<PlanIntensity, string> = {
-		low: t("volně, dá se u toho mluvit (RPE asi 3)"),
-		mid: t("středně těžce (RPE asi 5)"),
-		high: t("těžký trénink, intervaly, závod (RPE asi 8)"),
+		low: t("easy, you can talk (RPE about 3)"),
+		mid: t("moderately hard (RPE about 5)"),
+		high: t("hard training, intervals, race (RPE about 8)"),
 	};
 
 	let date = $state(untrack(() => item?.date ?? initialDate));
@@ -79,7 +79,7 @@
 <form class="bf-plan-form" onsubmit={submit}>
 	<div class="bf-grid-2">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Den")}</span>
+			<span class="bf-field-label">{t("Day")}</span>
 			<input type="date" value={date} onchange={(e) => (date = e.currentTarget.value)} />
 		</label>
 		<label class="bf-field">
@@ -92,34 +92,34 @@
 
 	<div class="bf-grid-2">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Šablona")}</span>
+			<span class="bf-field-label">{t("Template")}</span>
 			<select class="dropdown" value={template} onchange={(e) => (template = e.currentTarget.value)}>
-				<option value="">{t("bez šablony")}</option>
+				<option value="">{t("no template")}</option>
 				{#each templateOptions as x (x.name)}<option value={x.name}>{x.name}</option>{/each}
 			</select>
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Název")} <span class="bf-hint">{t("nepovinné")}</span></span>
-			<input type="text" value={title} placeholder={t("např. Tempo, Dlouhý běh, Nohy")} oninput={(e) => (title = e.currentTarget.value)} />
+			<span class="bf-field-label">{t("Name")} <span class="bf-hint">{t("optional")}</span></span>
+			<input type="text" value={title} placeholder={t("e.g. Tempo, Long run, Legs")} oninput={(e) => (title = e.currentTarget.value)} />
 		</label>
 	</div>
 
 	<div class="bf-grid-2">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Délka (min)")}</span>
-			<NumInput bind:value={duration} label={t("Délka (min)")} error={positive(duration) ? undefined : t("Zadej kladné číslo")} />
+			<span class="bf-field-label">{t("Duration (min)")}</span>
+			<NumInput bind:value={duration} label={t("Duration (min)")} error={positive(duration) ? undefined : t("Enter a positive number")} />
 		</label>
 		{#if sport === "run"}
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Vzdálenost (km)")}</span>
-				<NumInput bind:value={distance} label={t("Vzdálenost (km)")} decimals error={positive(distance) ? undefined : t("Zadej kladné číslo")} />
+				<span class="bf-field-label">{t("Distance (km)")}</span>
+				<NumInput bind:value={distance} label={t("Distance (km)")} decimals error={positive(distance) ? undefined : t("Enter a positive number")} />
 			</label>
 		{/if}
 	</div>
 
 	<div class="bf-field">
-		<span class="bf-field-label">{t("Intenzita")}</span>
-		<div class="bf-seg" role="group" aria-label={t("Intenzita")}>
+		<span class="bf-field-label">{t("Intensity")}</span>
+		<div class="bf-seg" role="group" aria-label={t("Intensity")}>
 			{#each PLAN_INTENSITIES as level (level)}
 				<button type="button" class:is-active={intensity === level} aria-pressed={intensity === level} onclick={() => (intensity = level)}>
 					{PLAN_INTENSITY_LABELS[level]}
@@ -130,19 +130,19 @@
 	</div>
 
 	<label class="bf-field">
-		<span class="bf-field-label">{t("Poznámka")} <span class="bf-hint">{t("nepovinné")}</span></span>
+		<span class="bf-field-label">{t("Note")} <span class="bf-hint">{t("optional")}</span></span>
 		<input type="text" value={notes} oninput={(e) => (notes = e.currentTarget.value)} />
 	</label>
 
 	<p class="bf-muted bf-small bf-plan-note">
-		{t("Z délky a intenzity se odhaduje zátěž dne pro výživu a výhled týdne. U běhu bez délky se čas dopočítá ze vzdálenosti a tvého obvyklého tempa.")}
+		{t("Duration and intensity are used to estimate the day's load for nutrition and the week's outlook. For a run without a duration, the time is calculated from the distance and your usual pace.")}
 	</p>
 	{#if error}<p class="bf-error">{error}</p>{/if}
 
 	<div class="bf-form-buttons">
-		{#if onDelete}<button type="button" class="bf-plan-delete" disabled={saving} onclick={() => void remove()}>{t("Smazat")}</button>{/if}
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
-		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Ukládám…") : t("Uložit")}</button>
+		{#if onDelete}<button type="button" class="bf-plan-delete" disabled={saving} onclick={() => void remove()}>{t("Delete")}</button>{/if}
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
+		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Saving…") : t("Save")}</button>
 	</div>
 </form>
 

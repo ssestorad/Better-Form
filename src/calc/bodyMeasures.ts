@@ -9,13 +9,13 @@ export type BodyMeasureId = Exclude<keyof BodyData, "weight_kg">;
 
 /** Míry v pořadí, v jakém se zadávají a zobrazují. */
 export const BODY_MEASURES: readonly { id: BodyMeasureId; label: string; unit: string }[] = translated([
-	{ id: "body_fat_pct", label: "Podíl tuku", unit: "%" },
-	{ id: "waist_cm", label: "Pas", unit: "cm" },
-	{ id: "hips_cm", label: "Boky", unit: "cm" },
-	{ id: "chest_cm", label: "Hrudník", unit: "cm" },
-	{ id: "arm_cm", label: "Paže", unit: "cm" },
-	{ id: "thigh_cm", label: "Stehno", unit: "cm" },
-	{ id: "calf_cm", label: "Lýtko", unit: "cm" },
+	{ id: "body_fat_pct", label: "Body fat", unit: "%" },
+	{ id: "waist_cm", label: "Waist", unit: "cm" },
+	{ id: "hips_cm", label: "Hips", unit: "cm" },
+	{ id: "chest_cm", label: "Chest", unit: "cm" },
+	{ id: "arm_cm", label: "Arm", unit: "cm" },
+	{ id: "thigh_cm", label: "Thigh", unit: "cm" },
+	{ id: "calf_cm", label: "Calf", unit: "cm" },
 ]);
 
 export interface MeasureRow {

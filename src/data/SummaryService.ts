@@ -55,7 +55,7 @@ export class SummaryService {
 
 	/** Vytvoří souhrn měsíce nebo obnoví jeho generovaný blok. */
 	async generate(month: string): Promise<TFile> {
-		if (!isMonth(month)) throw new Error(t("Neplatný měsíc."));
+		if (!isMonth(month)) throw new Error(t("Invalid month."));
 		const input = monthSummaryInput(
 			month,
 			this.index.all("workout").map((w) => w.note),
@@ -87,7 +87,7 @@ export class SummaryService {
 
 	/** Vytvoří roční souhrn „Rok v číslech“ nebo obnoví jeho generovaný blok. */
 	async generateYear(year: number): Promise<TFile> {
-		if (!isYear(year)) throw new Error(t("Neplatný rok."));
+		if (!isYear(year)) throw new Error(t("Invalid year."));
 		const input = yearSummaryInput(
 			year,
 			this.index.all("workout").map((w) => w.note),
@@ -103,7 +103,7 @@ export class SummaryService {
 	// ---------- Týdenní souhrn ----------
 
 	weekPath(week: string): string {
-		return joinPath(folderPath(this.settings().folders, "summaries"), t("Týden {week}.md", { week }));
+		return joinPath(folderPath(this.settings().folders, "summaries"), t("Week {week}.md", { week }));
 	}
 
 	/** Pondělí týdne, pokud je daný soubor týdenní souhrn. */
@@ -118,7 +118,7 @@ export class SummaryService {
 	 * splnění plánu a průměr zátěže čtyř předchozích týdnů dodá volající (služba plánu).
 	 */
 	async generateWeek(date: string, plan: WeekPlanResult | null, averageLoad: number | null): Promise<TFile> {
-		if (!isIsoDate(date)) throw new Error(t("Neplatné datum týdne."));
+		if (!isIsoDate(date)) throw new Error(t("Invalid week date."));
 		const week = startOfWeek(date);
 		const input = weekSummaryInput(
 			week,

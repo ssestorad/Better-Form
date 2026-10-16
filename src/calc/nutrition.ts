@@ -13,10 +13,10 @@ import { formatNumber } from "../ui/format";
 export type RmrFormula = RmrFormulaSetting;
 
 export const RMR_FORMULA_LABELS: Record<RmrFormula, string> = translated({
-	ten_haaf: "ten Haaf & Weijs 2014 – pro pravidelně sportující 18–35 let",
-	mifflin: "Mifflin–St Jeor 1990 – běžná populace",
-	ten_haaf_ffm: "ten Haaf & Weijs 2014 (beztuková hmota)",
-	cunningham: "Cunningham 1980 (beztuková hmota)",
+	ten_haaf: "ten Haaf & Weijs 2014 – for regular athletes aged 18–35",
+	mifflin: "Mifflin–St Jeor 1990 – general population",
+	ten_haaf_ffm: "ten Haaf & Weijs 2014 (fat-free mass)",
+	cunningham: "Cunningham 1980 (fat-free mass)",
 });
 
 /** Přesnost odhadu RMR: u ten Haafovy rovnice je 80 % sportovců v ±10 % změřené hodnoty. */
@@ -120,18 +120,18 @@ const outside = (value: number, [min, max]: readonly [number, number]) => value 
 export function tenHaafOutOfRange(profile: NutritionProfile): string[] {
 	const notes: string[] = [];
 	const { age, weightKg, heightCm, sex } = profile;
-	if (age !== null && outside(age, TEN_HAAF_SAMPLE.age)) notes.push(t("věk mimo {v}–{v2} let", { v: TEN_HAAF_SAMPLE.age[0], v2: TEN_HAAF_SAMPLE.age[1] }));
+	if (age !== null && outside(age, TEN_HAAF_SAMPLE.age)) notes.push(t("age outside {v}–{v2}", { v: TEN_HAAF_SAMPLE.age[0], v2: TEN_HAAF_SAMPLE.age[1] }));
 	if (sex !== null && weightKg !== null) {
 		const sample = TEN_HAAF_SAMPLE[sex];
-		if (outside(weightKg, sample.kg)) notes.push(t("hmotnost mimo {v}–{v2} kg", { v: Math.round(sample.kg[0]), v2: Math.round(sample.kg[1]) }));
+		if (outside(weightKg, sample.kg)) notes.push(t("weight outside {v}–{v2} kg", { v: Math.round(sample.kg[0]), v2: Math.round(sample.kg[1]) }));
 		if (heightCm !== null) {
 			const bmi = weightKg / (heightCm / 100) ** 2;
-			if (outside(bmi, sample.bmi)) notes.push(t("BMI mimo {v}–{v2}", { v: formatNumber(sample.bmi[0]), v2: formatNumber(sample.bmi[1]) }));
+			if (outside(bmi, sample.bmi)) notes.push(t("BMI outside {v}–{v2}", { v: formatNumber(sample.bmi[0]), v2: formatNumber(sample.bmi[1]) }));
 		}
 	}
 	const hours = profile.trainingHoursPerWeek;
 	if (hours !== null && hours !== undefined && hours < TEN_HAAF_SAMPLE.hoursPerWeekMin) {
-		notes.push(t("méně než {hoursPerWeekMin} h tréninku týdně", { hoursPerWeekMin: TEN_HAAF_SAMPLE.hoursPerWeekMin }));
+		notes.push(t("less than {hoursPerWeekMin} h of training a week", { hoursPerWeekMin: TEN_HAAF_SAMPLE.hoursPerWeekMin }));
 	}
 	return notes;
 }
@@ -171,12 +171,12 @@ export function weeklyTrainingHours(workouts: readonly WorkoutNote[], date: stri
 /** Co v profilu chybí pro výpočet (texty pro „doplň v nastavení“). */
 export function missingProfile(profile: NutritionProfile, formula: RmrFormula): string[] {
 	const missing: string[] = [];
-	if (profile.weightKg === null) missing.push(t("hmotnost (check-in nebo profil)"));
+	if (profile.weightKg === null) missing.push(t("weight (check-in or profile)"));
 	const ffmReady = needsFfm(formula) && profile.weightKg !== null && fatFreeMass(profile.weightKg, profile.bodyFatPct) !== null;
 	if (!ffmReady) {
-		if (profile.sex === null) missing.push(t("pohlaví"));
-		if (profile.age === null) missing.push(t("rok narození"));
-		if (profile.heightCm === null) missing.push(t("výška"));
+		if (profile.sex === null) missing.push(t("sex"));
+		if (profile.age === null) missing.push(t("year of birth"));
+		if (profile.heightCm === null) missing.push(t("height"));
 	}
 	return missing;
 }
@@ -250,7 +250,7 @@ export function stepsActivity(days: readonly DayNote[], workouts: readonly Worko
 
 export type Intensity = "low" | "mid" | "high";
 
-export const INTENSITY_LABELS: Record<Intensity, string> = translated({ low: "nízká", mid: "střední", high: "vysoká" });
+export const INTENSITY_LABELS: Record<Intensity, string> = translated({ low: "low", mid: "moderate", high: "high" });
 
 /** RPE (CR-10) → intenzita: do 4 nízká, 5–6 střední, od 7 vysoká; bez RPE střední – praxe. */
 export function intensityOfRpe(rpe: number | undefined): Intensity {
@@ -310,10 +310,10 @@ export type DayLoad = "light" | "moderate" | "high" | "very_high";
 export const DAY_LOADS: readonly DayLoad[] = ["light", "moderate", "high", "very_high"];
 
 export const DAY_LOAD_LABELS: Record<DayLoad, string> = translated({
-	light: "lehký den nebo volno",
-	moderate: "střední (asi 1 h tréninku)",
-	high: "vysoký (1–3 h střední až vysoké intenzity)",
-	very_high: "velmi vysoký (4–5 h)",
+	light: "light day or rest",
+	moderate: "moderate (about 1 h of training)",
+	high: "high (1–3 h of moderate to high intensity)",
+	very_high: "very high (4–5 h)",
 });
 
 /** Sacharidy v g/kg podle zátěže dne (Thomas 2016, ACSM/AND/DC). */

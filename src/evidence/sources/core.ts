@@ -5,8 +5,8 @@ import type { Source } from "../sourceTypes";
 
 export const CORE_SOURCES = {
 	practice: {
-		short: "Trenérská praxe",
-		citation: "Osvědčená trenérská praxe nebo heuristika bez silných dat – nejde o výsledek výzkumu.",
+		short: "Coaching practice",
+		citation: "Proven coaching practice or a heuristic without strong data – not a research finding.",
 		evidence: "practice",
 	},
 	foster2001: {
@@ -24,14 +24,14 @@ export const CORE_SOURCES = {
 		short: "Banister",
 		citation: "Banister E. W. – impulse-response (fitness–fatigue) model.",
 		evidence: "research",
-		note: "Model trendu, ne přesná předpověď.",
+		note: "A trend model, not an exact prediction.",
 	},
 	williams2017: {
 		short: "Williams 2017",
 		citation:
 			"Williams S. et al. (2017) Better way to determine the acute:chronic workload ratio? Br J Sports Med.",
 		evidence: "research",
-		note: "Metoda ACWR je kritizována (Impellizzeri 2020) – používá se jen jako upozornění.",
+		note: "The ACWR method is criticized (Impellizzeri 2020) – used only as a warning.",
 	},
 	gabbett2016: {
 		short: "Gabbett 2016",
@@ -106,7 +106,7 @@ export const CORE_SOURCES = {
 		short: "Riegel 1981",
 		citation: "Riegel P. S. (1981) Athletic records and human endurance. American Scientist.",
 		evidence: "research",
-		note: "U delších tratí je odhad méně přesný.",
+		note: "The estimate is less accurate for longer distances.",
 	},
 	tanaka2001: {
 		short: "Tanaka 2001",
@@ -117,7 +117,7 @@ export const CORE_SOURCES = {
 	plews2012_2013: {
 		short: "Plews 2012/2013",
 		citation:
-			"Plews D. J. et al. (2012, 2013) HRV v monitorování tréninku (klouzavé průměry lnRMSSD). Eur J Appl Physiol; Sports Med.",
+			"Plews D. J. et al. (2012, 2013) HRV in training monitoring (rolling averages of lnRMSSD). Eur J Appl Physiol; Sports Med.",
 		evidence: "research",
 	},
 	kiviniemi2007: {
@@ -164,7 +164,7 @@ export const CORE_SOURCES = {
 		evidence: "research",
 	},
 	rmrAthletes2023: {
-		short: "Metaanalýza RMR u sportovců 2023",
+		short: "Meta-analysis of RMR in athletes 2023",
 		citation:
 			"Accuracy of Resting Metabolic Rate Prediction Equations in Athletes: A Systematic Review with Meta-analysis (2023). Sports Med.",
 		evidence: "research",
@@ -176,7 +176,7 @@ export const CORE_SOURCES = {
 		evidence: "research",
 		kind: "review",
 		url: "https://doi.org/10.2165/00007256-200434010-00001",
-		note: "Třídy podle kroků za den: pod 5 000 sedavý, 5 000–7 499 málo aktivní, 7 500–9 999 středně aktivní, od 10 000 aktivní.",
+		note: "Classes by steps per day: under 5,000 sedentary, 5,000–7,499 low active, 7,500–9,999 somewhat active, 10,000 and more active.",
 	},
 	mifflin1990: {
 		short: "Mifflin–St Jeor 1990",
@@ -184,7 +184,7 @@ export const CORE_SOURCES = {
 		evidence: "research",
 		kind: "study",
 		url: "https://doi.org/10.1093/ajcn/51.2.241",
-		note: "498 zdravých lidí 19–78 let, s normální hmotností i obezitou.",
+		note: "498 healthy people aged 19–78, with normal weight and with obesity.",
 	},
 	frankenfield2005: {
 		short: "Frankenfield 2005",
@@ -202,7 +202,7 @@ export const CORE_SOURCES = {
 		citation: "Herrmann S. D. et al. (2024) Compendium of Physical Activities.",
 		evidence: "research",
 		url: "https://pacompendium.com",
-		note: "MET hodnoty z kódů aktivit 2024 (posilování 02050–02054, kalistenika 02020–02024, kettlebell 02058, plavání 182xx, švihadlo 02068–02069, běh 12020–12180).",
+		note: "MET values from the 2024 activity codes (resistance training 02050–02054, calisthenics 02020–02024, kettlebell 02058, swimming 182xx, jump rope 02068–02069, running 12020–12180).",
 	},
 	thomas2016: {
 		short: "Thomas 2016 (ACSM/AND/DC)",
@@ -269,14 +269,14 @@ export const CORE_SOURCES = {
 		citation: "Garrison S. R. et al. (2020) Magnesium for skeletal muscle cramps. Cochrane Database Syst Rev CD009402.",
 		evidence: "research",
 		url: "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD009402.pub3/full",
-		note: "Studie se týkají hlavně starších dospělých; pro křeče při sportu žádná randomizovaná studie není.",
+		note: "The studies are mainly in older adults; there's no randomized study for cramps during sport.",
 	},
 	wilborn2004: {
 		short: "Wilborn 2004",
 		citation:
 			"Wilborn C. D. et al. (2004) Effects of zinc magnesium aspartate (ZMA) supplementation on training adaptations and markers of anabolism and catabolism. J Int Soc Sports Nutr 1(2):12–20.",
 		evidence: "research",
-		note: "Jedna studie na 42 trénovaných mužích bez nedostatku zinku a hořčíku.",
+		note: "A single study in 42 trained men without zinc or magnesium deficiency.",
 	},
 	qureshi2014: {
 		short: "Qureshi 2014",
@@ -297,14 +297,14 @@ export const CORE_SOURCES = {
 			"Bonilla D. A. et al. (2021) Effects of ashwagandha (Withania somnifera) on physical performance: systematic review and Bayesian meta-analysis. J Funct Morphol Kinesiol 6(1):20.",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8006238/",
-		note: "Malé studie s různými extrakty a dávkami – výsledek ber s rezervou.",
+		note: "Small studies with different extracts and doses – take the result with caution.",
 	},
 	livertoxAshwagandha: {
 		short: "LiverTox – ashwagandha",
 		citation: "LiverTox: Clinical and Research Information on Drug-Induced Liver Injury – Ashwagandha. NIDDK (NIH).",
 		evidence: "research",
 		url: "https://www.ncbi.nlm.nih.gov/books/NBK548536/",
-		note: "Vychází z kazuistik – ukazuje, že poškození jater je možné, ne jak je časté.",
+		note: "Based on case reports – it shows liver injury is possible, not how common it is.",
 	},
 	shin2010: {
 		short: "Shin 2010",
@@ -319,7 +319,7 @@ export const CORE_SOURCES = {
 			"Paulsen G. et al. (2014) Vitamin C and E supplementation hampers cellular adaptation to endurance training in humans: a double-blind, randomised, controlled trial. J Physiol 592(8):1887–1901.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/24492839/",
-		note: "Zhoršily se buněčné ukazatele adaptace, ne výsledky výkonnostních testů.",
+		note: "Cellular markers of adaptation got worse, not the results of performance tests.",
 	},
 	hemila2013: {
 		short: "Hemilä 2013 (Cochrane)",
@@ -329,12 +329,12 @@ export const CORE_SOURCES = {
 		url: "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD000980.pub4/full",
 	},
 	efsaUl: {
-		short: "EFSA – horní limity",
+		short: "EFSA – upper limits",
 		citation:
 			"EFSA (2024) Overview on Tolerable Upper Intake Levels as derived by the Scientific Committee on Food (SCF) and the EFSA Panel on Dietetic Products, Nutrition and Allergies (NDA).",
 		evidence: "consensus",
 		url: "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf",
-		note: "Horní limit je hranice bezpečného dlouhodobého příjmu, ne doporučená dávka.",
+		note: "The upper limit is the boundary of safe long-term intake, not a recommended dose.",
 	},
 	efsaOmega2012: {
 		short: "EFSA 2012 (omega-3)",
@@ -362,7 +362,7 @@ export const CORE_SOURCES = {
 			"Grgic J. et al. (2020) Wake up and smell the coffee: caffeine supplementation and exercise performance – an umbrella review of 21 published meta-analyses. Br J Sports Med 54(11):681–688.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/30926628/",
-		note: "Většina zahrnutých studií proběhla na mladých mužích.",
+		note: "Most included studies were in young men.",
 	},
 	southward2018: {
 		short: "Southward 2018",
@@ -402,7 +402,7 @@ export const CORE_SOURCES = {
 		citation:
 			"Owens D. J., Allison R., Close G. L. (2018) Vitamin D and the athlete: current perspectives and new challenges. Sports Med 48(Suppl 1):3–16.",
 		evidence: "research",
-		note: "Přehledový článek, ne metaanalýza.",
+		note: "A review article, not a meta-analysis.",
 	},
 	thielecke2020: {
 		short: "Thielecke 2020",
@@ -410,7 +410,7 @@ export const CORE_SOURCES = {
 			"Thielecke F., Blannin A. (2020) Omega-3 fatty acids for sport performance – are they equally beneficial for athletes and amateurs? A narrative review. Nutrients 12(12):3712.",
 		evidence: "research",
 		url: "https://www.mdpi.com/2072-6643/12/12/3712",
-		note: "Přehledový článek, ne metaanalýza.",
+		note: "A review article, not a meta-analysis.",
 	},
 	jager2025: {
 		short: "ISSN 2025 (Jäger)",
@@ -431,7 +431,7 @@ export const CORE_SOURCES = {
 			"Zhang Y. et al. (2017) Can magnesium enhance exercise performance? Nutrients 9(9):946.",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5622706/",
-		note: "Přehled studií na zvířatech i lidech – mechanismy, ne důkaz účinku u sportovců.",
+		note: "A review of animal and human studies – mechanisms, not evidence of an effect in athletes.",
 	},
 	koehler2009: {
 		short: "Koehler 2009",
@@ -439,7 +439,7 @@ export const CORE_SOURCES = {
 			"Koehler K. et al. (2009) Serum testosterone and urinary excretion of steroid hormone metabolites after administration of a high-dose zinc supplement. Eur J Clin Nutr 63:65–70.",
 		evidence: "research",
 		url: "https://www.nature.com/articles/1602899",
-		note: "Malá studie na 14 mužích.",
+		note: "A small study in 14 men.",
 	},
 	hemila2017zinc: {
 		short: "Hemilä 2017 (zinek)",
@@ -453,14 +453,14 @@ export const CORE_SOURCES = {
 			"Bjelakovic G. et al. (2012) Antioxidant supplements for prevention of mortality in healthy participants and patients with various diseases. Cochrane Database Syst Rev CD007176.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/22419320/",
-		note: "Týká se úmrtnosti v běžné populaci, ne sportovního výkonu.",
+		note: "About mortality in the general population, not sports performance.",
 	},
 	woolf2006: {
 		short: "Woolf & Manore 2006",
 		citation:
 			"Woolf K., Manore M. M. (2006) B-vitamins and exercise: does exercise alter requirements? Int J Sport Nutr Exerc Metab 16(5):453–484.",
 		evidence: "research",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	pawlak2013: {
 		short: "Pawlak 2013",
@@ -474,7 +474,7 @@ export const CORE_SOURCES = {
 			"Ristow M. et al. (2009) Antioxidants prevent health-promoting effects of physical exercise in humans. Proc Natl Acad Sci USA 106(21):8665–8670.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/19433800/",
-		note: "Malá studie (39 mužů), 4 týdny.",
+		note: "A small study (39 men), 4 weeks.",
 	},
 	uspstf2022: {
 		short: "USPSTF 2022",
@@ -482,21 +482,21 @@ export const CORE_SOURCES = {
 			"US Preventive Services Task Force (2022) Vitamin, mineral, and multivitamin supplementation to prevent cardiovascular disease and cancer: recommendation statement. JAMA 327(23).",
 		evidence: "consensus",
 		url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/vitamin-supplementation-to-prevent-cvd-and-cancer-preventive-medication",
-		note: "Týká se prevence nemocí v běžné populaci, ne sportovního výkonu.",
+		note: "About disease prevention in the general population, not sports performance.",
 	},
 	mott2019: {
 		short: "Mott 2019",
 		citation:
 			"Mott A. et al. (2019) Effect of vitamin K on bone mineral density and fractures in adults: an updated systematic review and meta-analysis of randomised controlled trials. Osteoporos Int 30:1543–1559.",
 		evidence: "research",
-		note: "Hlavně ženy po menopauze a pacienti s osteoporózou.",
+		note: "Mainly postmenopausal women and patients with osteoporosis.",
 	},
 	mcfarlin2017: {
 		short: "McFarlin 2017",
 		citation:
 			"McFarlin B. K., Henning A. L., Venable A. S. (2017) Oral consumption of vitamin K2 for 8 weeks associated with increased maximal cardiac output during exercise. Altern Ther Health Med 23(4).",
 		evidence: "research",
-		note: "Jediná malá studie, výsledek zatím nikdo nezopakoval.",
+		note: "A single small study; nobody has replicated the result yet.",
 	},
 	wankhede2015: {
 		short: "Wankhede 2015",
@@ -504,7 +504,7 @@ export const CORE_SOURCES = {
 			"Wankhede S. et al. (2015) Examining the effect of Withania somnifera supplementation on muscle strength and recovery: a randomized controlled trial. J Int Soc Sports Nutr 12:43.",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4658772/",
-		note: "Netrénovaní muži, 8 týdnů; extrakt dodal výrobce.",
+		note: "Untrained men, 8 weeks; the extract was supplied by the manufacturer.",
 	},
 	bjornsson2020: {
 		short: "Björnsson 2020",
@@ -512,7 +512,7 @@ export const CORE_SOURCES = {
 			"Björnsson H. K. et al. (2020) Ashwagandha-induced liver injury: a case series from Iceland and the US Drug-Induced Liver Injury Network. Liver Int 40(4).",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/31991029/",
-		note: "Série případů – ukazuje, že riziko existuje, ne jak je časté.",
+		note: "A case series – it shows the risk exists, not how common it is.",
 	},
 	rogerson2007: {
 		short: "Rogerson 2007",
@@ -525,7 +525,7 @@ export const CORE_SOURCES = {
 		citation:
 			"Stone M. et al. (2009) A pilot investigation into the effect of maca supplementation on physical activity and sexual desire in sportsmen. J Ethnopharmacol 126(3):574–576.",
 		evidence: "research",
-		note: "Pilotní studie na 8 cyklistech.",
+		note: "A pilot study in 8 cyclists.",
 	},
 	lee2016: {
 		short: "Lee 2016",
@@ -538,7 +538,7 @@ export const CORE_SOURCES = {
 		citation:
 			"Lukaski H. C. (2004) Vitamin and mineral status: effects on physical performance. Nutrition 20(7–8):632–644.",
 		evidence: "research",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	wolfe2017: {
 		short: "Wolfe 2017",
@@ -546,7 +546,7 @@ export const CORE_SOURCES = {
 			"Wolfe R. R. (2017) Branched-chain amino acids and muscle protein synthesis in humans: myth or reality? J Int Soc Sports Nutr 14:30.",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5568273/",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	jackman2017: {
 		short: "Jackman 2017",
@@ -554,7 +554,7 @@ export const CORE_SOURCES = {
 			"Jackman S. R. et al. (2017) Branched-chain amino acid ingestion stimulates muscle myofibrillar protein synthesis following resistance exercise in humans. Front Physiol 8:390.",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5461297/",
-		note: "Malá studie na 10 mužích; měřila tvorbu bílkovin pár hodin po tréninku, ne růst svalů.",
+		note: "A small study in 10 men; it measured protein synthesis a few hours after training, not muscle growth.",
 	},
 	plotkin2021: {
 		short: "Plotkin 2021",
@@ -562,7 +562,7 @@ export const CORE_SOURCES = {
 			"Plotkin D. L. et al. (2021) Isolated leucine and branched-chain amino acid supplementation for enhancing muscular strength and hypertrophy: a narrative review. Int J Sport Nutr Exerc Metab 31(3).",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/33741748/",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	fedewa2019: {
 		short: "Fedewa 2019",
@@ -570,7 +570,7 @@ export const CORE_SOURCES = {
 			"Fedewa M. V. et al. (2019) Effect of branched-chain amino acid supplementation on muscle soreness following exercise: a meta-analysis. Int J Vitam Nutr Res 89(5–6):348–356.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/30938579/",
-		note: "Jen 8 studií, většinou na netrénovaných lidech.",
+		note: "Only 8 studies, mostly in untrained people.",
 	},
 	ferrando2023: {
 		short: "ISSN 2023 (Ferrando)",
@@ -598,7 +598,7 @@ export const CORE_SOURCES = {
 			"Gough L. A. et al. (2021) A critical review of citrulline malate supplementation and exercise performance. Eur J Appl Physiol 121(12).",
 		evidence: "research",
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8571142/",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	ramezani2019: {
 		short: "Ramezani Ahmadi 2019",
@@ -619,21 +619,21 @@ export const CORE_SOURCES = {
 			"Gleeson M. (2008) Dosing and efficacy of glutamine supplementation in human exercise and sport training. J Nutr 138(10):2045S–2049S.",
 		evidence: "research",
 		url: "https://pubmed.ncbi.nlm.nih.gov/18806122/",
-		note: "Přehledový článek.",
+		note: "A review article.",
 	},
 	who2007: {
 		short: "WHO/FAO/UNU 2007",
 		citation:
 			"WHO/FAO/UNU (2007) Protein and amino acid requirements in human nutrition. Report of a joint expert consultation. WHO Technical Report Series 935.",
 		evidence: "consensus",
-		note: "Průměrná potřeba zdravého dospělého; nejde o doporučení pro sportovce.",
+		note: "The average requirement of a healthy adult; not a recommendation for athletes.",
 	},
 	sawka2007: {
 		short: "ACSM 2007 (Sawka)",
 		citation:
 			"Sawka M. N. et al. (2007) American College of Sports Medicine position stand: exercise and fluid replacement. Med Sci Sports Exerc 39(2):377–390.",
 		evidence: "consensus",
-		note: "Složení potu se mezi lidmi liší až několikanásobně.",
+		note: "Sweat composition varies several-fold between people.",
 	},
 	baker2017: {
 		short: "Baker 2017",
@@ -643,12 +643,12 @@ export const CORE_SOURCES = {
 		url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5371639/",
 	},
 	efsaDrv: {
-		short: "EFSA – referenční příjem",
+		short: "EFSA – reference intake",
 		citation:
-			"EFSA (2017, doplněno 2019) Dietary Reference Values for nutrients: summary report. Sodík a chlorid: EFSA Journal 17(9):5778 a 5779.",
+			"EFSA (2017, updated 2019) Dietary Reference Values for nutrients: summary report. Sodium and chloride: EFSA Journal 17(9):5778 and 5779.",
 		evidence: "consensus",
 		url: "https://multimedia.efsa.europa.eu/drvs/index.htm",
-		note: "Hodnoty pro běžnou dospělou populaci, ne zvlášť pro sportovce.",
+		note: "Values for the general adult population, not specifically for athletes.",
 	},
 	nhsCouchTo5k: {
 		short: "NHS Couch to 5K",
@@ -656,8 +656,8 @@ export const CORE_SOURCES = {
 		evidence: "consensus",
 	},
 	elongaHelp: {
-		short: "Elonga – nápověda",
-		citation: "Elonga – nápověda k propojení.",
+		short: "Elonga – help",
+		citation: "Elonga – help on connecting apps.",
 		evidence: null,
 		url: "https://support.elonga.com/cs/support/solutions/articles/205000048307",
 	},

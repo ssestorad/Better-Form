@@ -18,7 +18,7 @@ export class NoteWriter {
 			const current = parts.slice(0, i).join("/");
 			const existing = this.app.vault.getAbstractFileByPath(current);
 			if (existing instanceof TFolder) continue;
-			if (existing) throw new Error(t("„{current}“ je soubor, ne složka.", { current }));
+			if (existing) throw new Error(t("“{current}” is a file, not a folder.", { current }));
 			try {
 				await this.app.vault.createFolder(current);
 				created = true;
@@ -65,11 +65,15 @@ export class NoteWriter {
 
 	/** Přepíše jen generovaný blok mezi značkami forma:start/end. */
 	async setGeneratedBlock(file: TFile, content: string): Promise<void> {
+		// Beze změny se nezapisuje (hromadné obnovení bloků nesahá na poznámky, které už sedí).
+		const current = await this.app.vault.read(file);
+		const preview = replaceGeneratedBlock(current, content);
+		if (preview.status !== "malformed" && preview.text === current) return;
 		await this.app.vault.process(file, (text) => {
 			const result = replaceGeneratedBlock(text, content);
 			if (result.status === "malformed") {
 				throw new Error(
-					t("V poznámce „{path}“ jsou poškozené značky forma:start / forma:end – oprav je ručně.", { path: file.path }),
+					t("The forma:start / forma:end markers in the note “{path}” are damaged – fix them manually.", { path: file.path }),
 				);
 			}
 			return result.text;

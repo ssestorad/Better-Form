@@ -60,32 +60,32 @@
 			{#each split.none as b (b.area)}<span class="bf-rec-benefit is-none" title={benefitText(b)}>{AREA_LABELS[b.area]} {GRADE_SHORT[b.grade]}</span>{/each}
 		</span>
 		<span class="bf-rec-side">
-			{#if owned}<span class="bf-tag">{t("máš")}</span>{/if}
-			<span title={SAFETY_LABELS[item.safety]} aria-label={t("Bezpečnost: {v}", { v: SAFETY_LABELS[item.safety] })}>{SAFETY_ICONS[item.safety]}</span>
+			{#if owned}<span class="bf-tag">{t("you have it")}</span>{/if}
+			<span title={SAFETY_LABELS[item.safety]} aria-label={t("Safety: {v}", { v: SAFETY_LABELS[item.safety] })}>{SAFETY_ICONS[item.safety]}</span>
 			<span class="bf-rec-chevron" aria-hidden="true">›</span>
 		</span>
 	</summary>
 	<div class="bf-rec-body">
 		<div class="bf-rec-head">
-			<span class="bf-tag" class:bf-tag-warn={item.safety !== "ok"} title={SAFETY_LABELS[item.safety]}>{t("{v} bezpečnost", { v: SAFETY_ICONS[item.safety] })}</span>
-			<span class="bf-tag" title={t("Úroveň důkazu celé položky")}>{EVIDENCE_LABELS[item.basis.evidence]}</span>
+			<span class="bf-tag" class:bf-tag-warn={item.safety !== "ok"} title={SAFETY_LABELS[item.safety]}>{t("{v} safety", { v: SAFETY_ICONS[item.safety] })}</span>
+			<span class="bf-tag" title={t("Evidence level of the whole entry")}>{EVIDENCE_LABELS[item.basis.evidence]}</span>
 		</div>
 		<p>{item.summary}</p>
 		<dl class="bf-rec-rows">
 			{#if split.good.length > 0}
-				<dt>{t("Má smysl pro")}</dt>
+				<dt>{t("Makes sense for")}</dt>
 				<dd class="bf-rec-chiprow">
 					{#each split.good as b (b.area)}<span class="bf-rec-benefit is-good" title={GRADE_HELP[b.grade]}>{benefitText(b)}</span>{/each}
 				</dd>
 			{/if}
 			{#if split.maybe.length > 0}
-				<dt>{t("Možná pomáhá")}</dt>
+				<dt>{t("May help")}</dt>
 				<dd class="bf-rec-chiprow">
 					{#each split.maybe as b (b.area)}<span class="bf-rec-benefit" title={GRADE_HELP[b.grade]}>{benefitText(b)}</span>{/each}
 				</dd>
 			{/if}
 			{#if split.none.length > 0}
-				<dt>{t("Nepotvrzeno / nefunguje")}</dt>
+				<dt>{t("Not confirmed / doesn't work")}</dt>
 				<dd class="bf-rec-chiprow">
 					{#each split.none as b (b.area)}<span class="bf-rec-benefit is-none" title={GRADE_HELP[b.grade]}>{benefitText(b)}</span>{/each}
 				</dd>
@@ -96,21 +96,21 @@
 		{/if}
 		<!-- Dávkování, pro koho a rizika jsou vidět hned – studie až pod nimi. -->
 		<dl class="bf-rec-rows">
-			<dt>{t("Dávkování")}</dt>
+			<dt>{t("Dosing")}</dt>
 			<dd>
 				{item.dosing}
 				{#if personal}<br /><strong>{personal}</strong>{/if}
 			</dd>
-			<dt>{t("Pro koho")}</dt>
+			<dt>{t("Who it's for")}</dt>
 			<dd>{item.forWhom}</dd>
-			<dt>{t("Rizika a limity")}</dt>
+			<dt>{t("Risks and limits")}</dt>
 			<dd>{item.risks}</dd>
 		</dl>
 		<details class="bf-rec-more">
-			<summary>{t("Srovnání {studies_length} zdrojů", { studies_length: item.studies.length })}</summary>
+			<summary>{t("Comparison of {studies_length} sources", { studies_length: item.studies.length })}</summary>
 			<dl class="bf-rec-list">
 				{#each groups as group, gi (gi)}
-					<dt>{group.area ? t("Studie – {v}", { v: AREA_LABELS[group.area] }) : t("Studie – hlavní účinek a bezpečnost")}</dt>
+					<dt>{group.area ? t("Studies – {v}", { v: AREA_LABELS[group.area] }) : t("Studies – main effect and safety")}</dt>
 					<dd>
 						<ul class="bf-rec-studies">
 							{#each group.studies as study, si (si)}
@@ -118,10 +118,10 @@
 									<div>
 										<strong>{study.short}</strong>
 										{#if study.kind}<span class="bf-tag">{STUDY_KIND_LABELS[study.kind]}</span>{/if}
-										{#if study.funded}<span class="bf-tag bf-tag-warn" title={t("Studii platil nebo psal výrobce testovaného přípravku")}>{t("financoval výrobce")}</span>{/if}
+										{#if study.funded}<span class="bf-tag bf-tag-warn" title={t("The study was paid for or written by the manufacturer of the tested product")}>{t("funded by the manufacturer")}</span>{/if}
 									</div>
 									<div>{study.finding}</div>
-									{#if study.note}<div class="bf-muted">{t("Pozor: {note}", { note: study.note })}</div>{/if}
+									{#if study.note}<div class="bf-muted">{t("Note: {note}", { note: study.note })}</div>{/if}
 									<div class="bf-muted bf-rec-citation">
 										{#if study.url}
 											<a href={study.url} target="_blank" rel="noopener">{study.citation}</a>
@@ -134,9 +134,9 @@
 						</ul>
 					</dd>
 				{/each}
-				<dt>{t("Shodují se?")}</dt>
+				<dt>{t("Do they agree?")}</dt>
 				<dd>{item.agreement}</dd>
-				<dt>{t("Jak číst známky")}</dt>
+				<dt>{t("How to read the grades")}</dt>
 				<dd class="bf-muted">
 					{#each Object.entries(GRADE_HELP) as [grade, help] (grade)}
 						<div><strong>{GRADE_SHORT[grade as keyof typeof GRADE_SHORT]}</strong> – {help}</div>
@@ -146,9 +146,9 @@
 		</details>
 		<div class="bf-actions">
 			{#if owned}
-				<span class="bf-muted bf-rec-owned">{t("Máš v seznamu")}</span>
+				<span class="bf-muted bf-rec-owned">{t("In your list")}</span>
 			{:else}
-				<button type="button" onclick={onAdd}>{t("Přidat do mých suplementů")}</button>
+				<button type="button" onclick={onAdd}>{t("Add to my supplements")}</button>
 			{/if}
 		</div>
 	</div>

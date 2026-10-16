@@ -51,9 +51,9 @@
 		stepsYesterday === undefined
 			? undefined
 			: Number.isNaN(stepsYesterday)
-				? t("Není číslo.")
+				? t("Not a number.")
 				: stepsYesterday < 0 || stepsYesterday > MAX_STEPS
-					? t("Rozsah 0–{MAX_STEPS}.", { MAX_STEPS })
+					? t("Range 0–{MAX_STEPS}.", { MAX_STEPS })
 					: undefined,
 	);
 	const valid = $derived(Object.keys(errors).length === 0 && stepsError === undefined);
@@ -92,25 +92,25 @@
 
 <form class="bf-checkin" onsubmit={submit}>
 	<div class="bf-checkin-date">
-		<label for="bf-checkin-date">{t("Datum")}</label>
+		<label for="bf-checkin-date">{t("Date")}</label>
 		<input
 			id="bf-checkin-date"
 			type="date"
 			value={values.date}
 			onchange={(e) => changeDate(e.currentTarget.value)}
 		/>
-		<span class="bf-muted">{formatCzechDate(values.date)}{existing ? t(" · upravuješ uložený check-in") : ""}</span>
+		<span class="bf-muted">{formatCzechDate(values.date)}{existing ? t(" · editing a saved check-in") : ""}</span>
 	</div>
 
 	{#key formKey}
 		<fieldset>
-			<legend>{t("Spánek")}</legend>
+			<legend>{t("Sleep")}</legend>
 			<div class="bf-grid-3">
 				<!-- Ráno se začíná tím nejjistějším (vstávání), pak zpětně večer. -->
-				<TimeField label={t("Vstávání")} note={timeNote("wake", values.wake)} bind:value={values.wake} />
-				<TimeField label={t("Ulehnutí")} note={timeNote("bedtime", values.bedtime)} bind:value={values.bedtime} />
+				<TimeField label={t("Woke up")} note={timeNote("wake", values.wake)} bind:value={values.wake} />
+				<TimeField label={t("Went to bed")} note={timeNote("bedtime", values.bedtime)} bind:value={values.bedtime} />
 				<TimeField
-					label={t("Usnutí (odhad)")}
+					label={t("Fell asleep (estimate)")}
 					note={timeNote("sleep_onset", values.sleep_onset)}
 					bind:value={values.sleep_onset}
 					error={errors.sleep_onset}
@@ -118,67 +118,67 @@
 			</div>
 			<div class="bf-grid-2">
 				<div class="bf-field">
-					<div class="bf-field-label"><span>{t("Délka spánku")}</span></div>
+					<div class="bf-field-label"><span>{t("Sleep duration")}</span></div>
 					<div class="bf-duration">
 						{#if values.duration_min !== undefined && !Number.isNaN(values.duration_min)}
-							{formatDurationMin(values.duration_min)} <span class="bf-muted">{t("(ručně)")}</span>
+							{formatDurationMin(values.duration_min)} <span class="bf-muted">{t("(manual)")}</span>
 						{:else if computedDuration !== null}
 							{formatDurationMin(computedDuration)}
 						{:else}
-							<span class="bf-muted">{t("doplň časy")}</span>
+							<span class="bf-muted">{t("fill in the times")}</span>
 						{/if}
 					</div>
 				</div>
 				<NumberField
-					label={t("Přepsat délku")}
+					label={t("Override duration")}
 					unit="min"
 					bind:value={values.duration_min}
 					placeholder={computedDuration !== null ? String(computedDuration) : ""}
 					error={errors.duration_min}
 				/>
 			</div>
-			<Scale5 label={t("Kvalita spánku")} low="velmi špatná" high="výborná" bind:value={values.quality} hint={hints.quality} error={errors.quality} />
+			<Scale5 label={t("Sleep quality")} low={t("very poor")} high={t("excellent")} bind:value={values.quality} hint={hints.quality} error={errors.quality} />
 			<div class="bf-grid-2">
-				<NumberField label={t("Probuzení v noci")} unit="×" bind:value={values.awakenings} hint={hints.awakenings} error={errors.awakenings} />
+				<NumberField label={t("Woken up at night")} unit="×" bind:value={values.awakenings} hint={hints.awakenings} error={errors.awakenings} />
 			</div>
-			<Scale5 label={t("Pocit ráno")} low="velmi špatný" high="výborný" bind:value={values.morning_feeling} hint={hints.morning_feeling} error={errors.morning_feeling} />
+			<Scale5 label={t("Feeling in the morning")} low={t("very poor", undefined, "feeling")} high={t("excellent", undefined, "feeling")} bind:value={values.morning_feeling} hint={hints.morning_feeling} error={errors.morning_feeling} />
 		</fieldset>
 
 		<fieldset>
-			<legend>{t("Pocity")} <span class="bf-muted">{t("(5 = nejlepší)")}</span></legend>
-			<Scale5 label={t("Únava")} low="velká únava" high="svěžest" bind:value={values.fatigue} hint={hints.fatigue} error={errors.fatigue} />
-			<Scale5 label={t("Bolest svalů")} low="silná" high="žádná" bind:value={values.soreness} hint={hints.soreness} error={errors.soreness} />
-			<Scale5 label={t("Nálada")} low="velmi špatná" high="výborná" bind:value={values.mood} hint={hints.mood} error={errors.mood} />
-			<Scale5 label={t("Stres")} low="velký" high="žádný" bind:value={values.stress} hint={hints.stress} error={errors.stress} />
+			<legend>{t("How you feel")} <span class="bf-muted">{t("(5 = best)")}</span></legend>
+			<Scale5 label={t("Fatigue")} low={t("very tired")} high={t("fresh")} bind:value={values.fatigue} hint={hints.fatigue} error={errors.fatigue} />
+			<Scale5 label={t("Muscle soreness")} low={t("severe")} high={t("none")} bind:value={values.soreness} hint={hints.soreness} error={errors.soreness} />
+			<Scale5 label={t("Mood")} low={t("very poor")} high={t("excellent")} bind:value={values.mood} hint={hints.mood} error={errors.mood} />
+			<Scale5 label={t("Stress")} low={t("high", undefined, "stress")} high={t("none", undefined, "stress")} bind:value={values.stress} hint={hints.stress} error={errors.stress} />
 		</fieldset>
 
 		<fieldset>
-			<legend>{t("HRV z Elongy")}</legend>
+			<legend>{t("HRV from Elonga")}</legend>
 			<div class="bf-grid-3">
 				<NumberField label={t("rMSSD")} unit="ms" decimals bind:value={values.rmssd_ms} hint={hints.rmssd_ms} error={errors.rmssd_ms} />
-				<NumberField label={t("Klidový tep")} unit={t("tep/min")} bind:value={values.resting_hr} hint={hints.resting_hr} error={errors.resting_hr} />
-				<NumberField label={t("Připravenost")} unit={t("Elonga")} decimals bind:value={values.elonga_readiness} hint={hints.elonga_readiness} error={errors.elonga_readiness} />
+				<NumberField label={t("Resting heart rate")} unit={t("bpm")} bind:value={values.resting_hr} hint={hints.resting_hr} error={errors.resting_hr} />
+				<NumberField label={t("Readiness")} unit={t("Elonga")} decimals bind:value={values.elonga_readiness} hint={hints.elonga_readiness} error={errors.elonga_readiness} />
 			</div>
 			<p class="bf-note">
-				{t("Skóre připravenosti Elongy se jen zobrazuje, do výpočtů nevstupuje – složená skóre nemají dostatečnou nezávislou validaci.")}
+				{t("Elonga's readiness score is only shown and isn't used in calculations – composite scores lack sufficient independent validation.")}
 			</p>
 		</fieldset>
 
 		<fieldset>
-			<legend>{t("Tělo")}</legend>
+			<legend>{t("Body")}</legend>
 			<div class="bf-grid-3">
-				<NumberField label={t("Váha")} unit="kg" decimals bind:value={values.weight_kg} hint={hints.weight_kg} error={errors.weight_kg} />
-				<NumberField label={t("Kroky včera")} bind:value={stepsYesterday} error={stepsError} />
+				<NumberField label={t("Weight")} unit="kg" decimals bind:value={values.weight_kg} hint={hints.weight_kg} error={errors.weight_kg} />
+				<NumberField label={t("Steps yesterday")} bind:value={stepsYesterday} error={stepsError} />
 			</div>
-			<p class="bf-note">{t("Kroky jsou nepovinné – podle nich se ve výživě určuje běžná aktivita mimo trénink. Ukládají se ke včerejšku.")}</p>
+			<p class="bf-note">{t("Steps are optional – nutrition uses them to set your everyday activity outside training. They're saved to yesterday.")}</p>
 			<details class="bf-measures" open={hasMeasures}>
-				<summary>{t("Tělesné míry (nepovinné)")}</summary>
+				<summary>{t("Body measurements (optional)")}</summary>
 				<div class="bf-grid-3">
 					{#each BODY_MEASURES as measure (measure.id)}
 						<NumberField label={measure.label} unit={measure.unit} decimals bind:value={values[measure.id]} hint={hints[measure.id]} error={errors[measure.id]} />
 					{/each}
 				</div>
-				<p class="bf-note">{t("Stačí jednou za 2–4 týdny, vždy ráno a na stejném místě. Podíl tuku zpřesní výpočet výživy.")}</p>
+				<p class="bf-note">{t("Once every 2–4 weeks is enough, always in the morning and at the same spot. Body fat makes the nutrition calculation more accurate.")}</p>
 			</details>
 		</fieldset>
 	{/key}
@@ -186,8 +186,8 @@
 	{#if saveError}<p class="bf-error">{saveError}</p>{/if}
 
 	<div class="bf-form-buttons">
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
-		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Ukládám…") : t("Uložit")}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
+		<button type="submit" class="mod-cta" disabled={!valid || saving}>{saving ? t("Saving…") : t("Save")}</button>
 	</div>
 </form>
 

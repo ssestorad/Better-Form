@@ -72,7 +72,7 @@ export interface LadderStatus {
 
 /** „3×8 opakování“ / „3×10 s“. */
 export function criterionText(unit: "reps" | "sec", c: SkillCriteria): string {
-	return unit === "sec" ? `${c.sets}×${c.holdSec} s` : t("{sets}×{reps} opakování", { sets: c.sets, reps: c.reps });
+	return unit === "sec" ? `${c.sets}×${c.holdSec} s` : t("{sets}×{reps} reps", { sets: c.sets, reps: c.reps });
 }
 
 /**

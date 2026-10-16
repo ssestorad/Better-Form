@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Karta silového cviku v režimu Základ: dnešní plán, naposledy, rekord, rychlý zápis.
-	import { t } from "../../i18n";
+	import { t, tn } from "../../i18n";
 	import { exerciseStats, quickSet, setPlan, taskFor, type BasicUnit } from "../../calc/basic";
 	import { describeTarget } from "../../calc/programText";
 	import { usePlugin } from "../context";
@@ -27,7 +27,7 @@
 		void $indexVersion;
 		return plugin.workouts.measureOf(exercise) === "seconds" ? "sec" : "reps";
 	});
-	const unitLabel = $derived(unit === "sec" ? "s" : t("opak."));
+	const unitLabel = $derived(unit === "sec" ? "s" : t("reps", undefined, "abbr"));
 	const plan = $derived.by(() => {
 		void $indexVersion;
 		return taskFor(plugin.programs.active(date), isExercise);
@@ -79,41 +79,41 @@
 
 <section class="bf-card bf-basic-card">
 	<header class="bf-basic-head">
-		<button type="button" class="bf-link-button bf-basic-name" title={t("Provedení a zapojené partie")} onclick={() => plugin.openLibrary({ exercise })}>
+		<button type="button" class="bf-link-button bf-basic-name" title={t("Technique and muscles worked")} onclick={() => plugin.openLibrary({ exercise })}>
 			{exercise}
 		</button>
-		{#if plan?.task.done}<span class="bf-tag bf-tag-done">{t("dnes splněno")}</span>{/if}
+		{#if plan?.task.done}<span class="bf-tag bf-tag-done">{t("done today")}</span>{/if}
 	</header>
 
 	{#if !knownExercise}
-		<p class="bf-muted">{t("Cvik není v knihovně – spusť „Doplnit knihovnu“ nebo uprav seznam cviků v nastavení.")}</p>
+		<p class="bf-muted">{t("The exercise isn't in the library – run “Add to library” or edit the exercise list in the settings.")}</p>
 	{/if}
 
 	<dl class="bf-basic-stats">
-		<dt>{t("Dnes")}</dt>
+		<dt>{t("Today")}</dt>
 		<dd>
 			{#if plan}
 				{describeTarget(plan.task.target)}
 				<span class="bf-muted">· {plan.program.entry.note.name}</span>
 			{:else}
-				<span class="bf-muted">{t("bez programu – cvič podle sebe")}</span>
+				<span class="bf-muted">{t("no program – train your own way")}</span>
 			{/if}
 		</dd>
-		<dt>{t("Naposledy")}</dt>
+		<dt>{t("Last time")}</dt>
 		<dd>
-			{#if stats.last}{formatShortDate(stats.last.date)}: {stats.last.values.join(", ")} {unitLabel}{:else}<span class="bf-muted">{t("zatím nic")}</span>{/if}
+			{#if stats.last}{formatShortDate(stats.last.date)}: {stats.last.values.join(", ")} {unitLabel}{:else}<span class="bf-muted">{t("nothing yet")}</span>{/if}
 		</dd>
-		<dt>{t("Rekord")}</dt>
+		<dt>{t("Record")}</dt>
 		<dd>
 			{#if stats.record}{stats.record.value} {unitLabel} <span class="bf-muted">({formatShortDate(stats.record.date)})</span>{:else}<span class="bf-muted">–</span>{/if}
 		</dd>
 	</dl>
 
 	{#if plan?.task.target.kind === "needs_test"}
-		<button type="button" class="mod-cta" onclick={() => plugin.openEntryTest()}>{t("Otestovat maximum")}</button>
+		<button type="button" class="mod-cta" onclick={() => plugin.openEntryTest()}>{t("Test your max")}</button>
 	{:else if plan?.task.counter}
 		<CounterWidget
-			label={t("Dnešní součet")}
+			label={t("Today's total")}
 			progress={plan.task.counter}
 			steps={counterSteps}
 			onAdd={(reps) => plugin.programs.addToCounter(plan.program.entry, exercise, reps, date)}
@@ -123,23 +123,23 @@
 		<!-- Pevná výška řádku s dnešními sériemi, aby karta při zápisu neposkakovala. -->
 		<div class="bf-basic-today">
 			{#if stats.today.length > 0}
-				<strong>{stats.today.length}{target.sets !== undefined ? ` / ${target.sets}` : ""} {(target.sets ?? stats.today.length) >= 5 ? t("sérií") : t("série")}:</strong>
+				<strong>{stats.today.length}{target.sets !== undefined ? ` / ${target.sets}` : ""} {tn(target.sets ?? stats.today.length, ["set", "sets"], undefined, "count")}:</strong>
 				{stats.today.join(", ")} {unitLabel}
 			{:else}
-				<span class="bf-muted">{t("Dnes zatím žádná série.")}</span>
+				<span class="bf-muted">{t("No sets yet today.")}</span>
 			{/if}
 		</div>
 		<div class="bf-basic-log">
 			{#if target.value !== undefined}
-				<button type="button" class="mod-cta" disabled={busy} title={t("Zapsat jednu sérii podle plánu")} onclick={() => void log(target.value!)}>
+				<button type="button" class="mod-cta" disabled={busy} title={t("Log one set as planned")} onclick={() => void log(target.value!)}>
 					✓ {target.value}
 				</button>
 			{/if}
 			<div class="bf-basic-custom">
 				<NumInput
 					bind:value={custom}
-					label={unit === "sec" ? t("Sekundy") : t("Opakování")}
-					placeholder={unit === "sec" ? t("sekundy") : t("opak.")}
+					label={unit === "sec" ? t("Seconds") : t("Reps")}
+					placeholder={unit === "sec" ? t("seconds") : t("reps", undefined, "abbr")}
 					onkeydown={(e) => {
 						if (e.key === "Enter") {
 							e.preventDefault();
@@ -148,8 +148,8 @@
 					}}
 				/>
 			</div>
-			<button type="button" disabled={busy || !customValid} onclick={logCustom}>{t("Zapsat sérii")}</button>
-			<button type="button" class="clickable-icon" disabled={busy || stats.today.length === 0} title={t("Vrátit poslední sérii")} aria-label={t("Vrátit poslední sérii")} onclick={() => void run(() => plugin.programs.undoQuickLog(exercise, date))}>↶</button>
+			<button type="button" disabled={busy || !customValid} onclick={logCustom}>{t("Log set")}</button>
+			<button type="button" class="clickable-icon" disabled={busy || stats.today.length === 0} title={t("Undo last set")} aria-label={t("Undo last set")} onclick={() => void run(() => plugin.programs.undoQuickLog(exercise, date))}>↶</button>
 		</div>
 	{/if}
 	{#if error}<div class="bf-error">{error}</div>{/if}

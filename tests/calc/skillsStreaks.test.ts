@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { criterionText, ladderStatus, laddersFrom, type SkillCriteria } from "../../src/calc/skills";
 import { badges, dayStreak, weekStreak } from "../../src/calc/streaks";
 import type { WorkoutNote } from "../../src/model/types";
-import { SEED_EXERCISES } from "../../src/seed/exercises";
+import { seedExercises } from "../../src/seed/exercises";
+import { EXERCISE_ROWS } from "../../src/seed/exerciseData";
 import { progressionFor, PULL_UP_EXERCISES, SKILL_LADDERS } from "../../src/seed/skills";
+import { builtinName } from "../../src/seed/localize";
 
 function workout(partial: Partial<WorkoutNote> & { date: string }): WorkoutNote {
 	return { forma: "workout", schema: 1, sport: "calisthenics", source: "manual", blocks: [], pain: [], ...partial };
@@ -13,13 +15,14 @@ const CRITERIA: SkillCriteria = { sets: 3, reps: 8, holdSec: 10 };
 const same = (a: string, b: string) => a === b;
 
 describe("předpřipravené žebříčky (5.6)", () => {
-	const names = new Set(SEED_EXERCISES.map((e) => e.name));
+	const ids = new Set(EXERCISE_ROWS.map((e) => e.id));
+	const czech = seedExercises("cs");
 
 	it("dovednosti ze SPEC a všechny stupně jsou v knihovně", () => {
 		expect(SKILL_LADDERS.length).toBe(10);
 		for (const ladder of SKILL_LADDERS) {
 			expect(ladder.steps.length, ladder.name).toBeGreaterThanOrEqual(3);
-			for (const step of ladder.steps) expect(names, `${ladder.name}: ${step}`).toContain(step);
+			for (const step of ladder.steps) expect(ids, `${ladder.name}: ${step}`).toContain(step);
 		}
 	});
 
@@ -29,8 +32,8 @@ describe("předpřipravené žebříčky (5.6)", () => {
 	});
 
 	it("regrese ke shybu podle SPEC: přítahy → negativy → s gumou → shyb", () => {
-		const steps = SKILL_LADDERS.find((l) => l.name === "Shyby – progrese")!.steps;
-		const order = ["Australské přítahy", "Negativní shyby", "Shyby s gumou", "Shyby"].map((s) => steps.indexOf(s));
+		const steps = SKILL_LADDERS.find((l) => l.id === "pull-up-progression")!.steps;
+		const order = ["inverted-row", "negative-pull-up", "band-assisted-pull-up", "pull-up"].map((s) => steps.indexOf(s));
 		expect(order).toEqual([...order].sort((a, b) => a - b));
 		expect(order.every((i) => i >= 0)).toBe(true);
 	});
@@ -38,16 +41,17 @@ describe("předpřipravené žebříčky (5.6)", () => {
 	it("cviky v knihovně nesou žebříček a stupeň", () => {
 		expect(progressionFor("Kliky")).toEqual({ ladder: "Kliky – progrese", level: 3 });
 		expect(progressionFor("Bench press")).toBeUndefined();
-		expect(SEED_EXERCISES.find((e) => e.name === "Kliky")!.progression).toEqual({ ladder: "Kliky – progrese", level: 3 });
-		const ladders = laddersFrom(SEED_EXERCISES);
-		expect(ladders.map((l) => l.name).sort()).toEqual(SKILL_LADDERS.map((l) => l.name).sort());
+		expect(progressionFor("Push-up", "en")).toEqual({ ladder: "Push-up – progression", level: 3 });
+		expect(czech.find((e) => e.name === "Kliky")!.progression).toEqual({ ladder: "Kliky – progrese", level: 3 });
+		const ladders = laddersFrom(czech);
+		expect(ladders.map((l) => l.name).sort()).toEqual(SKILL_LADDERS.map((l) => builtinName("ladder", l.id, "cs")).sort());
 		const front = ladders.find((l) => l.name === "Front lever – progrese")!;
 		expect(front.steps.map((s) => s.exercise)).toEqual(["Tuck front lever", "Advanced tuck front lever", "Front lever"]);
 		expect(front.steps.every((s) => s.unit === "sec")).toBe(true);
 	});
 
 	it("shyby pro odznak jsou v knihovně", () => {
-		for (const name of PULL_UP_EXERCISES) expect(names).toContain(name);
+		for (const id of PULL_UP_EXERCISES) expect(ids).toContain(id);
 	});
 });
 

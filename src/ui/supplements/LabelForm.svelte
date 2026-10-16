@@ -37,8 +37,8 @@
 	const rows = $derived(parseLabelText(text).map((row) => ({ ...row, catalog: labelCatalogId(row.name) })));
 	const chosen = $derived(rows.filter((row) => !skipped.includes(row.name)));
 	const warnings = $derived(ingredientWarnings(chosen, servings));
-	const nameError = $derived(name.trim() === "" ? t("Zadej název přípravku.") : undefined);
-	const servingsError = $derived(servings !== undefined && (Number.isNaN(servings) || servings <= 0) ? t("Počet porcí musí být kladné číslo.") : undefined);
+	const nameError = $derived(name.trim() === "" ? t("Enter the product name.") : undefined);
+	const servingsError = $derived(servings !== undefined && (Number.isNaN(servings) || servings <= 0) ? t("Servings must be a positive number.") : undefined);
 
 	function toggle(rowName: string, on: boolean) {
 		skipped = on ? skipped.filter((n) => n !== rowName) : [...skipped, rowName];
@@ -64,59 +64,59 @@
 
 <form class="bf-label-form" onsubmit={submit}>
 	<label class="bf-field">
-		<span class="bf-field-label">{t("Název přípravku")}</span>
-		<input type="text" bind:value={name} placeholder={t("např. Multivitamin ABC")} />
+		<span class="bf-field-label">{t("Product name")}</span>
+		<input type="text" bind:value={name} placeholder={t("e.g. Multivitamin ABC")} />
 	</label>
 
 	<div class="bf-label-source">
 		<div class="bf-label-photo">
 			<label class="bf-field">
-				<span class="bf-field-label">{t("Fotka etikety (nepovinná)")}</span>
+				<span class="bf-field-label">{t("Label photo (optional)")}</span>
 				<input type="file" accept="image/*" onchange={(e) => (photo = e.currentTarget.files?.[0] ?? null)} />
 			</label>
 			{#if photoUrl}
-				<img src={photoUrl} alt={t("Vybraná fotka etikety")} />
+				<img src={photoUrl} alt={t("Selected label photo")} />
 			{/if}
 		</div>
 		<label class="bf-field bf-label-text">
-			<span class="bf-field-label">{t("Text složení z etikety")}</span>
-			<textarea rows="8" bind:value={text} placeholder={t("Vitamin C 80 mg\nHořčík 375 mg\nZinek 10 mg")}></textarea>
+			<span class="bf-field-label">{t("Ingredients text from the label")}</span>
+			<textarea rows="8" bind:value={text} placeholder={t("Vitamin C 80 mg\nMagnesium 375 mg\nZinc 10 mg")}></textarea>
 		</label>
 	</div>
 	<p class="bf-muted bf-small">
-		{t("Plugin text z obrázku sám nečte. Zkopíruj ho z fotky – v telefonu podrž prst na textu ve fotce (iPhone: Živý text, Android: Google Lens), ve Windows Výstřižky → Akce s textem – nebo složení opiš, jedna látka na řádek. Fotka se uloží k poznámce suplementu.")}
+		{t("The plugin doesn't read text from the image itself. Copy it from the photo – on your phone, press and hold the text in the photo (iPhone: Live Text, Android: Google Lens), on Windows use Snipping Tool → Text actions – or type the ingredients in, one per line. The photo is saved with the supplement note.")}
 	</p>
 
 	{#if rows.length > 0}
 		<div class="bf-label-rows">
-			<span class="bf-field-label">{t("Vyčtené látky v jedné porci ({chosen_length} z {rows_length})", { chosen_length: chosen.length, rows_length: rows.length })}</span>
+			<span class="bf-field-label">{t("Ingredients read per serving ({chosen_length} of {rows_length})", { chosen_length: chosen.length, rows_length: rows.length })}</span>
 			{#each rows as row (row.name)}
 				<label class="bf-label-row">
 					<input type="checkbox" checked={!skipped.includes(row.name)} onchange={(e) => toggle(row.name, e.currentTarget.checked)} />
 					<span>{row.name}</span>
 					<span class="bf-muted">{doseLabel(row.amount, row.unit)}</span>
 					{#if row.catalog}
-						<span class="bf-tag" title={t("Rozpoznáno v katalogu – pokud má látka horní limit, hlídá se")}>{catalogSupplement(row.catalog)?.name}</span>
+						<span class="bf-tag" title={t("Recognized in the catalog – if the ingredient has an upper limit, it's checked")}>{catalogSupplement(row.catalog)?.name}</span>
 					{/if}
 				</label>
 			{/each}
-			<span class="bf-muted bf-small">{t("Zkontroluj čísla proti etiketě. Chybný řádek oprav přímo v textu nahoře, nadbytečný odškrtni.")}</span>
+			<span class="bf-muted bf-small">{t("Check the numbers against the label. Fix a wrong line directly in the text above, uncheck an extra one.")}</span>
 		</div>
 	{:else if text.trim() !== ""}
-		<p class="bf-muted bf-small">{t("V textu jsem nenašel žádný řádek s množstvím (např. „Hořčík 375 mg“).")}</p>
+		<p class="bf-muted bf-small">{t("I didn't find any line with an amount in the text (e.g. “Magnesium 375 mg”).")}</p>
 	{/if}
 
 	<div class="bf-label-grid">
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Porcí denně")}</span>
-			<NumInput bind:value={servings} label={t("Porcí denně")} decimals error={servingsError} />
+			<span class="bf-field-label">{t("Servings per day")}</span>
+			<NumInput bind:value={servings} label={t("Servings per day")} decimals error={servingsError} />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Porce je")}</span>
-			<input type="text" bind:value={unit} placeholder={t("tableta, kapsle, odměrka")} />
+			<span class="bf-field-label">{t("A serving is")}</span>
+			<input type="text" bind:value={unit} placeholder={t("tablet, capsule, scoop")} />
 		</label>
 		<label class="bf-field">
-			<span class="bf-field-label">{t("Kdy")}</span>
+			<span class="bf-field-label">{t("When")}</span>
 			<select class="dropdown" bind:value={timing}>
 				{#each SUPPLEMENT_TIMINGS as x (x)}
 					<option value={x}>{SUPPLEMENT_TIMING_LABELS[x]}</option>
@@ -126,7 +126,7 @@
 	</div>
 	<label class="bf-label-check">
 		<input type="checkbox" bind:checked={trainingDaysOnly} />
-		{t("Jen ve dnech s tréninkem")}
+		{t("Training days only")}
 	</label>
 
 	{#if servingsError}<div class="bf-error">{servingsError}</div>{/if}
@@ -134,8 +134,8 @@
 		<div class="bf-label-warning">{warning.name}: {limitMessage(warning.check)}</div>
 	{/each}
 	<div class="bf-actions">
-		<button type="submit" class="mod-cta" disabled={!!nameError || !!servingsError}>{t("Přidat")}</button>
-		<button type="button" onclick={onCancel}>{t("Zrušit")}</button>
+		<button type="submit" class="mod-cta" disabled={!!nameError || !!servingsError}>{t("Add")}</button>
+		<button type="button" onclick={onCancel}>{t("Cancel")}</button>
 	</div>
 </form>
 

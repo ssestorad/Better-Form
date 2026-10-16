@@ -2,9 +2,9 @@ import type { ExerciseCategory } from "../../model/constants";
 import { translated } from "../../i18n";
 
 export const CATEGORY_LABELS: Record<ExerciseCategory, string> = translated({
-	strength: "Posilovna",
-	calisthenics: "Kalistenika",
+	strength: "Gym",
+	calisthenics: "Calisthenics",
 	kettlebell: "Kettlebell",
-	cardio: "Kardio",
-	mobility: "Mobilita",
+	cardio: "Cardio",
+	mobility: "Mobility",
 });
