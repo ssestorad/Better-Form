@@ -1,0 +1,46 @@
+# Vydání: po pushi tagu s číslem verze (např. 0.1.0) otestuje, sestaví a založí release
+# se soubory main.js, manifest.json a styles.css – ty potřebuje Obsidian i BRAT.
+name: Vydání
+
+on:
+  push:
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+jobs:
+  vydani:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # Obsidian i BRAT berou verzi z manifestu; tag bez shody by vydal jinou verzi, než tvrdí.
+      - name: Tag odpovídá verzi
+        run: |
+          node -e '
+            const fs = require("fs");
+            const tag = process.env.GITHUB_REF_NAME;
+            const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const versions = JSON.parse(fs.readFileSync("versions.json", "utf8"));
+            const errors = [];
+            if (manifest.version !== tag) errors.push(`manifest.json má ${manifest.version}`);
+            if (pkg.version !== tag) errors.push(`package.json má ${pkg.version}`);
+            if (versions[tag] !== manifest.minAppVersion) errors.push(`versions.json nemá ${tag}: ${manifest.minAppVersion}`);
+            if (errors.length) { console.error(`Tag ${tag} nesedí: ${errors.join("; ")}`); process.exit(1); }
+          '
+      - name: Instalace závislostí
+        run: npm ci
+      - name: Testy
+        run: npm test
+      - name: Typová kontrola a build
+        run: npm run build
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" main.js manifest.json styles.css --title "$GITHUB_REF_NAME" --generate-notes

@@ -1,0 +1,199 @@
+/* Globální styly pluginu Better Form. Styly komponent jsou v jednotlivých .svelte souborech. */
+
+.better-form {
+	container-type: inline-size;
+}
+
+/* Společné prvky view a modalů */
+.bf-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-2);
+	padding: var(--size-4-3);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background-color: var(--background-primary);
+}
+
+.bf-card p {
+	margin: 0;
+}
+
+.bf-muted {
+	color: var(--text-muted);
+}
+
+.bf-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-2);
+}
+
+.bf-tab-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-3);
+}
+
+/* Formuláře */
+.bf-modal {
+	width: min(640px, 95vw);
+}
+
+.bf-modal.bf-modal-wide {
+	width: min(760px, 95vw);
+}
+
+.bf-tag {
+	display: inline-block;
+	padding: 0 var(--size-4-1);
+	border-radius: var(--radius-s);
+	background-color: var(--background-modifier-hover);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+.bf-tag-done {
+	background-color: rgba(var(--color-green-rgb), 0.15);
+	color: var(--text-success);
+}
+
+.bf-import-text {
+	width: 100%;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+	resize: vertical;
+}
+
+.bf-tag-warn {
+	background-color: rgba(var(--color-orange-rgb), 0.15);
+	color: var(--color-orange);
+}
+
+/*
+ * Tlačítko vypadající jako odkaz (bez rámečku a pozadí, text se smí zalomit).
+ * Selektor musí být silnější než pravidlo Obsidianu `button:not(.clickable-icon)`,
+ * které tlačítkům dává pozadí, stín a barvu textu – jinak z odkazu zůstane
+ * tlačítko bez okrajů, jehož text přeteče přes sousední prvky.
+ */
+button.bf-link-button:not(.clickable-icon) {
+	display: inline;
+	height: auto;
+	padding: 0;
+	background: none;
+	box-shadow: none;
+	border: none;
+	border-radius: 0;
+	color: var(--link-color);
+	cursor: pointer;
+	font-size: inherit;
+	text-align: left;
+	white-space: normal;
+}
+
+button.bf-link-button:not(.clickable-icon):hover {
+	background: none;
+	box-shadow: none;
+	text-decoration: underline;
+}
+
+/* Obsah u spodního okraje: když se popisek v jednom sloupci zalomí, pole v řádku zůstanou v jedné rovině. */
+.bf-field {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: var(--size-4-1);
+	min-width: 0;
+}
+
+.bf-field input {
+	width: 100%;
+}
+
+.bf-field-label {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+	font-size: var(--font-ui-small);
+}
+
+.bf-hint {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+}
+
+.bf-error {
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+}
+
+.bf-grid-2,
+.bf-grid-3 {
+	display: grid;
+	gap: var(--size-4-2);
+}
+
+.bf-grid-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bf-grid-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 480px) {
+	.bf-grid-3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Nastavení */
+.bf-settings-details {
+	margin: var(--size-4-2) 0;
+}
+
+.bf-settings-details > summary {
+	cursor: pointer;
+	padding: var(--size-4-1) 0;
+	color: var(--text-normal);
+	font-weight: var(--font-medium);
+}
+
+.bf-number-input {
+	width: 8em;
+}
+
+input.bf-invalid {
+	border-color: var(--text-error);
+	box-shadow: 0 0 0 1px var(--text-error);
+}
+
+/* Přepínač (segmenty): aktivní volba jen barvou, rozměry se nemění. */
+.bf-seg {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 4px;
+	border-radius: var(--radius-m);
+	background-color: var(--background-modifier-border);
+	align-self: flex-start;
+}
+
+.bf-seg button {
+	box-shadow: none;
+	background: transparent;
+	color: var(--text-muted);
+}
+
+.bf-seg button.is-active {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.bf-seg button:disabled {
+	opacity: 0.5;
+}
+
+.bf-small {
+	font-size: var(--font-ui-small);
+}

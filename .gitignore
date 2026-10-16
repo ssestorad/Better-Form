@@ -1,0 +1,16 @@
+node_modules/
+
+# Výstup buildu (jen v kořeni – src/styles.css je zdrojový soubor)
+/main.js
+/main.css
+/styles.css
+*.map
+
+# Lokální nastavení (cesta k vaultu) – necommitovat
+.env.local
+
+# Data pluginu (obsahují tokeny Stravy) – necommitovat
+data.json
+
+coverage/
+.DS_Store

@@ -1,0 +1,10 @@
+{
+	"id": "better-form",
+	"name": "Better Form",
+	"version": "0.2.0",
+	"minAppVersion": "1.6.0",
+	"description": "Training log, recovery, daily recommendations and nutrition – your data stays as plain Markdown notes.",
+	"author": "ssestorad",
+	"authorUrl": "https://github.com/ssestorad",
+	"isDesktopOnly": false
+}
