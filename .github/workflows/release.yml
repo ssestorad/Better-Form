@@ -1,5 +1,6 @@
 # Vydání: po pushi tagu s číslem verze (např. 0.1.0) otestuje, sestaví a založí release
-# se soubory main.js, manifest.json a styles.css – ty potřebuje Obsidian i BRAT.
+# se soubory main.js, manifest.json a styles.css – ty potřebuje Obsidian i BRAT. Sestavené soubory
+# dostanou atestaci původu (GitHub artifact attestations), kterou doporučuje katalog Obsidianu.
 name: Vydání
 
 on:
@@ -8,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   vydani:
@@ -40,6 +43,12 @@ jobs:
         run: npm test
       - name: Typová kontrola a build
         run: npm run build
+      - name: Atestace sestavení
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}

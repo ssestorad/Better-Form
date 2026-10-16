@@ -4,7 +4,7 @@
 
 A training log plugin for [Obsidian](https://obsidian.md): workout logging, recovery, recommendations for today, a weekly plan and a suggested daily intake. All data are plain Markdown notes in your vault – readable without the plugin and without any third-party service.
 
-> **Status:** version 0.3.0, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Not yet verified](#not-yet-verified)). The interface is in English and Czech.
+> **Status:** version 0.3.1, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Not yet verified](#not-yet-verified)). The interface is in English and Czech.
 
 ## Screenshots
 
@@ -130,6 +130,8 @@ The language then appears in the settings and is picked automatically when Obsid
 - The plugin works **offline** and stores all data as notes in your vault. It sends nothing, has no telemetry or ads and needs no account.
 - **The only network connection is the optional Strava sync** (`www.strava.com`): OAuth sign-in and downloading your activities. It only runs when you start it, and only after you enable it in the settings and enter your own API application details. On desktop the plugin briefly starts a local server on `127.0.0.1` during sign-in to receive Strava's response; on mobile you paste the code manually.
 - The plugin reads and writes nothing outside the vault – you pick imported files yourself, and exports and ZIP backups are saved into the vault.
+- To find its own notes even after you move them, the plugin goes through the list of files in the vault and reads those with `forma:` in the frontmatter. It changes only its own notes, and in them only the frontmatter and the generated block; your own notes are left alone.
+- The clipboard is used only when you click: **Export** on a program card (Programs tab) copies the program to it as text, and **Paste from clipboard** in program import reads from it.
 
 ## Where recommendations come from
 

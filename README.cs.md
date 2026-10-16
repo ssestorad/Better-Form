@@ -4,7 +4,7 @@
 
 Plugin do [Obsidianu](https://obsidian.md) pro tréninkový deník: zápis tréninků, regenerace, doporučení na dnešek, plán týdne a doporučený příjem. Všechna data jsou běžné Markdown poznámky ve tvém vaultu – čitelné i bez pluginu a bez jakékoli služby třetí strany.
 
-> **Stav:** verze 0.3.0, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Co není ověřené](#co-není-ověřené)). Rozhraní je anglicky a česky.
+> **Stav:** verze 0.3.1, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Co není ověřené](#co-není-ověřené)). Rozhraní je anglicky a česky.
 
 ## Ukázky
 
@@ -130,6 +130,8 @@ Jazyk se pak objeví v nastavení a vybere se sám, když ho používá Obsidian
 - Plugin pracuje **offline** a všechna data ukládá jako poznámky v tvém vaultu. Nic neodesílá, nemá telemetrii ani reklamy a nepotřebuje žádný účet.
 - **Jediné síťové spojení je volitelná synchronizace se Stravou** (`www.strava.com`): přihlášení přes OAuth a stažení tvých aktivit. Spouští se jen ručně, a jen když si ji v nastavení zapneš a vložíš vlastní údaje API aplikace. Na počítači plugin během přihlášení krátce spustí místní server na `127.0.0.1`, aby přijal odpověď Stravy; na telefonu se používá ruční vložení kódu.
 - Mimo vault plugin nic nečte ani nezapisuje – importované soubory si vybíráš sám a export i záloha ZIP se ukládají do vaultu.
+- Aby našel svoje poznámky, i když je přesuneš, prochází plugin seznam souborů ve vaultu a čte ty, které mají ve frontmatteru `forma:`. Mění jen svoje poznámky a v nich jen frontmatter a generovaný blok; tvoje ostatní poznámky nechává být.
+- Schránku používá jen na kliknutí: **Export** u programu (karta Programy) do ní zkopíruje program jako text a **Vložit ze schránky** při importu programu z ní čte.
 
 ## Odkud doporučení jsou
 
