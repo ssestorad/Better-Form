@@ -18,6 +18,8 @@ export type SupplementEntry = IndexEntry<SupplementNote>;
 export interface SupplementDraft {
 	name: string;
 	catalog?: string;
+	/** Druh látky z katalogu. */
+	variant?: string;
 	dose?: number;
 	unit?: string;
 	timing: SupplementTiming;
@@ -39,6 +41,7 @@ const SUPPLEMENT_KEYS = [
 	"schema",
 	"name",
 	"catalog",
+	"variant",
 	"dose",
 	"unit",
 	"timing",
@@ -138,6 +141,7 @@ export class SupplementService {
 			schema: SCHEMA_VERSION,
 			name,
 			catalog: draft.catalog,
+			variant: draft.variant,
 			dose: draft.dose,
 			unit: draft.unit?.trim() || undefined,
 			timing: draft.timing,
@@ -151,10 +155,11 @@ export class SupplementService {
 		return this.writer.createNote(path, supplementToFrontmatter(note), image ? `![[${image.name}]]` : "");
 	}
 
-	/** Upraví dávku a časování; název (a tím i historie v deníku) zůstává. */
+	/** Upraví druh, dávku a časování; název (a tím i historie v deníku) zůstává. */
 	async update(entry: SupplementEntry, draft: SupplementDraft): Promise<void> {
 		await this.write(entry, {
 			...entry.note,
+			variant: draft.variant,
 			dose: draft.dose,
 			unit: draft.unit?.trim() || undefined,
 			timing: draft.timing,

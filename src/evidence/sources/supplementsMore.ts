@@ -1,5 +1,5 @@
 // Suplementy: další látky (ověřeno přes Crossref / PubMed 3. 10. 2026)
-// Část katalogu zdrojů – skládá se v src/evidence/sources.ts. Nové zdroje jen ověřené (CLAUDE.md).
+// Část katalogu zdrojů – skládá se v src/evidence/sources.ts. Nové zdroje jen ověřené.
 
 import type { Source } from "../sourceTypes";
 

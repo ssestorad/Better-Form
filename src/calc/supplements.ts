@@ -329,7 +329,7 @@ export function toggleTaken(list: readonly string[] | undefined, name: string, t
 // ---------- Osobní test (N-of-1) ----------
 
 /** Ukazatele z ranního check-inu, které jde u suplementu sledovat. */
-export const TRIAL_METRICS = ["sleep_quality", "sleep_duration", "mood", "stress", "fatigue", "soreness"] as const;
+export const TRIAL_METRICS = ["sleep_quality", "sleep_duration", "mood", "stress", "fatigue", "soreness", "motivation"] as const;
 export type TrialMetric = (typeof TRIAL_METRICS)[number];
 
 export const TRIAL_METRIC_LABELS: Record<TrialMetric, string> = translated({
@@ -339,6 +339,7 @@ export const TRIAL_METRIC_LABELS: Record<TrialMetric, string> = translated({
 	stress: "stress (1–5, 5 = calm)",
 	fatigue: "fatigue (1–5, 5 = rested)",
 	soreness: "muscles (1–5, 5 = no soreness)",
+	motivation: "desire to train (1–5)",
 });
 
 /** Délka srovnávaných období a minimum měření v každém (heuristika, praxe). */
@@ -349,7 +350,7 @@ export const TRIAL_MIN_SAMPLES = 14;
 export interface TrialDay {
 	date: string;
 	sleep: { quality?: number; duration_min?: number };
-	check_in: { mood?: number; stress?: number; fatigue?: number; soreness?: number };
+	check_in: { mood?: number; stress?: number; fatigue?: number; soreness?: number; motivation?: number };
 }
 
 function metricValue(day: TrialDay, metric: TrialMetric): number | undefined {

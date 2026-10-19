@@ -74,6 +74,8 @@ describe.each(Object.entries(LOCALES) as [string, { content: ContentLocale }][])
 			expect(local!.benefits.length, item.id).toBe(item.benefits.length);
 			local!.benefits.forEach((note, i) => expect(note === null, `${item.id} oblast ${i}`).toBe(item.benefits[i]!.note === undefined));
 			expect(local!.safetyNote !== undefined, item.id).toBe(item.safetyNote !== undefined);
+			expect(Object.keys(local!.variants ?? {}), item.id).toEqual((item.variants ?? []).map((v) => v.id));
+			for (const v of item.variants ?? []) expect(local!.variants![v.id]!.studies.length, `${item.id}/${v.id}`).toBe(v.studies.length);
 		}
 		for (const amino of AMINO_ACIDS) expect(content.amino[amino.id]?.name, amino.id).toBeTruthy();
 	});

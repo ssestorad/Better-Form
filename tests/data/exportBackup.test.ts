@@ -80,7 +80,7 @@ describe("CSV (SPEC 5.12)", () => {
 			supplements: ["Kreatin", "Vitamin D"],
 		};
 		const [, row] = lines(daysCsv([day], () => 450));
-		expect(row).toBe("2026-10-02;23:10;;06:40;450;4;;;3;;;;62;;;78,4;;82,5;;;36;;;8200;Kreatin, Vitamin D;");
+		expect(row).toBe("2026-10-02;23:10;;06:40;450;4;;;3;;;;;62;;;78,4;;82,5;;;36;;;8200;Kreatin, Vitamin D;");
 	});
 });
 
@@ -141,5 +141,22 @@ describe("záloha ZIP (SPEC 5.12)", () => {
 
 	it("razítko v názvu souboru bez dvojtečky", () => {
 		expect(stamp(new Date(2026, 9, 3, 9, 5))).toBe("2026-10-03 09-05");
+	});
+});
+
+describe("CSV v angličtině", () => {
+	it("hlavička denních dat je celá přeložená", async () => {
+		const { getLanguage, setLanguage } = await import("../../src/i18n");
+		const before = getLanguage();
+		setLanguage("en");
+		try {
+			const header = daysCsv([], () => null).split(/\r?\n/)[0]!;
+			expect(header).toContain("fell asleep");
+			expect(header).toContain("woke up");
+			expect(header).toContain("body fat (%)");
+			expect(header).not.toMatch(/usnul|vstal|tuk/);
+		} finally {
+			setLanguage(before);
+		}
 	});
 });

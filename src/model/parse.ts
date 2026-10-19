@@ -11,6 +11,7 @@ import {
 	NORM_KINDS,
 	PAIN_STATUSES,
 	EVIDENCE_LEVELS,
+	EQUIPMENT,
 	EXERCISE_CATEGORIES,
 	EXERCISE_KINDS,
 	EXERCISE_MEASURES,
@@ -149,6 +150,11 @@ function asListOf<T extends string>(value: unknown, allowed: readonly T[]): T[] 
 		.filter((v): v is T => v !== undefined);
 }
 
+/** Prázdný seznam = údaj chybí. */
+function nonEmpty<T>(list: T[]): T[] | undefined {
+	return list.length > 0 ? list : undefined;
+}
+
 function asNumberList(value: unknown): number[] {
 	return asArray(value)
 		.map(asNumber)
@@ -235,6 +241,7 @@ export function parseDay(raw: Raw): DayNote | null {
 			soreness: asNumber(checkIn.soreness),
 			mood: asNumber(checkIn.mood),
 			stress: asNumber(checkIn.stress),
+			motivation: asNumber(checkIn.motivation),
 		}),
 		hrv: compact({
 			rmssd_ms: asNumber(hrv.rmssd_ms),
@@ -465,6 +472,7 @@ export function parseExercise(raw: Raw): ExerciseNote | null {
 			? compact({ ladder: asLink(progression.ladder), level: asNumber(progression.level) })
 			: undefined,
 		aliases: asStringList(raw.aliases),
+		equipment: nonEmpty(asListOf(raw.equipment, EQUIPMENT)),
 		description: asNonEmptyString(raw.description),
 		technique: asNonEmptyString(raw.technique),
 		mistakes: asNonEmptyString(raw.mistakes),
@@ -863,6 +871,7 @@ export function parseSupplement(raw: Raw): SupplementNote | null {
 		schema: schemaOf(raw),
 		name,
 		catalog: asNonEmptyString(raw.catalog),
+		variant: asNonEmptyString(raw.variant),
 		dose: dose !== undefined && dose > 0 ? dose : undefined,
 		unit: asNonEmptyString(raw.unit),
 		timing: asOneOf(raw.timing, SUPPLEMENT_TIMINGS) ?? "any",

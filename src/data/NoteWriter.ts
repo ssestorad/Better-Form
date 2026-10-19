@@ -1,4 +1,4 @@
-// Zápis do vaultu. Jen přes app.vault a app.fileManager (CLAUDE.md).
+// Zápis do vaultu – jen přes app.vault a app.fileManager.
 
 import { normalizePath, stringifyYaml, TFile, TFolder, type App } from "obsidian";
 import { replaceGeneratedBlock } from "./generatedBlock";

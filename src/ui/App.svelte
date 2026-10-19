@@ -51,7 +51,14 @@
 		{/each}
 	</nav>
 
-	<h3 class="bf-tab-title">{active.label}</h3>
+	<!-- Knihovna cviků je potřeba odkudkoli – tlačítko vedle nadpisu na každé kartě. -->
+	<div class="bf-tab-head">
+		<h3 class="bf-tab-title">{active.label}</h3>
+		<button type="button" class="bf-library-button" onclick={() => plugin.openLibrary({})}>
+			<span class="bf-library-icon" use:icon={"book-open"}></span>
+			{t("Exercise library")}
+		</button>
+	</div>
 
 	<div class="bf-tab-content">
 		{#if active.id === "basic"}
@@ -117,7 +124,24 @@
 		display: flex;
 	}
 
+	.bf-tab-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--size-4-2);
+	}
+
 	.bf-tab-title {
 		margin: 0;
+		min-width: 0;
+	}
+
+	.bf-library-button {
+		flex: none;
+		gap: var(--size-4-1);
+	}
+
+	.bf-library-icon {
+		display: inline-flex;
 	}
 </style>

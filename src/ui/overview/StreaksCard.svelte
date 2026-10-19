@@ -4,10 +4,10 @@
 	import { Notice } from "obsidian";
 	import { previousMonth } from "../../calc/monthlySummary";
 	import { periodLabel, periodOf } from "../../calc/overview";
-	import { badges, dayStreak, weekStreak } from "../../calc/streaks";
+	import { BADGE_GROUPS, BADGE_GROUP_LABELS, badges } from "../../calc/badges";
+	import { dayStreak, weekStreak } from "../../calc/streaks";
 	import type { WorkoutNote } from "../../model/types";
 	import { exerciseId } from "../../seed/localize";
-	import { PULL_UP_EXERCISES } from "../../seed/skills";
 	import { icon } from "../actions";
 	import { usePlugin } from "../context";
 	import { formatCzechDate, formatNumber } from "../format";
@@ -59,11 +59,22 @@
 			});
 	});
 
-	const pullUps = new Set(PULL_UP_EXERCISES);
 	const list = $derived.by(() => {
 		void $indexVersion;
-		return badges(workouts, sessions, (exercise) => pullUps.has(exerciseId(plugin.exerciseInfo(exercise)?.name ?? exercise) ?? ""), today);
+		void $settingsVersion;
+		return badges({
+			workouts,
+			sessions,
+			days: plugin.index.all("day").map((e) => e.note),
+			idOf: (exercise) => exerciseId(plugin.exerciseInfo(exercise)?.name ?? exercise),
+			loadOf: (exercise) => plugin.exerciseInfo(exercise),
+			profileWeightKg: plugin.settings.profile.weightKg,
+			weeklyGoal: goal,
+			excused,
+			today,
+		});
 	});
+	const groups = $derived(BADGE_GROUPS.map((group) => ({ group, items: list.filter((b) => b.group === group) })));
 
 	const months = $derived([previousMonth(today.slice(0, 7)), today.slice(0, 7)]);
 	const monthName = (month: string) => periodLabel(periodOf("month", `${month}-01`));
@@ -81,7 +92,7 @@
 
 {#if showStreaks}
 <section class="bf-card">
-	<h4>{t("Sets")}</h4>
+	<h4>{t("Streaks")}</h4>
 	<div class="bf-st-row">
 		<span>{t("This week")}</span>
 		<strong>{tn(week.goal, ["{thisWeek} of {n} workout", "{thisWeek} of {n} workouts"], { thisWeek: week.thisWeek })}</strong>
@@ -103,9 +114,11 @@
 </section>
 
 <section class="bf-card">
-	<h4>{t("Badges")}</h4>
+	<h4>{t("Badges")} <span class="bf-muted bf-st-small">{t("{done} of {total}", { done: list.filter((b) => b.achieved !== null).length, total: list.length })}</span></h4>
+	{#each groups as { group, items } (group)}
+	<h5>{BADGE_GROUP_LABELS[group]}</h5>
 	<div class="bf-st-badges">
-		{#each list as badge (badge.id)}
+		{#each items as badge (badge.id)}
 			<div class="bf-st-badge" class:is-done={badge.achieved !== null} title={badge.description}>
 				<span class="bf-st-icon" use:icon={badge.achieved ? "award" : "circle-dashed"}></span>
 				<div class="bf-st-text">
@@ -121,6 +134,7 @@
 			</div>
 		{/each}
 	</div>
+	{/each}
 </section>
 
 {/if}
@@ -151,6 +165,7 @@
 
 <style>
 	h4,
+	h5,
 	p {
 		margin: 0;
 	}
@@ -189,7 +204,8 @@
 		display: flex;
 		align-items: center;
 		gap: var(--size-4-2);
-		height: 52px;
+		/* Pevná výška na dva řádky názvu – delší název nic neposune. */
+		height: 64px;
 		box-sizing: border-box;
 		padding: var(--size-4-2);
 		border: 1px solid var(--background-modifier-border);
@@ -216,10 +232,13 @@
 	}
 
 	.bf-st-title {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
 		font-size: var(--font-ui-small);
 		font-weight: var(--font-semibold);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		line-height: 1.2;
 	}
 </style>

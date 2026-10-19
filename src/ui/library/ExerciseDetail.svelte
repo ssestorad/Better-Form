@@ -2,7 +2,7 @@
 	// Detail cviku: panáček se zapojenými partiemi, popis, provedení, časté chyby.
 	import { t, tn } from "../../i18n";
 	import { HISTORY_BEST_LABELS, HISTORY_METRIC_LABELS, type ExerciseHistory } from "../../calc/exerciseHistory";
-	import { MUSCLE_LABELS } from "../../model/constants";
+	import { EQUIPMENT_LABELS, MUSCLE_LABELS } from "../../model/constants";
 	import type { ExerciseNote } from "../../model/types";
 	import { bulletLines } from "../../seed/lookup";
 	import { topicsForExercise } from "../../seed/research";
@@ -33,6 +33,7 @@
 	const mistakes = $derived(bulletLines(exercise.mistakes));
 	const primary = $derived(exercise.muscles.primary.map((m) => MUSCLE_LABELS[m]).join(", "));
 	const secondary = $derived(exercise.muscles.secondary.map((m) => MUSCLE_LABELS[m]).join(", "));
+	const equipment = $derived((exercise.equipment ?? []).map((e) => EQUIPMENT_LABELS[e]).join(", "));
 	const topics = $derived(topicsForExercise(exercise.name, exercise.category));
 </script>
 
@@ -62,6 +63,10 @@
 				{/if}
 				{#if primary === "" && secondary === ""}
 					<dd class="bf-muted">{t("Muscle groups aren't filled in – add them in the exercise note (muscles).")}</dd>
+				{/if}
+				{#if equipment}
+					<dt>{t("Equipment")}</dt>
+					<dd>{equipment}</dd>
 				{/if}
 			</dl>
 			{#if exercise.bodyweight_fraction !== undefined}

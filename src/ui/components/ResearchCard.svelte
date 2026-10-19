@@ -28,6 +28,7 @@
 					{#if study.kind}<span class="bf-tag">{STUDY_KIND_LABELS[study.kind]}</span>{/if}
 				</div>
 				<div>{study.finding}</div>
+				{#if study.note}<div class="bf-muted">{t("Note: {note}", { note: study.note })}</div>{/if}
 				<div class="bf-muted bf-research-citation">
 					{#if study.url}<a href={study.url} target="_blank" rel="noopener">{study.citation}</a>{:else}{study.citation}{/if}
 				</div>

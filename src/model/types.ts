@@ -13,6 +13,7 @@ import type {
 	PainStatus,
 	PlanIntensity,
 	EvidenceLevel,
+	EquipmentId,
 	ExerciseCategory,
 	ExerciseKind,
 	ExerciseMeasure,
@@ -56,6 +57,8 @@ export interface CheckInData {
 	soreness?: number;
 	mood?: number;
 	stress?: number;
+	/** Chuť trénovat 1–5 (5 = nemůžu se dočkat). */
+	motivation?: number;
 }
 
 export interface HrvData {
@@ -254,6 +257,8 @@ export interface ExerciseNote extends NoteBase {
 	bodyweight_fraction_source?: SourceId;
 	progression?: { ladder?: LinkTarget; level?: number };
 	aliases: string[];
+	/** S čím se cvik dělá (SPEC 3); "none" = jde i bez vybavení. */
+	equipment?: EquipmentId[];
 	/** Co cvik je a k čemu slouží (1–2 věty). */
 	description?: string;
 	/** Provedení krok za krokem (odrážky). */
@@ -530,6 +535,8 @@ export interface SupplementNote extends NoteBase {
 	name: string;
 	/** ID položky katalogu (src/seed/supplements.ts); chybí u vlastního suplementu. */
 	catalog?: string;
+	/** ID druhu látky z katalogu (forma hořčíku, druh proteinu…). */
+	variant?: string;
 	/** Denní dávka v jednotkách `unit`. */
 	dose?: number;
 	/** Jednotka dávky, např. "g", "mg", "µg", "IU", "kapsle". */

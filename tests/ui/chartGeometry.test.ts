@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandPath, definedIndexes, extent, linePath, nearestIndex, paddedDomain, scale, xAt, yScale, type ChartBox } from "../../src/ui/charts/geometry";
+import { bandPath, definedIndexes, extent, linePath, nearestIndex, paddedDomain, polygonPoints, radarPoints, scale, xAt, yScale, type ChartBox } from "../../src/ui/charts/geometry";
 
 const BOX: ChartBox = { width: 120, height: 60, left: 10, right: 10, top: 5, bottom: 5 };
 
@@ -56,3 +56,17 @@ describe("geometrie grafů", () => {
 		expect(definedIndexes([null, 1, null, 2])).toEqual([1, 3]);
 	});
 });
+
+describe("radarový graf", () => {
+	it("4 osy: nahoru, doprava, dolů, doleva; chybějící hodnota ve středu", () => {
+		// střed (50, 50), poloměr 40, max 5: hodnota 5 = 40, 2,5 = 20
+		const pts = radarPoints([5, 2.5, null, 5], 5, 40, 50, 50).map(([x, y]) => [Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
+		expect(pts).toEqual([[50, 10], [70, 50], [50, 50], [10, 50]]);
+	});
+
+	it("hodnoty mimo rozsah se oříznou, body se zapíšou pro <polygon>", () => {
+		expect(radarPoints([9, -1], 5, 10, 0, 0).map(([x, y]) => [Math.round(x), Math.round(y)])).toEqual([[0, -10], [0, 0]]);
+		expect(polygonPoints([[1, 2], [3.14159, 4]])).toBe("1,2 3.1,4");
+	});
+});
+

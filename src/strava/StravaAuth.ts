@@ -3,7 +3,6 @@
 
 /// <reference types="node" />
 import { Platform, requestUrl } from "obsidian";
-import type * as Http from "http";
 import type { BetterFormSettings } from "../settings/settings";
 import {
 	LOCAL_AUTH_PORT,
@@ -23,6 +22,22 @@ import {
 } from "./oauth";
 import { t } from "../i18n";
 
+/** To málo z Node modulu http, co lokální přihlášení potřebuje (modul se načítá až v desktopové aplikaci). */
+interface LocalServer {
+	close(): void;
+	on(event: "error", listener: (err: Error & { code?: string }) => void): void;
+	listen(port: number, host: string, onListening: () => void): void;
+}
+
+interface HttpModule {
+	createServer(
+		handler: (
+			req: { url?: string },
+			res: { writeHead(status: number, headers?: Record<string, string>): { end(): void }; end(body?: string): void },
+		) => void,
+	): LocalServer;
+}
+
 /** Jak dlouho čeká lokální server na návrat z prohlížeče. */
 const LOCAL_AUTH_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -38,7 +53,7 @@ function secureRandom(): number {
 export class StravaAuth {
 	/** `state` posledního ručně spuštěného přihlášení (pro kontrolu vloženého kódu). */
 	private manualState: string | null = null;
-	private server: Http.Server | null = null;
+	private server: LocalServer | null = null;
 
 	constructor(
 		private readonly settings: () => BetterFormSettings,
@@ -169,10 +184,13 @@ export class StravaAuth {
 	}
 
 	private waitForLocalCallback(state: string, onListening: () => void): Promise<string> {
+		// Node je dostupný jen v desktopové aplikaci (a kontrola v connectWithLocalServer).
+		if (!Platform.isDesktop) {
+			return Promise.reject(new Error(t("On mobile, use manual connection.")));
+		}
 		this.stopServer();
-		// Node je dostupný jen v desktopové aplikaci (kontrola v connectWithLocalServer).
 		// eslint-disable-next-line @typescript-eslint/no-require-imports -- modul http jen v desktopové aplikaci, načítá se až při přihlášení
-		const http = require("http") as typeof Http;
+		const http = require("http") as HttpModule;
 		return new Promise<string>((resolve, reject) => {
 			let settled = false;
 			const finish = (action: () => void) => {
@@ -197,7 +215,7 @@ export class StravaAuth {
 				() => finish(() => reject(new Error(t("Sign-in wasn't completed within 5 minutes. Try again.")))),
 				LOCAL_AUTH_TIMEOUT_MS,
 			);
-			server.on("error", (err: NodeJS.ErrnoException) => {
+			server.on("error", (err: Error & { code?: string }) => {
 				const message =
 					err.code === "EADDRINUSE"
 						? t("Port {LOCAL_AUTH_PORT} is in use – use manual connection.", { LOCAL_AUTH_PORT })

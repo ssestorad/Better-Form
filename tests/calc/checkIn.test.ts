@@ -8,6 +8,7 @@ import {
 	lastValues,
 	sleepTimeDate,
 	validateCheckIn,
+	wellnessPoints,
 } from "../../src/calc/checkIn";
 import { parseDay } from "../../src/model/parse";
 import type { DayNote } from "../../src/model/types";
@@ -100,6 +101,7 @@ describe("zápis do frontmatteru", () => {
 				soreness: 3,
 				mood: 4,
 				stress: 3,
+				motivation: 5,
 				rmssd_ms: 62,
 				resting_hr: 52,
 				elonga_readiness: 71,
@@ -119,7 +121,7 @@ describe("zápis do frontmatteru", () => {
 				awakenings: 1,
 				morning_feeling: 3,
 			},
-			check_in: { fatigue: 3, soreness: 3, mood: 4, stress: 3 },
+			check_in: { fatigue: 3, soreness: 3, mood: 4, stress: 3, motivation: 5 },
 			hrv: { rmssd_ms: 62, resting_hr: 52, elonga_readiness: 71 },
 			body: { weight_kg: 78.4 },
 		});
@@ -212,3 +214,24 @@ describe("hodnoty z minula a výchozí formulář", () => {
 		expect(hasCheckIn(undefined)).toBe(false);
 	});
 });
+
+describe("graf pocitů na kartě Dnes", () => {
+	const day = (date: string, quality?: number, mood?: number, motivation?: number) =>
+		parseDay({ forma: "day", schema: 1, date, sleep: quality !== undefined ? { quality } : {}, check_in: { ...(mood !== undefined ? { mood } : {}), ...(motivation !== undefined ? { motivation } : {}) } })!;
+
+	it("dnešní hodnoty a průměr předchozích 14 dní bez dneška", () => {
+		const today = day("2026-10-15", 4, 5, 3);
+		const history = [day("2026-09-30", 1), day("2026-10-01", 2, 3), day("2026-10-14", 4, 4), today];
+		const points = Object.fromEntries(wellnessPoints(today, history, "2026-10-15").map((p) => [p.axis, p]));
+		// 30. 9. je mimo 14 dní; průměr kvality (2 + 4) / 2 = 3, nálady (3 + 4) / 2 = 3,5
+		expect(points.quality).toEqual({ axis: "quality", today: 4, average: 3 });
+		expect(points.mood).toEqual({ axis: "mood", today: 5, average: 3.5 });
+		expect(points.motivation).toEqual({ axis: "motivation", today: 3, average: null });
+		expect(points.stress).toEqual({ axis: "stress", today: null, average: null });
+	});
+
+	it("bez dnešního check-inu jen průměr", () => {
+		expect(wellnessPoints(undefined, [day("2026-10-14", 4)], "2026-10-15")[0]).toEqual({ axis: "quality", today: null, average: 4 });
+	});
+});
+

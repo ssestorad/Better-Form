@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { EVIDENCE_LEVELS } from "../../src/model/constants";
@@ -44,8 +44,11 @@ describe("katalog zdrojů", () => {
 	});
 });
 
-describe("katalog zdrojů a SPEC kap. 14", () => {
-	const spec = readFileSync(fileURLToPath(new URL("../../SPEC.md", import.meta.url)), "utf8");
+// SPEC.md není v repozitáři (.gitignore) – kontrola běží jen lokálně, kde soubor je.
+const SPEC_PATH = fileURLToPath(new URL("../../SPEC.md", import.meta.url));
+
+describe.skipIf(!existsSync(SPEC_PATH))("katalog zdrojů a SPEC kap. 14", () => {
+	const spec = existsSync(SPEC_PATH) ? readFileSync(SPEC_PATH, "utf8") : "";
 	const chapter = spec.slice(spec.indexOf("\n## 14. Zdroje"));
 
 	it("kapitola 14 ve SPEC existuje", () => {

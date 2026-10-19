@@ -402,7 +402,7 @@ export function prefillSetsBlock(block: DraftBlock, ctx: PrefillContext, target:
 	}
 
 	const field = weightField(info?.measure);
-	const explicit = typeof target[field] === "number" ? (target[field] as number) : undefined;
+	const explicit = typeof target[field] === "number" ? target[field] : undefined;
 	const suggestion = info && working.length > 0 ? suggestProgression(working, info, ctx.options, target.reps) : null;
 
 	let reps = target.reps ?? working[0]?.reps;

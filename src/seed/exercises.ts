@@ -11,6 +11,7 @@ import { SCHEMA_VERSION, type ExerciseCategory, type ExerciseKind, type Exercise
 import { parseLink, toLink } from "../model/links";
 import type { ExerciseNote } from "../model/types";
 import { EXERCISE_ROWS } from "./exerciseData";
+import { EXERCISE_EQUIPMENT } from "./exerciseEquipment";
 import { bullets, type ExerciseText } from "./exerciseTexts";
 import { allNames, builtinId, builtinName, contentOf } from "./localize";
 import { progressionFor } from "./skills";
@@ -49,6 +50,8 @@ function exerciseNote(row: ExerciseRow, language: Language): ExerciseNote {
 		muscles: { primary: row.primary, secondary: row.secondary },
 		aliases: allNames("exercise", row.id).filter((alias) => alias !== name),
 	};
+	const equipment = EXERCISE_EQUIPMENT[row.id];
+	if (equipment) note.equipment = equipment;
 	if (row.bw !== undefined) note.bodyweight_fraction = row.bw;
 	const source = BODYWEIGHT_SOURCES[row.id];
 	if (source) note.bodyweight_fraction_source = source;

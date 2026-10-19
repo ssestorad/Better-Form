@@ -1,5 +1,5 @@
 // Katalog zdrojů (SPEC kap. 7.2 a 14). Pravidla a výpočty odkazují na zdroje přes ID.
-// Citace odpovídají SPEC kap. 14 – nové zdroje přidávat jen ověřené (viz CLAUDE.md).
+// Citace odpovídají SPEC kap. 14 – nové zdroje přidávat jen ověřené, nic nevymýšlet.
 // Samotné zdroje jsou rozdělené podle oblastí v src/evidence/sources/.
 
 import type { EvidenceLevel } from "../model/constants";
@@ -8,19 +8,21 @@ import { CORE_SOURCES } from "./sources/core";
 import { RESEARCH_SOURCES } from "./sources/research";
 import { SUPPLEMENT_SOURCES } from "./sources/supplements";
 import { MORE_SUPPLEMENT_SOURCES } from "./sources/supplementsMore";
+import { VARIANT_SOURCES } from "./sources/variants";
 import { getLanguage } from "../i18n";
 import { LOCALES } from "../locales";
 
 export { STUDY_KIND_LABELS, type Source, type StudyKind } from "./sourceTypes";
 
 /** Části katalogu – ID se mezi nimi nesmí opakovat (hlídá test). */
-export const SOURCE_PARTS = [CORE_SOURCES, SUPPLEMENT_SOURCES, RESEARCH_SOURCES, MORE_SUPPLEMENT_SOURCES] as const;
+export const SOURCE_PARTS = [CORE_SOURCES, SUPPLEMENT_SOURCES, RESEARCH_SOURCES, MORE_SUPPLEMENT_SOURCES, VARIANT_SOURCES] as const;
 
 export const SOURCES = {
 	...CORE_SOURCES,
 	...SUPPLEMENT_SOURCES,
 	...RESEARCH_SOURCES,
 	...MORE_SUPPLEMENT_SOURCES,
+	...VARIANT_SOURCES,
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

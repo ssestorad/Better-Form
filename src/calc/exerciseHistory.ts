@@ -74,7 +74,7 @@ export function exerciseHistory(workouts: readonly WorkoutNote[], name: string, 
 
 	const series = [...exerciseSeries(workouts, ctx)].find(([exercise]) => key(exercise) === key(name))?.[1] ?? [];
 	const metric = pickMetric(series);
-	const points = metric === null ? [] : series.flatMap((s) => (s[metric] !== undefined ? [{ date: s.date, value: s[metric]! }] : []));
+	const points = metric === null ? [] : series.flatMap((s) => (s[metric] !== undefined ? [{ date: s.date, value: s[metric] }] : []));
 	let best: ExerciseHistory["best"] = null;
 	for (const point of points) if (best === null || point.value > best.value) best = point;
 	return { sessions, metric, points, best };

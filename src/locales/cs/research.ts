@@ -6,7 +6,7 @@ export const RESEARCH: Record<string, ResearchLocale> = {
 	"training": {
 		title: "Objem, frekvence a blízkost selhání",
 		summary: "Pro růst svalů rozhoduje hlavně týdenní objem (aspoň kolem 10 sérií na partii) a série blízko vyčerpání. Frekvence a váha jsou méně důležité, pokud je objem stejný.",
-		practical: "Cvič každou partii aspoň dvakrát týdně, série končí 0–3 opakování před selháním (RIR), do selhání chodit nemusíš. Lehčí i těžší váhy budují svaly; pro maximální sílu potřebuješ i těžké série.",
+		practical: "Cvič každou partii aspoň dvakrát týdně, série končí 0–3 opakování před selháním (RIR), do selhání chodit nemusíš. Pro svaly záleží na blízkosti selhání víc, pro sílu fungují podobně i série dál od něj. Lehčí i těžší váhy budují svaly; pro maximální sílu potřebuješ i těžké série.",
 		studies: [
 			"Metaanalýza: každá další týdenní série zvyšuje růst svalu; 10 a více sérií týdně vedlo k většímu růstu než méně než 5.",
 			"Metaanalýza: trénink partie aspoň dvakrát týdně vedl k většímu růstu než jednou týdně.",
@@ -15,6 +15,7 @@ export const RESEARCH: Record<string, ResearchLocale> = {
 			"Metaanalýza: lehké i těžké váhy přinesly podobný růst svalů, těžké váhy víc maximální síly.",
 			"Kontrolovaná studie u trénovaných: stejný objem rozložený do různého počtu tréninků za týden vedl k podobnému růstu svalů i síly.",
 			"Metaregrese: s vyšším týdenním objemem rostou svaly i síla, přírůstky se ale postupně zmenšují; frekvence má při stejném objemu menší vliv.",
+			"Metaregrese: růst svalu byl tím větší, čím blíž selhání série končily; přírůstky síly byly podobné v širokém rozmezí rezervy opakování.",
 		],
 	},
 	"squat": {
@@ -155,6 +156,38 @@ export const RESEARCH: Record<string, ResearchLocale> = {
 			"Systematický přehled: podobný růst svalů s periodizací i bez ní.",
 			"Delphi konsenzus trenérů a vědců: odlehčení = období se sníženou tréninkovou zátěží, obvykle týden, pro únavu a prevenci stagnace.",
 			"Kontrolovaná studie: týden pauzy uprostřed devítitýdenního programu svalovému růstu neuškodil; u síly dolní poloviny těla mohl přírůstek o něco snížit.",
+		],
+	},
+	"range_of_motion": {
+		title: "Rozsah pohybu a trénink v protažení",
+		summary: "Plný rozsah pohybu je bezpečná volba. Studie čím dál víc ukazují, že pro růst svalu rozhoduje hlavně část pohybu, kde je sval protažený: cviky a částečná opakování v protažení postavily stejně nebo víc svalu než plný rozsah nebo opakování ve zkrácené poloze.",
+		practical: "Cvič v plném rozsahu a nezkracuj část v protažení. Vybírej varianty, které zatěžují protažený sval – tricepsový tlak za hlavou, zakopávání vsedě, bicepsový zdvih na šikmé lavici. Na konci série jsou částečná opakování v protažení rozumný způsob, jak přidat práci.",
+		studies: [
+			"Metaanalýza 16 studií: plný rozsah pohybu přinesl víc síly a víc svalu na dolní polovině těla než částečný.",
+			"Předkopávání: částečná opakování v protažené části pohybu zvětšila části čtyřhlavého svalu víc než plný rozsah nebo částečná opakování ve zkrácené části.",
+			"Výpony u mladých žen: částečná opakování v protažení zvětšila vnitřní část lýtka asi dvakrát víc než plný rozsah (15 proti 7 %).",
+			"Trénovaní lidé, stahování kladky: částečná opakování v protažení dala stejný růst svalu jako plný rozsah.",
+			"Tricepsový tlak za hlavou postavil výrazně víc tricepsu než natahování s pažemi u těla, i s lehčí vahou.",
+			"Zakopávání vsedě postavilo víc svalu na zadní straně stehen než vleže (+14 proti +9 %).",
+			"Zdvih na šikmé lavici zvětšil o něco víc biceps, zdvih na Scottově lavici hluboký sval pažní a vřetenní; celkový růst ohýbačů paže byl podobný.",
+			"Přehled: pro růst svalu dej důraz na trénink v protažení a tempo opakování zhruba 2–8 sekund.",
+		],
+	},
+	"technique": {
+		title: "Tempo, pauzy, švihání a techniky sérií",
+		summary: "Většina technických detailů rozhoduje méně, než tvrdí internet: široké rozmezí temp, volné váhy i stroje, jedna i obě strany budují svaly podobně. Pauza delší než minuta trochu pomáhá; drop série a supersety šetří čas bez ztráty svalu.",
+		practical: "Zvedej pod kontrolou (zhruba 2–8 s na opakování) a mezi sériemi odpočívej aspoň asi 1,5 minuty; když nestíháš, použij drop série nebo supersety. Vybírej cviky, ve kterých se můžeš zlepšovat, a měň je promyšleně, ne nahodile. Trocha švihu na konci série bicepsových zdvihů neuškodí.",
+		studies: [
+			"Metaanalýza: opakování trvající 0,5–8 sekund budovala svaly podobně; velmi pomalá opakování nad 10 sekund se zdají horší.",
+			"Bayesovská metaanalýza: pauza delší než 60 s přinesla o něco víc svalu; nad 90 s už se další rozdíl nenašel.",
+			"Trénink paží u trénovaných lidí: zdvihy a extenze se švihem („cheating“) postavily stejně svalu jako přísná opakování.",
+			"8 týdnů: soustředění na pracující sval zvětšilo biceps víc než soustředění na pohyb (12 proti 7 %); u stehen se to nelišilo.",
+			"Metaanalýza 6 studií: drop série budovaly svaly podobně jako klasické série za kratší dobu.",
+			"Přehled: supersety, drop série a rest-pause zkrátí trénink zhruba na polovinu při stejném objemu; spíš se hodí pro růst svalu než pro maximální sílu.",
+			"Metaanalýza: volné váhy i stroje budovaly svaly a sílu podobně; každý způsob zlepšil sílu víc ve svém typu testu.",
+			"Metaanalýza: jednostranný i oboustranný trénink budoval svaly podobně; síla se zlepšila víc v té podobě, která se trénovala.",
+			"Systematický přehled: promyšlené střídání cviků může pomoci růstu jednotlivých částí svalu i síle, časté nahodilé střídání ale může pokrok brzdit.",
+			"Přehled: hormony po tréninku, metabolity a otok buněk („pumpa“) nejsou podstatnými hybateli růstu svalu a sarkoplazmatická hypertrofie k němu podstatně nepřispívá.",
 		],
 	},
 };

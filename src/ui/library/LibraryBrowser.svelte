@@ -1,8 +1,18 @@
 <script lang="ts">
-	// Knihovna cviků: hledání, filtr podle kategorie a partie (kliknutím na panáčka), detail cviku.
+	// Knihovna cviků: hledání, filtr podle kategorie, vybavení a partie (kliknutím na panáčka), detail cviku.
 	import { t, tn } from "../../i18n";
 	import { untrack } from "svelte";
-	import { EXERCISE_CATEGORIES, MUSCLE_LABELS, type ExerciseCategory, type MuscleId } from "../../model/constants";
+	import {
+		EQUIPMENT_GROUPS,
+		EQUIPMENT_GROUP_LABELS,
+		EQUIPMENT_LABELS,
+		EXERCISE_CATEGORIES,
+		MUSCLE_LABELS,
+		type EquipmentGroup,
+		type EquipmentId,
+		type ExerciseCategory,
+		type MuscleId,
+	} from "../../model/constants";
 	import type { ExerciseHistory } from "../../calc/exerciseHistory";
 	import type { ExerciseNote } from "../../model/types";
 	import MuscleFigure from "../body/MuscleFigure.svelte";
@@ -25,6 +35,8 @@
 
 	let query = $state("");
 	let category = $state<ExerciseCategory | null>(null);
+	/** "" = jakékoli vybavení. */
+	let equipment = $state<EquipmentId | "">("");
 	let muscle = $state<MuscleId | null>(untrack(() => initialMuscle ?? null));
 	let selected = $state<string | null>(untrack(() => initialExercise ?? null));
 
@@ -36,6 +48,7 @@
 		const filtered = matches.filter(
 			(e) =>
 				(category === null || e.category === category) &&
+				(equipment === "" || (e.equipment ?? []).includes(equipment)) &&
 				(muscle === null || e.muscles.primary.includes(muscle) || e.muscles.secondary.includes(muscle)),
 		);
 		// Při filtru podle partie nejdřív cviky, kde je partie hlavní.
@@ -67,6 +80,17 @@
 						</button>
 					{/each}
 				</div>
+				<label class="bf-library-equipment">
+					<span>{t("Equipment")}</span>
+					<select class="dropdown" bind:value={equipment}>
+						<option value="">{t("any")}</option>
+						{#each Object.entries(EQUIPMENT_GROUPS) as [group, items] (group)}
+							<optgroup label={EQUIPMENT_GROUP_LABELS[group as EquipmentGroup]}>
+								{#each items as item (item)}<option value={item}>{EQUIPMENT_LABELS[item]}</option>{/each}
+							</optgroup>
+						{/each}
+					</select>
+				</label>
 				<!-- Pevná výška řádku, aby se seznam při výběru partie neposouval. -->
 				<div class="bf-library-muscle">
 					{#if muscle}
@@ -96,6 +120,18 @@
 {/if}
 
 <style>
+	.bf-library-equipment {
+		display: flex;
+		align-items: center;
+		gap: var(--size-4-2);
+		font-size: var(--font-ui-small);
+	}
+
+	.bf-library-equipment select {
+		min-width: 0;
+		flex: 1;
+	}
+
 	.bf-library {
 		display: flex;
 		flex-direction: column;

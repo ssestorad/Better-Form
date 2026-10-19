@@ -27,9 +27,10 @@ export function missingTexts(note: ExerciseNote): Partial<Record<ExerciseTextFie
 	return missing;
 }
 
-/** Cvik pro zobrazení: texty z poznámky, chybějící doplněné z vestavěné knihovny. */
+/** Cvik pro zobrazení: texty a vybavení z poznámky, chybějící doplněné z vestavěné knihovny. */
 export function withBuiltinTexts(note: ExerciseNote): ExerciseNote {
-	return { ...note, ...missingTexts(note) };
+	const equipment = note.equipment ?? builtinExercise(note.name)?.equipment;
+	return { ...note, ...missingTexts(note), ...(equipment ? { equipment } : {}) };
 }
 
 /** Odrážkový text („- a\n- b“) → řádky. */

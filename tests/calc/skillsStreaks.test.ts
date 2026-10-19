@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { criterionText, ladderStatus, laddersFrom, type SkillCriteria } from "../../src/calc/skills";
-import { badges, dayStreak, weekStreak } from "../../src/calc/streaks";
+import { dayStreak, weekStreak } from "../../src/calc/streaks";
 import type { WorkoutNote } from "../../src/model/types";
 import { seedExercises } from "../../src/seed/exercises";
 import { EXERCISE_ROWS } from "../../src/seed/exerciseData";
@@ -126,37 +126,6 @@ describe("série dnů programu", () => {
 
 	it("nesplněný včerejšek sérii ukončí", () => {
 		expect(dayStreak(() => true, (d) => done.has(d), "2026-10-02", "2026-09-01")).toBe(2);
-	});
-});
-
-describe("odznaky", () => {
-	const isPullUp = (e: string) => e === "Shyby";
-
-	it("průběh, když ještě nejsou získané", () => {
-		const workouts = [
-			workout({ date: "2026-10-01", sport: "run", run: { distance_km: 6 } }),
-			workout({ date: "2026-10-01", blocks: [{ type: "sets", exercise: "Shyby", sets: [{ reps: 5, added_kg: -20 }] }] }),
-		];
-		const result = badges(workouts, workouts, isPullUp, "2026-10-02");
-		expect(result.map((b) => b.achieved)).toEqual([null, null, null, null]);
-		expect(result.map((b) => b.progress.value)).toEqual([6, 6, 2, 0]);
-	});
-
-	it("první desítka, 100 km za měsíc, 50 tréninků, první shyb", () => {
-		const runs = Array.from({ length: 10 }, (_, i) =>
-			workout({ date: `2026-09-${String(i * 2 + 1).padStart(2, "0")}`, sport: "run", run: { distance_km: i === 3 ? 12 : 10 } }),
-		);
-		const gym = Array.from({ length: 45 }, (_, i) => workout({ date: `2026-08-${String((i % 28) + 1).padStart(2, "0")}`, start: `${String(6 + Math.floor(i / 28)).padStart(2, "0")}:00` }));
-		const pull = workout({ date: "2026-09-30", blocks: [{ type: "sets", exercise: "Shyby", sets: [{ reps: 2 }] }] });
-		const all = [...gym, ...runs, pull];
-		const result = badges(all, all, isPullUp, "2026-10-02");
-		const byId = Object.fromEntries(result.map((b) => [b.id, b.achieved]));
-		expect(byId.first10k).toBe("2026-09-01");
-		// 9 běhů po 10 km + jeden 12 km: 100 km padne desátým během (19. 9.)
-		expect(byId.month100k).toBe("2026-09-19");
-		// 45 tréninků v srpnu + 5. běh v září (9. 9.) = 50.
-		expect(byId.workouts50).toBe("2026-09-09");
-		expect(byId.firstPullUp).toBe("2026-09-30");
 	});
 });
 

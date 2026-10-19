@@ -14,3 +14,10 @@ data.json
 
 coverage/
 .DS_Store
+
+# Zadání a pravidla vývoje – jen lokálně, nezveřejňovat
+CLAUDE.md
+SPEC.md
+
+# Graf projektu (graphify) – jen lokálně
+graphify-out/

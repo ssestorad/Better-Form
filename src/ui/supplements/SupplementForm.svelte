@@ -1,10 +1,12 @@
 <script lang="ts">
-	// Formulář suplementu: dávka, jednotka, kdy brát. Název jde zadat jen u nového vlastního.
+	// Formulář suplementu: druh (u látky z katalogu, která druhy má), dávka, jednotka, kdy brát.
+	// Název jde zadat jen u nového vlastního.
 	import { t } from "../../i18n";
 	import { untrack } from "svelte";
 	import { checkUpperLimit } from "../../calc/supplements";
 	import type { SupplementDraft } from "../../data/SupplementService";
 	import { SUPPLEMENT_TIMINGS, SUPPLEMENT_TIMING_LABELS } from "../../model/constants";
+	import { catalogSupplement } from "../../seed/supplements";
 	import NumInput from "../components/NumInput.svelte";
 	import { CAFFEINE_EVENING_WARNING, limitMessage } from "./text";
 
@@ -20,6 +22,7 @@
 
 	// Kopie – úpravy se propíšou až po uložení.
 	let draft = $state<SupplementDraft>(untrack(() => ({ ...initial })));
+	const variants = $derived(catalogSupplement(draft.catalog)?.variants ?? []);
 
 	const doseError = $derived(
 		draft.dose !== undefined && (Number.isNaN(draft.dose) || draft.dose <= 0) ? t("Dose must be a positive number.") : undefined,
@@ -45,6 +48,17 @@
 		<label class="bf-field">
 			<span class="bf-field-label">{t("Name")}</span>
 			<input type="text" bind:value={draft.name} placeholder={t("e.g. Electrolytes")} />
+		</label>
+	{/if}
+	{#if variants.length > 0}
+		<label class="bf-field">
+			<span class="bf-field-label">{t("Type")}</span>
+			<select class="dropdown" bind:value={draft.variant}>
+				<option value={undefined}>{t("not specified")}</option>
+				{#each variants as v (v.id)}
+					<option value={v.id}>{v.name}</option>
+				{/each}
+			</select>
 		</label>
 	{/if}
 	<div class="bf-supp-grid">

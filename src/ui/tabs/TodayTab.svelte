@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from "../../i18n";
-	import { hasCheckIn } from "../../calc/checkIn";
+	import { hasCheckIn, wellnessPoints } from "../../calc/checkIn";
 	import { PLAN_STATUS_LABELS } from "../../calc/weekPlan";
 	import { daySummary, workoutDetails, workoutLabel } from "../../data/dayBlock";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
@@ -11,6 +11,7 @@
 	import { nutritionLine } from "../nutrition/text";
 	import ProgramCard from "../program/ProgramCard.svelte";
 	import StravaCard from "../strava/StravaCard.svelte";
+	import CheckInRadar from "../today/CheckInRadar.svelte";
 	import ReadinessCard from "../today/ReadinessCard.svelte";
 	import RecommendationList from "../today/RecommendationList.svelte";
 
@@ -54,6 +55,12 @@
 		return plan ? nutritionLine(plan) : null;
 	});
 	const checkedIn = $derived(hasCheckIn(day));
+	// Graf pocitů: dnešek proti průměru předchozích 14 dní.
+	const wellness = $derived.by(() => {
+		void $indexVersion;
+		return wellnessPoints(day, plugin.index.all("day").map((e) => e.note), today);
+	});
+	const hasWellness = $derived(wellness.some((p) => p.today !== null));
 	const summary = $derived(daySummary(day));
 	// Plán týdne (SPEC 5.16): dnešní položky a co je v plánu zítra.
 	const planned = $derived.by(() => {
@@ -91,6 +98,7 @@
 			{#if summary.hrv}<dt>HRV</dt><dd>{summary.hrv}</dd>{/if}
 			{#if summary.weight}<dt>{t("Weight")}</dt><dd>{summary.weight}</dd>{/if}
 		</dl>
+		{#if hasWellness}<CheckInRadar points={wellness} />{/if}
 	{:else}
 		<p class="bf-muted">{t("Not filled in today yet – it takes under half a minute.")}</p>
 		<button type="button" class="mod-cta" onclick={() => plugin.openCheckIn(today)}>{t("Morning check-in")}</button>

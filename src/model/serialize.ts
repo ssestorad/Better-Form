@@ -51,6 +51,7 @@ export function exerciseToFrontmatter(note: ExerciseNote): Frontmatter {
 					level: note.progression.level,
 				})
 			: undefined,
+		equipment: note.equipment,
 		description: note.description,
 		technique: note.technique,
 		mistakes: note.mistakes,
@@ -284,6 +285,7 @@ export function supplementToFrontmatter(note: SupplementNote): Frontmatter {
 		schema: note.schema,
 		name: note.name,
 		catalog: note.catalog,
+		variant: note.variant,
 		dose: note.dose,
 		unit: note.unit,
 		timing: note.timing,

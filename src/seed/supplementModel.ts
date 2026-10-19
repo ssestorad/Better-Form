@@ -176,6 +176,21 @@ export interface StudyFinding {
 	funded?: boolean;
 }
 
+/**
+ * Druh látky (forma hořčíku, druh proteinu…). Liší se vstřebáním, použitím nebo snášenlivostí;
+ * známky po oblastech zůstávají u látky, rozdíl popisuje text a srovnané zdroje.
+ */
+export interface CatalogVariant {
+	id: string;
+	name: string;
+	/** Další názvy pro hledání a rozpoznání z etikety. */
+	aliases?: string[];
+	/** Jedna až tři věty: čím se druh liší. */
+	summary: string;
+	/** Zdroje, které druhy porovnávají (aspoň dva). */
+	studies: StudyFinding[];
+}
+
 /** Jedna látka katalogu (src/seed/supplementData.ts). */
 export interface CatalogEntry {
 	id: string;
@@ -202,4 +217,6 @@ export interface CatalogEntry {
 	safety: SafetyLevel;
 	/** Konkrétní upozornění k bezpečnosti (interakce, kdo by neměl užívat). */
 	safetyNote?: string;
+	/** Druhy, ze kterých si uživatel vybírá (protein, hořčík…). */
+	variants?: CatalogVariant[];
 }

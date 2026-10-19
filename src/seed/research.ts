@@ -30,7 +30,7 @@ export const RESEARCH_TOPICS: ResearchTopic[] = [
 		id: "training",
 		title: "Volume, frequency and proximity to failure",
 		summary: "For muscle growth what matters most is weekly volume (at least around 10 sets per muscle group) and sets close to failure. Frequency and load matter less when volume is the same.",
-		practical: "Train each muscle group at least twice a week, ending sets 0–3 reps short of failure (RIR); you don't have to go to failure. Lighter and heavier weights both build muscle; for maximal strength you also need heavy sets.",
+		practical: "Train each muscle group at least twice a week, ending sets 0–3 reps short of failure (RIR); you don't have to go to failure. For muscle, staying close to failure matters more; for strength, sets further from failure work about as well. Lighter and heavier weights both build muscle; for maximal strength you also need heavy sets.",
 		studies: [
 			{ source: "schoenfeld2017", finding: "Meta-analysis: each additional weekly set increases muscle growth; 10 or more sets a week led to more growth than fewer than 5." },
 			{ source: "schoenfeld2016freq", finding: "Meta-analysis: training a muscle group at least twice a week led to more growth than once a week." },
@@ -39,6 +39,7 @@ export const RESEARCH_TOPICS: ResearchTopic[] = [
 			{ source: "schoenfeld2017load", finding: "Meta-analysis: light and heavy weights produced similar muscle growth; heavy weights produced more maximal strength." },
 			{ source: "hamarsland2021", finding: "Controlled trial in trained people: the same volume spread over different numbers of sessions per week led to similar gains in muscle and strength." },
 			{ source: "pelland2025", finding: "Meta-regression: muscle and strength increase with higher weekly volume, but the gains gradually diminish; with the same volume frequency has a smaller effect." },
+			{ source: "robinson2024", finding: "Meta-regressions: muscle growth increased the closer sets ended to failure; strength gains were similar across a wide range of reps in reserve." },
 		],
 		evidence: "research",
 	},
@@ -206,6 +207,42 @@ export const RESEARCH_TOPICS: ResearchTopic[] = [
 		],
 		evidence: "research",
 	},
+	{
+		id: "range_of_motion",
+		title: "Range of motion and training the stretched muscle",
+		summary: "A full range of motion is a safe default. Studies increasingly show that the part of the movement where the muscle is stretched matters most for growth: exercises and partial reps at long muscle lengths built as much or more muscle than full reps or reps in the shortened position.",
+		practical: "Use a full range of motion and don't cut the stretched part short. Prefer variants that load the stretched muscle – overhead triceps extensions, seated leg curls, incline curls. At the end of a set, partial reps in the stretched position are a reasonable way to add work.",
+		studies: [
+			{ source: "pallares2021", finding: "Meta-analysis of 16 studies: a full range of motion built more strength and more lower-body muscle than a partial range." },
+			{ source: "pedrosa2022", finding: "Knee extensions: partial reps in the stretched part of the movement grew parts of the quadriceps more than full reps or partial reps in the shortened part." },
+			{ source: "kassiano2023", finding: "Calf raises in young women: partial reps in the stretched position grew the inner calf about twice as much as full reps (15 vs 7 %)." },
+			{ source: "wolf2025", finding: "Trained people, lat pulldowns: partial reps in the stretched position gave the same muscle growth as full reps." },
+			{ source: "maeo2023", finding: "Overhead triceps extensions built substantially more triceps than extensions with the arms at the sides, even with lighter weights." },
+			{ source: "maeo2021", finding: "Seated leg curls built more hamstring muscle than lying leg curls (+14 vs +9 %)." },
+			{ source: "kobayashi2026", finding: "Incline curls grew the biceps slightly more, preacher curls the brachialis and brachioradialis; total growth of the arm flexors was similar." },
+			{ source: "androulakiskorakakis2023", finding: "Narrative review: for muscle growth, emphasise training at long muscle lengths and use a rep tempo of about 2–8 seconds." },
+		],
+		evidence: "research",
+	},
+	{
+		id: "technique",
+		title: "Tempo, rest, cheating reps and set techniques",
+		summary: "Most technique details matter less than the internet suggests: a wide range of tempos, free weights or machines, one side or both all build similar muscle. Rest of more than a minute helps a little; drop sets and supersets save time without losing muscle.",
+		practical: "Lift under control (roughly 2–8 s per rep) and rest at least about 1.5 minutes between sets; when you're short on time, use drop sets or supersets. Pick exercises you can progress on and change them deliberately, not at random. A little momentum at the end of a set of curls doesn't hurt.",
+		studies: [
+			{ source: "schoenfeld2015tempo", finding: "Meta-analysis: reps lasting 0.5–8 seconds built similar muscle; very slow reps over 10 seconds seem worse." },
+			{ source: "singer2024", finding: "Bayesian meta-analysis: rest longer than 60 s gave slightly more muscle; beyond 90 s no further difference was found." },
+			{ source: "augustin2025", finding: "Arm training in trained people: curls and extensions with momentum ('cheating') built the same muscle as strict reps." },
+			{ source: "schoenfeld2018focus", finding: "8 weeks: focusing on the working muscle grew the biceps more than focusing on the movement (12 vs 7 %); the quadriceps didn't differ." },
+			{ source: "sodal2023", finding: "Meta-analysis of 6 studies: drop sets built similar muscle to traditional sets in less time." },
+			{ source: "iversen2021", finding: "Review: supersets, drop sets and rest-pause roughly halve training time at the same volume; they probably suit muscle growth better than maximal strength." },
+			{ source: "haugen2023", finding: "Meta-analysis: free weights and machines built similar muscle and strength; each improved strength more in its own kind of test." },
+			{ source: "kassiano2025", finding: "Meta-analysis: one-sided and two-sided training built similar muscle; strength improved more in the form that was trained." },
+			{ source: "kassiano2022", finding: "Systematic review: deliberate variation of exercises can help regional growth and strength, but frequent random rotation may hinder progress." },
+			{ source: "vanevery2026", finding: "Review: post-workout hormones, metabolites and cell swelling ('the pump') aren't meaningful drivers of muscle growth, and sarcoplasmic hypertrophy isn't a meaningful part of it." },
+		],
+		evidence: "research",
+	},
 ];
 
 /** Téma → id cviků z knihovny (src/seed/exerciseData.ts), u kterých se zobrazí. */
@@ -216,6 +253,7 @@ export const EXERCISE_TOPICS: Record<string, string[]> = {
 	pull: ["pull-up", "chin-up", "wide-grip-pull-up", "negative-pull-up", "band-assisted-pull-up", "chest-to-bar-pull-up", "inverted-row", "lat-pulldown"],
 	glutes: ["hip-thrust", "glute-bridge"],
 	kettlebell: ["kettlebell-swing", "one-arm-kettlebell-swing", "kettlebell-clean", "kettlebell-snatch", "turkish-get-up"],
+	range_of_motion: ["overhead-triceps-extension", "triceps-pushdown", "skull-crusher", "leg-curl", "leg-extension", "calf-raise", "seated-calf-raise", "single-leg-calf-raise", "leg-press-calf-raise", "biceps-curl", "incline-dumbbell-curl", "preacher-curl", "lat-pulldown"],
 	core: ["sit-up", "crunch", "plank", "side-plank", "hollow-hold", "v-up", "hanging-leg-raise", "hanging-knee-raise"],
 };
 
@@ -243,13 +281,14 @@ export function researchTopic(id: string): ResearchTopic | undefined {
 	return topic && localize(topic);
 }
 
-/** Témata ke cviku (název v kterémkoli jazyce): konkrétní téma a u silových cviků i obecné principy tréninku. */
+/** Témata ke cviku (název v kterémkoli jazyce): konkrétní téma a u silových cviků i obecné principy tréninku a techniky. */
 export function topicsForExercise(name: string, category: string): ResearchTopic[] {
 	const id = exerciseId(name);
 	const ids = Object.entries(EXERCISE_TOPICS)
 		.filter(([, exercises]) => id !== undefined && exercises.includes(id))
 		.map(([topic]) => topic);
 	if (category === "strength" || category === "calisthenics" || category === "kettlebell") ids.push("training");
+	if (category === "strength" || category === "calisthenics") ids.push("technique");
 	return [...new Set(ids)].map(researchTopic).filter((t): t is ResearchTopic => t !== undefined);
 }
 

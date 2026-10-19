@@ -2,9 +2,13 @@
 
 **English** · [Česky](README.cs.md)
 
-A training log plugin for [Obsidian](https://obsidian.md): workout logging, recovery, recommendations for today, a weekly plan and a suggested daily intake. All data are plain Markdown notes in your vault – readable without the plugin and without any third-party service.
+**A training log for [Obsidian](https://obsidian.md) that shows where its advice comes from.** Log a workout in a minute and a morning check-in in half a minute; the plugin turns them into readiness for the day, recommendations, a weekly plan and a suggested daily intake.
 
-> **Status:** version 0.3.1, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Not yet verified](#not-yet-verified)). The interface is in English and Czech.
+- **Your data stays yours.** Every workout and every day is a plain Markdown note in your vault, readable without the plugin. It works offline, with no account, telemetry or ads.
+- **Advice you can check.** Every recommendation and calculation shows its source and whether it rests on research, consensus or coaching practice – 799 verified sources in total.
+- **Training, recovery and nutrition in one place.** Gym, calisthenics, kettlebell, running, swimming and jump rope; readiness from sleep, HRV and training load; a suggested intake that never drops below your resting energy expenditure.
+
+> **Status:** version 0.3.1, in development. Calculations are covered by automated tests; only part of the features has been tried in Obsidian so far (see [Testing status](#testing-status)). The interface is in English and Czech.
 
 ## Screenshots
 
@@ -12,56 +16,61 @@ Sample data, light theme. The interface is also available in Czech (screenshots 
 
 | Today | Weekly plan |
 |---|---|
-| <img src="docs/screenshots/today.jpg" alt="Today tab: morning check-in, readiness with breakdown and trend, recommendations for today" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: the week day by day with item status and summary" width="400"> |
+| <img src="docs/screenshots/today.jpg" alt="Today tab: morning check-in with a radar chart of how you feel against the last 14 days, and readiness with its breakdown" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: the week day by day with item status and summary" width="400"> |
 
-| Overview | Body | Logging a workout |
-|---|---|---|
-| <img src="docs/screenshots/overview.jpg" alt="Overview tab: weekly numbers, workout calendar, streaks and badges" width="270"> | <img src="docs/screenshots/body.jpg" alt="Body tab: body figure with weekly volume per muscle group" width="270"> | <img src="docs/screenshots/log.jpg" alt="Workout form: sets and plate calculator with a barbell drawing" width="270"> |
+| Supplement catalog | Overview |
+|---|---|
+| <img src="docs/screenshots/supplements.jpg" alt="Supplement catalog: protein expanded with the whey isolate type selected, evidence grades per benefit area, dosing for body weight and risks" width="400"> | <img src="docs/screenshots/overview.jpg" alt="Overview tab: weekly numbers, workout calendar, streaks and badges" width="400"> |
+
+| Body | Logging a workout |
+|---|---|
+| <img src="docs/screenshots/body.jpg" alt="Body tab: body figure with weekly volume per muscle group" width="400"> | <img src="docs/screenshots/log.jpg" alt="Workout form: sets and plate calculator with a barbell drawing" width="400"> |
+
+| Badges |
+|---|
+| <img src="docs/screenshots/badges.jpg" alt="Badges in four groups: running, strength for your body weight, calisthenics and consistency, with dates and progress" width="400"> |
 
 ## Features
 
+### Training
+
 - **Workout logging** – gym, calisthenics, kettlebell, running, swimming, jump rope. Sets, holds, EMOM, AMRAP, ladders, complexes; templates and "same as last time" prefill with a suggested progression. Warm-up and drop sets, sets to failure, supersets, a plate calculator with a suggested warm-up.
-- **Morning check-in** in under half a minute – sleep, how you feel, HRV, resting heart rate, weight, steps; optionally body measurements.
-- **Today** – daily readiness (0–100) with a breakdown and a 14-day trend, recommendations with reasons, today's plan and suggested nutrition.
-- **Weekly plan** – workouts planned ahead, automatically ticked off from logged workouts, a load outlook against the last four weeks. Days of active programs count too. Rest days, illness and vacation only postpone items and don't break streaks.
+- **Exercise library** – 268 exercises with a description, technique, common mistakes, muscles worked and the equipment or machine they need (filter by it); each has a history of your results with a chart. You can add your own exercises. The library opens from the button next to every tab's title.
 - **Programs** – your own and 11 built-in ones (Basic 4, Couch to 5K, Zero to your first pull-up, 100 push-ups a day, Grease the groove, kettlebell, jump rope…), a daily counter, max tests. A program can also be created from a file or from pasted text.
-- **Reports** – training load, fitness and fatigue, running pace, estimated 1RM, records, race time prediction, weight chart, weekly, monthly and yearly summaries.
-- **Body** – a body figure with weekly volume and recovery per muscle group, a log of pain and injuries, body measurements.
 - **Skills** – calisthenics progressions (pull-ups, push-ups, pistol squat, handstand, front lever, planche…).
+- **Basic mode** – a simplified screen with a few exercises and running for anyone who doesn't want to set anything up.
+
+### Recovery and planning
+
+- **Morning check-in** in under half a minute – sleep, how you feel, desire to train, HRV, resting heart rate, weight, steps; optionally body measurements.
+- **Today** – daily readiness (0–100) with a breakdown and a 14-day trend, a radar chart of how you feel against the last 14 days, recommendations with reasons, today's plan and suggested nutrition.
+- **Weekly plan** – workouts planned ahead, automatically ticked off from logged workouts, a load outlook against the last four weeks. Days of active programs count too. Rest days, illness and vacation only postpone items and don't break streaks.
+- **Body** – a body figure with weekly volume and recovery per muscle group, a log of pain and injuries, body measurements.
+
+### Progress
+
+- **Reports** – training load, fitness and fatigue, running pace, estimated 1RM, records, race time prediction, weight chart, weekly, monthly and yearly summaries.
 - **Goals and standards** – time over a distance, strength, reps, weight, your own standards tables; a forecast from the trend.
+- **Streaks and badges** – completed weeks in a row and 22 badges for running, strength for your body weight, calisthenics and consistency.
+
+### Nutrition and supplements
+
 - **Nutrition** – suggested daily intake and macros from resting energy expenditure, everyday activity, workouts and your goal; safeguards against too low an intake; a check against your weight trend with a one-tap adjustment. There is no food logging.
-- **Supplements** – tracking and adherence, a catalog of 72 substances with evidence ratings per benefit area, dosing and risks, filters by strength of evidence and safety. You can add your own product from its label: attach a photo, paste the ingredient list, and the plugin picks out the substances and checks upper limits even when the same substance is in several supplements.
+- **Supplements** – what you take and how consistently, plus a catalog of 93 substances. Evidence is graded separately for each area of benefit (performance, recovery, sleep, heart and metabolism…), with dosing for your body weight, risks and a safety rating; filter by strength of evidence and safety. Every substance is compared across at least four sources, most across six or more, and studies paid for by the manufacturer are marked.
+- **Supplement types** – for protein, magnesium, creatine, omega-3, vitamin D, zinc, iron, calcium, curcumin and carbohydrate you pick the type (whey isolate or casein, magnesium citrate or glycinate…) and see how it differs, with sources comparing the types. You can add several types of the same substance, for example whey and casein.
+- **Supplement tables** – amino acids, electrolytes and fluids, caffeine (content of common drinks, safe amounts and when to stop before bed), reference intake and upper limits next to what your supplements add up to, and what not to take together.
+- **Your own products** – add a supplement from its label: attach a photo, paste the ingredient list, and the plugin picks out the substances and checks upper limits even when the same substance is in several supplements.
+
+### Data in and out
+
 - **Runs from apps** – import from GPX, TCX or FIT files (Strava, MapMyRun, watches), or Strava sync.
 - **Daily data from your watch** – import steps, sleep duration, HRV, resting heart rate and weight from CSV; only fills in what's missing in the journal.
 - **Switching from another log** – import strength workout history from Strong and Hevy exports (CSV).
-- **Exercise library** – 268 exercises with a description, technique, common mistakes and muscles worked; each has a history of your results with a chart. You can add your own exercises.
 - **Export and backup** – CSV for spreadsheets, ZIP of the whole folder.
-- **Basic mode** – a simplified screen with a few exercises and running for anyone who doesn't want to set anything up.
-
-## How it works
-
-Every workout, day, exercise, program or goal is one note with frontmatter (`forma: workout`, `forma: day`, …). The plugin reads and writes them only through the Obsidian API, needs no Dataview or other plugins and sends nothing off your device – the only exception is Strava, if you connect it yourself.
-
-Default folders (always in English; vaults created by version 0.2 or older keep their Czech `Forma/` folders):
-
-```
-Better Form/
-  Journal/      daily notes: sleep, check-in, HRV, weight, steps
-  Workouts/     one note = one workout
-  Plan/         one note = the plan for one week
-  Library/      exercises, workout templates, programs, supplements
-  Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
-```
-
-Folder names can be changed in the settings. Existing notes are never renamed when you switch languages; the "Translate notes" button next to the language setting translates the built-in library (exercises, templates, programs) and the texts the plugin generated in your notes – texts you edited stay as they are. The plugin never rewrites your own text in notes – generated content goes only between the `<!-- forma:start -->` and `<!-- forma:end -->` markers. Deleting from the interface moves the note to the trash according to Obsidian's settings, never deletes it permanently.
-
-## Language
-
-The interface is in English and Czech. On first run the language follows Obsidian's (a supported language, otherwise English); change it any time in the plugin settings under "Language". The interface, recommendations, generated blocks in notes and the exercise, program and supplement library are all translated; whatever you wrote yourself stays as you wrote it. Your data – folders and library note names in a new vault – is always in English, whatever the interface language. Built-in exercises have their names in all languages as aliases, so links and history work in any combination of languages. Command names in the command palette change after restarting Obsidian.
 
 ## Installation
 
-The plugin isn't in the community plugin directory yet, so it's installed manually. You need Obsidian 1.8.7 or newer.
+The plugin has been submitted to the community plugin directory and is waiting for review; until then it's installed manually. You need Obsidian 1.8.7 or newer.
 
 **Manually (desktop and mobile):**
 
@@ -96,7 +105,28 @@ After updating the plugin, add new exercises, programs and workout templates (pu
 | Supplements | what I take, adherence, catalog |
 | Settings | setup guide (profile, goal, mode, sports) and a link to all plugin settings |
 
-All main actions are in the command palette too (Ctrl+P), for example "Log workout", "Morning check-in", "Weekly plan", "Plan a workout", "Max test", "Import run from file (GPX, TCX, FIT)", "Export workouts and daily data to CSV", "Back up folder to ZIP".
+The **Exercise library** button next to every tab's title opens the exercise library from anywhere. All main actions are in the command palette too (Ctrl+P), for example "Log workout", "Morning check-in", "Weekly plan", "Plan a workout", "Max test", "Import run from file (GPX, TCX, FIT)", "Export workouts and daily data to CSV", "Back up folder to ZIP".
+
+## How it works
+
+Every workout, day, exercise, program or goal is one note with frontmatter (`forma: workout`, `forma: day`, …). The plugin reads and writes them only through the Obsidian API, needs no Dataview or other plugins and sends nothing off your device – the only exception is Strava, if you connect it yourself.
+
+Default folders (always in English; vaults created by version 0.2 or older keep their Czech `Forma/` folders):
+
+```
+Better Form/
+  Journal/      daily notes: sleep, check-in, HRV, weight, steps
+  Workouts/     one note = one workout
+  Plan/         one note = the plan for one week
+  Library/      exercises, workout templates, programs, supplements
+  Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
+```
+
+Folder names can be changed in the settings. Existing notes are never renamed when you switch languages; the "Translate notes" button next to the language setting translates the built-in library (exercises, templates, programs) and the texts the plugin generated in your notes – texts you edited stay as they are. The plugin never rewrites your own text in notes – generated content goes only between the `<!-- forma:start -->` and `<!-- forma:end -->` markers. Deleting from the interface moves the note to the trash according to Obsidian's settings, never deletes it permanently.
+
+## Language
+
+The interface is in English and Czech. On first run the language follows Obsidian's (a supported language, otherwise English); change it any time in the plugin settings under "Language". The interface, recommendations, generated blocks in notes and the exercise, program and supplement library are all translated; whatever you wrote yourself stays as you wrote it. Your data – folders and library note names in a new vault – is always in English, whatever the interface language. Built-in exercises have their names in all languages as aliases, so links and history work in any combination of languages. Command names in the command palette change after restarting Obsidian.
 
 ## Runs from apps
 
@@ -114,17 +144,6 @@ The date and time, distance, moving time, heart rate (if the file has it), eleva
 
 Since June 2026 Strava only lets accounts with a **paid subscription** create an API application. If you have one, the plugin settings walk you through it step by step: create your own API application, paste the Client ID and Client Secret and connect your account. Sync only runs when you start it. Credentials stay in the plugin's `data.json` file in your vault.
 
-## Adding a language
-
-English is the source language: interface texts and the built-in library are written in English in the code, and every other language is a translation in its own folder. To add one:
-
-1. Copy `src/locales/cs/` to `src/locales/<code>/` (for example `de`) and set `code` and `label` in its `index.ts`.
-2. Translate the values (never the keys): `ui.ts` for the interface, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` and `sources.ts` for the library. Plural forms follow `Intl.PluralRules` for the language (`one`, `few`, `many`, `other`).
-3. Register the language with one line in `src/locales/index.ts`.
-4. Run `npm test` – the tests list every missing or mismatched translation for each registered language. `I18N_DUMP=missing-{code}.json npm test` writes the missing interface texts to a file.
-
-The language then appears in the settings and is picked automatically when Obsidian uses it.
-
 ## Network and privacy
 
 - The plugin works **offline** and stores all data as notes in your vault. It sends nothing, has no telemetry or ads and needs no account.
@@ -141,7 +160,7 @@ Every recommendation and every calculation shows its source and an evidence labe
 - **consensus** – position stands of professional bodies,
 - **practice** – an established coaching heuristic without its own study.
 
-A heuristic is never presented as research. The catalog contains over 350 verified sources; they are listed in [SPEC.md](SPEC.md), chapter 14 (in Czech).
+A heuristic is never presented as research. The catalog contains 799 verified sources; new ones are added only after checking the original paper.
 
 ## Disclaimer
 
@@ -149,19 +168,28 @@ A heuristic is never presented as research. The catalog contains over 350 verifi
 - **Nutrition is an estimate.** The suggested intake comes from equations accurate to roughly ±10 % and never drops below resting energy expenditure. Only your weight trend over 2–3 weeks shows whether it fits.
 - **Recommendations are guidance** and don't replace a coach, physiotherapist or doctor.
 
-### Not yet verified
+### Testing status
 
-- Verified in Obsidian on desktop: workout logging (including from templates), the body figure, check-in and the daily note, the weekly plan with its summary, the Supplements tab, Overview, deleting, and GPX import from Strava. The Nutrition tab, monthly and yearly summaries and use on mobile have only been through tests and a preview.
-- The English interface and translating an existing Czech vault with "Translate notes" have been tried in Obsidian.
-- Strava sync hasn't been tried against the real API.
-- TCX import from MapMyRun, FIT import, reading heart rate from a file, daily data import from CSV and history import from Strong and Hevy have only been tried on hand-built files. Try the history import on a backup first.
-- The plugin hasn't been tried on mobile yet.
+**Tried in Obsidian on desktop:**
 
-Open items and plans are in [SPEC.md](SPEC.md), chapter 13.
+- workout logging (including from templates), the body figure, check-in and the daily note, the weekly plan with its summary, Overview, deleting,
+- the Supplements tab including supplement types, the regrouped settings and the exercise library button,
+- GPX import from Strava,
+- the English interface and translating an existing Czech vault with "Translate notes".
+
+**Only through automated tests and a preview:**
+
+- the Nutrition tab, monthly and yearly summaries,
+- TCX import from MapMyRun, FIT import, reading heart rate from a file, daily data import from CSV and history import from Strong and Hevy – tried only on hand-built files. Try the history import on a backup first.
+
+**Not tried yet:**
+
+- Strava sync against the real API,
+- use on mobile.
 
 ## Development
 
-The specification is in [SPEC.md](SPEC.md) and the development rules in [CLAUDE.md](CLAUDE.md) (both in Czech). You need Node.js and npm (CI runs on Node 24).
+You need Node.js and npm (CI runs on Node 24).
 
 ```powershell
 npm install
@@ -188,6 +216,17 @@ To deploy, copy `.env.local.example` to `.env.local` and fill in `VAULT_PATH`. `
 Every push to `main` runs tests, the type check and the build on GitHub Actions.
 
 **Releasing:** bump the version in `manifest.json` and `package.json`, add `"<version>": "<minAppVersion>"` to `versions.json`, commit, and push a tag with the same number without a `v` (e.g. `git tag 0.2.2` and `git push public 0.2.2`). The "Vydání" (release) workflow checks that the tag matches all three files, runs the tests and build and creates a release with `main.js`, `manifest.json` and `styles.css`.
+
+### Adding a language
+
+English is the source language: interface texts and the built-in library are written in English in the code, and every other language is a translation in its own folder. To add one:
+
+1. Copy `src/locales/cs/` to `src/locales/<code>/` (for example `de`) and set `code` and `label` in its `index.ts`.
+2. Translate the values (never the keys): `ui.ts` for the interface, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` and `sources.ts` for the library. Plural forms follow `Intl.PluralRules` for the language (`one`, `few`, `many`, `other`).
+3. Register the language with one line in `src/locales/index.ts`.
+4. Run `npm test` – the tests list every missing or mismatched translation for each registered language. `I18N_DUMP=missing-{code}.json npm test` writes the missing interface texts to a file.
+
+The language then appears in the settings and is picked automatically when Obsidian uses it.
 
 ## License
 

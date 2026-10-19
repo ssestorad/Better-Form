@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Karta látky z katalogu. Sbalená ukazuje jen název, známky po oblastech a bezpečnost;
-	// po rozkliknutí shrnutí, dávkování, rizika a srovnání studií rozdělené podle oblastí.
+	// po rozkliknutí shrnutí, volbu druhu (protein, hořčík…), dávkování, rizika a srovnání studií rozdělené podle oblastí.
 	import { t } from "../../i18n";
 	import { STUDY_KIND_LABELS, getSource } from "../../evidence/sources";
 	import { EVIDENCE_LABELS } from "../../model/constants";
@@ -15,18 +15,30 @@
 		type BenefitArea,
 	} from "../../seed/supplementModel";
 	import type { CatalogSupplement } from "../../seed/supplements";
+	import type { StudyFinding } from "../../seed/supplementModel";
 	import { personalDose } from "./text";
 
 	interface Props {
 		item: CatalogSupplement;
 		weightKg: number | null;
-		/** Už je v „Moje suplementy“. */
+		/** Už je v „Moje suplementy“ (kterýkoli druh). */
 		owned: boolean;
-		onAdd: () => void;
+		/** Druhy, které už v „Moje suplementy“ jsou – další druh téže látky jde přidat. */
+		ownedVariants?: readonly string[];
+		/** Přidání do „Moje suplementy“ s vybraným druhem. */
+		onAdd: (variant: string | undefined) => void;
 		/** Rozbalit hned (např. když hledání našlo jedinou látku). */
 		open?: boolean;
+		/** Předvybraný druh (hledání našlo jeho název). */
+		variant?: string;
 	}
-	let { item, weightKg, owned, onAdd, open = false }: Props = $props();
+	let { item, weightKg, owned, ownedVariants = [], onAdd, open = false, variant }: Props = $props();
+
+	/** Druh vybraný klepnutím; "" = výběr zrušený. */
+	let chosen = $state<string | undefined>(undefined);
+	const selected = $derived(chosen ?? variant);
+	const current = $derived(item.variants?.find((v) => v.id === selected));
+	const withSource = (s: StudyFinding) => ({ ...getSource(s.source), finding: s.finding, funded: s.funded === true });
 
 	const split = $derived(splitBenefits(item.benefits));
 	const personal = $derived(personalDose(item.id, weightKg));
@@ -40,16 +52,35 @@
 			if (out.some((g) => g.area === area)) continue;
 			const studies = item.studies
 				.filter((s) => (s.area ?? null) === area)
-				.map((s) => ({ ...getSource(s.source), finding: s.finding, funded: s.funded === true }));
+				.map(withSource);
 			if (studies.length > 0) out.push({ area, studies });
 		}
 		// Studie k oblasti, která není v hodnocení, nesmí zmizet.
 		const shown = new Set(out.flatMap((g) => g.studies.map((s) => s.citation)));
 		const rest = item.studies.filter((s) => !shown.has(getSource(s.source).citation));
-		if (rest.length > 0) out.push({ area: null, studies: rest.map((s) => ({ ...getSource(s.source), finding: s.finding, funded: s.funded === true })) });
+		if (rest.length > 0) out.push({ area: null, studies: rest.map(withSource) });
 		return out;
 	});
 </script>
+
+{#snippet studyItem(study: ReturnType<typeof withSource>)}
+	<li>
+		<div>
+			<strong>{study.short}</strong>
+			{#if study.kind}<span class="bf-tag">{STUDY_KIND_LABELS[study.kind]}</span>{/if}
+			{#if study.funded}<span class="bf-tag bf-tag-warn" title={t("The study was paid for or written by the manufacturer of the tested product")}>{t("funded by the manufacturer")}</span>{/if}
+		</div>
+		<div>{study.finding}</div>
+		{#if study.note}<div class="bf-muted">{t("Note: {note}", { note: study.note })}</div>{/if}
+		<div class="bf-muted bf-rec-citation">
+			{#if study.url}
+				<a href={study.url} target="_blank" rel="noopener">{study.citation}</a>
+			{:else}
+				{study.citation}
+			{/if}
+		</div>
+	</li>
+{/snippet}
 
 <details class="bf-card bf-rec" {open}>
 	<summary class="bf-rec-summary">
@@ -71,6 +102,34 @@
 			<span class="bf-tag" title={t("Evidence level of the whole entry")}>{EVIDENCE_LABELS[item.basis.evidence]}</span>
 		</div>
 		<p>{item.summary}</p>
+		{#if item.variants}
+			<div class="bf-rec-variants">
+				<div class="bf-rec-chiprow" role="radiogroup" aria-label={t("Type")}>
+					<span class="bf-muted">{t("Type")}</span>
+					{#each item.variants as v (v.id)}
+						<button
+							type="button"
+							class="bf-rec-variant"
+							class:is-active={selected === v.id}
+							role="radio"
+							aria-checked={selected === v.id}
+							onclick={() => (chosen = selected === v.id ? "" : v.id)}>{v.name}</button
+						>
+					{/each}
+				</div>
+				{#if current}
+					<p>{current.summary}</p>
+					<details class="bf-rec-more">
+						<summary>{t("Sources comparing the types ({n})", { n: current.studies.length })}</summary>
+						<ul class="bf-rec-studies bf-rec-list">
+							{#each current.studies.map(withSource) as study, si (si)}{@render studyItem(study)}{/each}
+						</ul>
+					</details>
+				{:else}
+					<p class="bf-muted">{t("Pick a type to see how it differs.")}</p>
+				{/if}
+			</div>
+		{/if}
 		<dl class="bf-rec-rows">
 			{#if split.good.length > 0}
 				<dt>{t("Makes sense for")}</dt>
@@ -113,24 +172,7 @@
 					<dt>{group.area ? t("Studies – {v}", { v: AREA_LABELS[group.area] }) : t("Studies – main effect and safety")}</dt>
 					<dd>
 						<ul class="bf-rec-studies">
-							{#each group.studies as study, si (si)}
-								<li>
-									<div>
-										<strong>{study.short}</strong>
-										{#if study.kind}<span class="bf-tag">{STUDY_KIND_LABELS[study.kind]}</span>{/if}
-										{#if study.funded}<span class="bf-tag bf-tag-warn" title={t("The study was paid for or written by the manufacturer of the tested product")}>{t("funded by the manufacturer")}</span>{/if}
-									</div>
-									<div>{study.finding}</div>
-									{#if study.note}<div class="bf-muted">{t("Note: {note}", { note: study.note })}</div>{/if}
-									<div class="bf-muted bf-rec-citation">
-										{#if study.url}
-											<a href={study.url} target="_blank" rel="noopener">{study.citation}</a>
-										{:else}
-											{study.citation}
-										{/if}
-									</div>
-								</li>
-							{/each}
+							{#each group.studies as study, si (si)}{@render studyItem(study)}{/each}
 						</ul>
 					</dd>
 				{/each}
@@ -145,10 +187,10 @@
 			</dl>
 		</details>
 		<div class="bf-actions">
-			{#if owned}
+			{#if current ? ownedVariants.includes(current.id) : owned}
 				<span class="bf-muted bf-rec-owned">{t("In your list")}</span>
 			{:else}
-				<button type="button" onclick={onAdd}>{t("Add to my supplements")}</button>
+				<button type="button" onclick={() => onAdd(current?.id)}>{current ? t("Add – {v}", { v: current.name }) : t("Add to my supplements")}</button>
 			{/if}
 		</div>
 	</div>
@@ -259,6 +301,25 @@
 
 	.bf-rec-benefit.is-none {
 		color: var(--text-muted);
+	}
+
+	.bf-rec-variants {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-2);
+	}
+
+	/* Volba druhu jako štítky; vybraný se jen přebarví – rozměry se nemění. */
+	.bf-rec-variant {
+		height: 26px;
+		padding: 0 var(--size-4-2);
+		border-radius: 999px;
+		font-size: var(--font-ui-smaller);
+	}
+
+	.bf-rec-variant.is-active {
+		background-color: var(--interactive-accent);
+		color: var(--text-on-accent);
 	}
 
 	.bf-rec-safety {

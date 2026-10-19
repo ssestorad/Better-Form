@@ -45,6 +45,7 @@ export function daySummary(day: DayNote | undefined): DaySummary {
 			scale(t("muscles"), feel.soreness),
 			scale(t("mood"), feel.mood),
 			scale(t("stress"), feel.stress),
+			scale(t("desire to train"), feel.motivation),
 		]),
 		hrv: join([
 			hrv.rmssd_ms !== undefined && `rMSSD ${formatNumber(hrv.rmssd_ms)} ms`,

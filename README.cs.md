@@ -2,9 +2,13 @@
 
 [English](README.md) · **Česky**
 
-Plugin do [Obsidianu](https://obsidian.md) pro tréninkový deník: zápis tréninků, regenerace, doporučení na dnešek, plán týdne a doporučený příjem. Všechna data jsou běžné Markdown poznámky ve tvém vaultu – čitelné i bez pluginu a bez jakékoli služby třetí strany.
+**Tréninkový deník pro [Obsidian](https://obsidian.md), který ukazuje, odkud jeho rady jsou.** Trénink zapíšeš za minutu a ranní check-in za půl minuty; plugin z nich spočítá připravenost na den, doporučení, plán týdne a doporučený denní příjem.
 
-> **Stav:** verze 0.3.1, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Co není ověřené](#co-není-ověřené)). Rozhraní je anglicky a česky.
+- **Data zůstávají tvoje.** Každý trénink i den je běžná Markdown poznámka ve tvém vaultu, čitelná i bez pluginu. Funguje offline, bez účtu, telemetrie a reklam.
+- **Rady, které si můžeš ověřit.** Každé doporučení a výpočet ukazuje zdroj a jestli stojí na výzkumu, konsenzu, nebo trenérské praxi – celkem 799 ověřených zdrojů.
+- **Trénink, regenerace a výživa na jednom místě.** Posilovna, kalistenika, kettlebell, běh, plavání a švihadlo; připravenost ze spánku, HRV a tréninkové zátěže; doporučený příjem, který nikdy neklesne pod klidový výdej.
+
+> **Stav:** verze 0.3.1, ve vývoji. Výpočty kryjí automatické testy; v Obsidianu je zatím vyzkoušená jen část funkcí (viz [Stav ověření](#stav-ověření)). Rozhraní je anglicky a česky.
 
 ## Ukázky
 
@@ -12,56 +16,61 @@ Snímky se vzorovými daty ve světlém vzhledu a s českým rozhraním.
 
 | Dnes | Plán týdne |
 |---|---|
-| <img src="docs/screenshots/cs/dnes.jpg" alt="Karta Dnes: ranní check-in, připravenost s rozpadem a trendem, doporučení na dnešek" width="400"> | <img src="docs/screenshots/cs/plan.jpg" alt="Karta Plán: týden po dnech se stavem položek a souhrnem" width="400"> |
+| <img src="docs/screenshots/cs/dnes.jpg" alt="Karta Dnes: ranní check-in s paprskovým grafem pocitů proti posledním 14 dnům a připravenost s rozpadem" width="400"> | <img src="docs/screenshots/cs/plan.jpg" alt="Karta Plán: týden po dnech se stavem položek a souhrnem" width="400"> |
 
-| Přehled | Tělo | Zápis tréninku |
-|---|---|---|
-| <img src="docs/screenshots/cs/prehled.jpg" alt="Karta Přehled: čísla týdne, kalendář tréninků, série a odznaky" width="270"> | <img src="docs/screenshots/cs/telo.jpg" alt="Karta Tělo: panáček s týdenním objemem svalových partií" width="270"> | <img src="docs/screenshots/cs/zapis.jpg" alt="Zápis tréninku: série a kalkulačka kotoučů s obrázkem osy" width="270"> |
+| Katalog suplementů | Přehled |
+|---|---|
+| <img src="docs/screenshots/cs/suplementy.jpg" alt="Katalog suplementů: rozbalený protein se zvoleným druhem syrovátkový izolát, hodnocení důkazů po oblastech přínosu, dávkování podle hmotnosti a rizika" width="400"> | <img src="docs/screenshots/cs/prehled.jpg" alt="Karta Přehled: čísla týdne, kalendář tréninků, série a odznaky" width="400"> |
+
+| Tělo | Zápis tréninku |
+|---|---|
+| <img src="docs/screenshots/cs/telo.jpg" alt="Karta Tělo: panáček s týdenním objemem svalových partií" width="400"> | <img src="docs/screenshots/cs/zapis.jpg" alt="Zápis tréninku: série a kalkulačka kotoučů s obrázkem osy" width="400"> |
+
+| Odznaky |
+|---|
+| <img src="docs/screenshots/cs/odznaky.jpg" alt="Odznaky ve čtyřech skupinách: běh, síla vůči vlastní váze, kalistenika a pravidelnost, s daty a průběhem" width="400"> |
 
 ## Co umí
 
+### Trénink
+
 - **Zápis tréninku** – posilovna, kalistenika, kettlebell, běh, plavání, švihadlo. Série, výdrže, EMOM, AMRAP, žebříky, komplexy; šablony a předvyplnění „z minula“ s návrhem navýšení. Rozcvičovací a drop série, série do selhání, supersety, kalkulačka kotoučů s návrhem rozcvičení.
-- **Ranní check-in** do půl minuty – spánek, pocity, HRV, klidový tep, váha, kroky; nepovinně tělesné míry.
-- **Dnes** – připravenost dne (0–100) s rozpadem a trendem za 14 dní, doporučení se zdůvodněním, dnešní plán a doporučená výživa.
-- **Plán týdne** – tréninky naplánované dopředu, automatické odškrtnutí podle zapsaných tréninků, výhled zátěže proti posledním čtyřem týdnům. Počítá i s dny aktivních programů. Volno, nemoc a dovolená položky jen odloží a série dnů nepřeruší.
+- **Knihovna cviků** – 268 cviků s popisem, provedením, častými chybami, zapojenými partiemi a vybavením nebo strojem, které potřebují (jde podle něj filtrovat); u každého historie tvých výkonů s grafem. Vlastní cviky jdou přidat. Knihovna se otevírá tlačítkem vedle nadpisu každé karty.
 - **Programy** – vlastní i 11 předpřipravených (Základ 4, Od gauče k 5 km, První shyb, 100 kliků denně, Grease the groove, kettlebell, švihadlo…), denní počítadlo, testy maxim. Program jde vytvořit i ze souboru nebo z vloženého textu.
-- **Přehledy** – zátěž, kondice a únava, tempo běhu, odhad 1RM, rekordy, odhad závodního času, graf váhy, týdenní, měsíční a roční souhrny.
-- **Tělo** – panáček s týdenním objemem a regenerací svalových partií, evidence bolestí a zranění, tělesné míry.
 - **Dovednosti** – žebříčky kalisteniky (shyby, kliky, dřep na jedné noze, stojka, front lever, planche…).
+- **Režim Základ** – zjednodušená obrazovka s pár cviky a během pro toho, kdo nechce nic nastavovat.
+
+### Regenerace a plánování
+
+- **Ranní check-in** do půl minuty – spánek, pocity, chuť trénovat, HRV, klidový tep, váha, kroky; nepovinně tělesné míry.
+- **Dnes** – připravenost dne (0–100) s rozpadem a trendem za 14 dní, paprskový graf pocitů proti posledním 14 dnům, doporučení se zdůvodněním, dnešní plán a doporučená výživa.
+- **Plán týdne** – tréninky naplánované dopředu, automatické odškrtnutí podle zapsaných tréninků, výhled zátěže proti posledním čtyřem týdnům. Počítá i s dny aktivních programů. Volno, nemoc a dovolená položky jen odloží a série dnů nepřeruší.
+- **Tělo** – panáček s týdenním objemem a regenerací svalových partií, evidence bolestí a zranění, tělesné míry.
+
+### Pokrok
+
+- **Přehledy** – zátěž, kondice a únava, tempo běhu, odhad 1RM, rekordy, odhad závodního času, graf váhy, týdenní, měsíční a roční souhrny.
 - **Cíle a normy** – čas na trati, síla, opakování, váha, vlastní tabulky norem; předpověď podle trendu.
+- **Série a odznaky** – splněné týdny v řadě a 22 odznaků za běh, sílu vůči vlastní váze, kalisteniku a pravidelnost.
+
+### Výživa a suplementy
+
 - **Výživa** – doporučený denní příjem a makroživiny podle klidového výdeje, běžné aktivity, tréninků a cíle; pojistky proti příliš nízkému příjmu; kontrola podle vývoje váhy s možností doporučení jedním klepnutím posunout. Zápis jídla plugin nemá.
-- **Suplementy** – evidence a dodržování, katalog 72 látek s hodnocením důkazů po oblastech přínosu, dávkováním a riziky, s filtry podle síly důkazů a bezpečnosti. Vlastní přípravek jde přidat podle etikety: fotka se přiloží a z vloženého textu složení se vyčtou látky a pohlídají horní limity, i když je stejná látka ve více suplementech.
+- **Suplementy** – co bereš a jak pravidelně, k tomu katalog 93 látek. Důkazy jsou hodnocené zvlášť pro každou oblast přínosu (výkon, regenerace, spánek, srdce a metabolismus…), s dávkováním podle tvé hmotnosti, riziky a hodnocením bezpečnosti; filtry podle síly důkazů a bezpečnosti. Každá látka je porovnaná nejméně ze čtyř zdrojů, většina ze šesti a více, a studie placené výrobcem jsou označené.
+- **Druhy suplementů** – u proteinu, hořčíku, kreatinu, omega-3, vitaminu D, zinku, železa, vápníku, kurkuminu a sacharidů si vybereš druh (syrovátkový izolát nebo kasein, citrát nebo glycinát hořčíku…) a uvidíš, čím se liší, i se zdroji, které druhy srovnávají. Přidat jde i víc druhů stejné látky, třeba syrovátku a kasein.
+- **Tabulky suplementů** – aminokyseliny, elektrolyty a tekutiny, kofein (obsah v běžných nápojích, bezpečné množství a kdy přestat před spaním), doporučený příjem a horní limity vedle součtu z tvých suplementů a co nebrat spolu.
+- **Vlastní přípravky** – suplement přidáš podle etikety: přiložíš fotku, vložíš text složení a plugin z něj vyčte látky a pohlídá horní limity, i když je stejná látka ve více suplementech.
+
+### Import a export
+
 - **Běhy z aplikací** – import ze souboru GPX, TCX nebo FIT (Strava, MapMyRun, hodinky), případně synchronizace se Stravou.
 - **Denní data z hodinek** – import kroků, délky spánku, HRV, klidového tepu a váhy z CSV; doplní jen to, co v deníku chybí.
 - **Přechod z jiného deníku** – import historie silových tréninků z exportu Strong a Hevy (CSV).
-- **Knihovna cviků** – 268 cviků s popisem, provedením, častými chybami a zapojenými partiemi; u každého historie tvých výkonů s grafem. Vlastní cviky jdou přidat.
 - **Export a záloha** – CSV pro Excel, ZIP celé složky.
-- **Režim Základ** – zjednodušená obrazovka s pár cviky a během pro toho, kdo nechce nic nastavovat.
-
-## Jak to funguje
-
-Každý trénink, den, cvik, program nebo cíl je jedna poznámka s frontmatterem (`forma: workout`, `forma: day`, …). Plugin je čte a zapisuje jen přes API Obsidianu, nepotřebuje Dataview ani jiné pluginy a nic neposílá mimo zařízení. Výjimkou je Strava, pokud si ji sám připojíš.
-
-Výchozí složky (vždy anglicky; vaulty založené verzí 0.2 a starší si nechají české složky `Forma/`):
-
-```
-Better Form/
-  Journal/      denní poznámky: spánek, check-in, HRV, váha, kroky
-  Workouts/     jedna poznámka = jeden trénink
-  Plan/         jedna poznámka = plán jednoho týdne
-  Library/      cviky, šablony tréninků, programy, suplementy
-  Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
-```
-
-Názvy složek jdou změnit v nastavení. Existující poznámky se při přepnutí jazyka nikdy nepřejmenovávají; tlačítko „Přeložit poznámky“ u nastavení jazyka přeloží vestavěnou knihovnu (cviky, šablony, programy) i texty, které plugin vygeneroval v poznámkách – texty, které jsi upravil, zůstanou. Tvůj text v poznámkách plugin nikdy nepřepisuje – generovaný obsah píše jen mezi značky `<!-- forma:start -->` a `<!-- forma:end -->`. Smazání z rozhraní přesouvá poznámku do koše podle nastavení Obsidianu, nikdy ji nemaže natrvalo.
-
-## Jazyk
-
-Rozhraní je anglicky a česky. Při prvním spuštění se jazyk vezme z Obsidianu (podporovaný jazyk, jinak angličtina) a jde kdykoli změnit v nastavení pluginu pod „Language“. Přeložené je rozhraní, doporučení, generované bloky v poznámkách i knihovna cviků, programů a suplementů; co sis zapsal sám, zůstává, jak jsi to napsal. Data – složky a názvy poznámek knihovny v novém vaultu – jsou vždy anglicky, bez ohledu na jazyk rozhraní. Vestavěné cviky mají názvy ve všech jazycích jako aliasy, takže odkazy a historie fungují v libovolné kombinaci jazyků. Názvy příkazů v paletě se změní až po restartu Obsidianu.
 
 ## Instalace
 
-Plugin zatím není v katalogu komunitních pluginů, instaluje se ručně. Potřebuješ Obsidian 1.8.7 nebo novější.
+Plugin je odeslaný do katalogu komunitních pluginů a čeká na kontrolu; do té doby se instaluje ručně. Potřebuješ Obsidian 1.8.7 nebo novější.
 
 **Ručně (počítač i telefon):**
 
@@ -96,7 +105,28 @@ Po aktualizaci pluginu doplníš nové cviky, programy a šablony tréninků (pu
 | Suplementy | co beru, dodržování, katalog |
 | Nastavení | průvodce nastavením (profil, cíl, režim, sporty) a odkaz na všechna nastavení pluginu |
 
-Všechny hlavní akce jsou i v paletě příkazů (Ctrl+P), například „Zapsat trénink“, „Ranní check-in“, „Plán týdne“, „Naplánovat trénink“, „Test maxima“, „Importovat běh ze souboru (GPX, TCX, FIT)“, „Exportovat tréninky a denní data do CSV“, „Zálohovat složku do ZIP“.
+Tlačítko **Knihovna cviků** vedle nadpisu každé karty otevře knihovnu cviků odkudkoli. Všechny hlavní akce jsou i v paletě příkazů (Ctrl+P), například „Zapsat trénink“, „Ranní check-in“, „Plán týdne“, „Naplánovat trénink“, „Test maxima“, „Importovat běh ze souboru (GPX, TCX, FIT)“, „Exportovat tréninky a denní data do CSV“, „Zálohovat složku do ZIP“.
+
+## Jak to funguje
+
+Každý trénink, den, cvik, program nebo cíl je jedna poznámka s frontmatterem (`forma: workout`, `forma: day`, …). Plugin je čte a zapisuje jen přes API Obsidianu, nepotřebuje Dataview ani jiné pluginy a nic neposílá mimo zařízení. Výjimkou je Strava, pokud si ji sám připojíš.
+
+Výchozí složky (vždy anglicky; vaulty založené verzí 0.2 a starší si nechají české složky `Forma/`):
+
+```
+Better Form/
+  Journal/      denní poznámky: spánek, check-in, HRV, váha, kroky
+  Workouts/     jedna poznámka = jeden trénink
+  Plan/         jedna poznámka = plán jednoho týdne
+  Library/      cviky, šablony tréninků, programy, suplementy
+  Goals/  Health/  Equipment/  Tests/  Summaries/  Export/
+```
+
+Názvy složek jdou změnit v nastavení. Existující poznámky se při přepnutí jazyka nikdy nepřejmenovávají; tlačítko „Přeložit poznámky“ u nastavení jazyka přeloží vestavěnou knihovnu (cviky, šablony, programy) i texty, které plugin vygeneroval v poznámkách – texty, které jsi upravil, zůstanou. Tvůj text v poznámkách plugin nikdy nepřepisuje – generovaný obsah píše jen mezi značky `<!-- forma:start -->` a `<!-- forma:end -->`. Smazání z rozhraní přesouvá poznámku do koše podle nastavení Obsidianu, nikdy ji nemaže natrvalo.
+
+## Jazyk
+
+Rozhraní je anglicky a česky. Při prvním spuštění se jazyk vezme z Obsidianu (podporovaný jazyk, jinak angličtina) a jde kdykoli změnit v nastavení pluginu pod „Language“. Přeložené je rozhraní, doporučení, generované bloky v poznámkách i knihovna cviků, programů a suplementů; co sis zapsal sám, zůstává, jak jsi to napsal. Data – složky a názvy poznámek knihovny v novém vaultu – jsou vždy anglicky, bez ohledu na jazyk rozhraní. Vestavěné cviky mají názvy ve všech jazycích jako aliasy, takže odkazy a historie fungují v libovolné kombinaci jazyků. Názvy příkazů v paletě se změní až po restartu Obsidianu.
 
 ## Běhy z aplikací
 
@@ -114,17 +144,6 @@ Načte se datum a čas, vzdálenost, čas v pohybu, tep (pokud v souboru je), p�
 
 Od června 2026 Strava dovoluje založit API aplikaci jen účtům s **placeným předplatným**. Pokud ho máš, v nastavení pluginu je návod krok za krokem: založíš si vlastní API aplikaci, vložíš Client ID a Client Secret a připojíš účet. Synchronizace se spouští jen ručně. Přihlašovací údaje zůstávají v souboru `data.json` pluginu ve tvém vaultu.
 
-## Přidání jazyka
-
-Zdrojovým jazykem je angličtina: texty rozhraní i vestavěná knihovna jsou v kódu anglicky a každý další jazyk je překlad ve vlastní složce. Postup:
-
-1. Zkopíruj `src/locales/cs/` do `src/locales/<kód>/` (třeba `de`) a v jejím `index.ts` nastav `code` a `label`.
-2. Přelož hodnoty (nikdy klíče): `ui.ts` pro rozhraní, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` a `sources.ts` pro knihovnu. Tvary podle čísla se řídí `Intl.PluralRules` daného jazyka (`one`, `few`, `many`, `other`).
-3. Zaregistruj jazyk jedním řádkem v `src/locales/index.ts`.
-4. Spusť `npm test` – testy vypíšou každý chybějící nebo nesedící překlad pro každý zaregistrovaný jazyk. `I18N_DUMP=missing-{code}.json npm test` uloží chybějící texty rozhraní do souboru.
-
-Jazyk se pak objeví v nastavení a vybere se sám, když ho používá Obsidian.
-
 ## Síť a soukromí
 
 - Plugin pracuje **offline** a všechna data ukládá jako poznámky v tvém vaultu. Nic neodesílá, nemá telemetrii ani reklamy a nepotřebuje žádný účet.
@@ -141,7 +160,7 @@ Každé doporučení a každý výpočet má uvedený zdroj a štítek úrovně 
 - **konsenzus** – stanoviska odborných společností,
 - **praxe** – zavedená trenérská heuristika bez vlastní studie.
 
-Heuristika se nikdy nevydává za výzkum. Katalog obsahuje přes 350 ověřených zdrojů; jejich seznam je v [SPEC.md](SPEC.md), kapitola 14.
+Heuristika se nikdy nevydává za výzkum. Katalog obsahuje 799 ověřených zdrojů; nový přibude až po kontrole původní práce.
 
 ## Upozornění
 
@@ -149,19 +168,28 @@ Heuristika se nikdy nevydává za výzkum. Katalog obsahuje přes 350 ověřený
 - **Výživa je odhad.** Doporučený příjem vychází z rovnic s přesností zhruba ±10 % a nikdy neklesne pod klidový výdej. Jestli sedí, ukáže až vývoj váhy za 2–3 týdny.
 - **Doporučení jsou orientační** a nenahrazují trenéra, fyzioterapeuta ani lékaře.
 
-### Co není ověřené
+### Stav ověření
 
-- V Obsidianu na počítači je ověřený zápis tréninku (i ze šablon), panáček, check-in a denní poznámka, plán týdne se souhrnem, karta Suplementy, Přehled, mazání a import GPX ze Stravy. Karta Výživa, měsíční a roční souhrn a provoz na telefonu zatím prošly jen testy a náhledem.
-- Anglické rozhraní a převod existujícího českého vaultu tlačítkem „Přeložit poznámky“ jsou vyzkoušené v Obsidianu.
-- Synchronizace se Stravou nebyla vyzkoušená proti skutečnému API.
-- Import TCX z MapMyRun, import FIT, načtení tepu ze souboru, import denních dat z CSV a import historie ze Strong a Hevy jsou vyzkoušené jen na ručně sestavených souborech. Import historie si nejdřív vyzkoušej na záloze.
-- Na mobilu plugin zatím vyzkoušený nebyl.
+**Vyzkoušené v Obsidianu na počítači:**
 
-Otevřené body a plány jsou v [SPEC.md](SPEC.md), kapitola 13.
+- zápis tréninku (i ze šablon), panáček, check-in a denní poznámka, plán týdne se souhrnem, Přehled, mazání,
+- karta Suplementy včetně druhů suplementů, přeskupené nastavení a tlačítko knihovny cviků,
+- import GPX ze Stravy,
+- anglické rozhraní a převod existujícího českého vaultu tlačítkem „Přeložit poznámky“.
+
+**Jen automatickými testy a v náhledu:**
+
+- karta Výživa, měsíční a roční souhrn,
+- import TCX z MapMyRun, import FIT, načtení tepu ze souboru, import denních dat z CSV a import historie ze Strong a Hevy – vyzkoušené jen na ručně sestavených souborech. Import historie si nejdřív vyzkoušej na záloze.
+
+**Zatím nevyzkoušené:**
+
+- synchronizace se Stravou proti skutečnému API,
+- provoz na telefonu.
 
 ## Vývoj
 
-Zadání je v [SPEC.md](SPEC.md), pravidla vývoje v [CLAUDE.md](CLAUDE.md) (obojí česky). Potřebuješ Node.js a npm (automatická kontrola běží na Node 24).
+Potřebuješ Node.js a npm (automatická kontrola běží na Node 24).
 
 ```powershell
 npm install
@@ -188,6 +216,17 @@ Pro nasazení zkopíruj `.env.local.example` na `.env.local` a vyplň `VAULT_PAT
 Při každém pushi do `main` spustí GitHub Actions testy, typovou kontrolu a build.
 
 **Vydání:** zvyš verzi ve `manifest.json` a `package.json`, do `versions.json` přidej `"<verze>": "<minAppVersion>"`, commitni a pushni tag se stejným číslem bez `v` (např. `git tag 0.2.2` a `git push public 0.2.2`). Workflow „Vydání“ zkontroluje, že tag sedí se všemi třemi soubory, spustí testy a build a založí release se soubory `main.js`, `manifest.json` a `styles.css`.
+
+### Přidání jazyka
+
+Zdrojovým jazykem je angličtina: texty rozhraní i vestavěná knihovna jsou v kódu anglicky a každý další jazyk je překlad ve vlastní složce. Postup:
+
+1. Zkopíruj `src/locales/cs/` do `src/locales/<kód>/` (třeba `de`) a v jejím `index.ts` nastav `code` a `label`.
+2. Přelož hodnoty (nikdy klíče): `ui.ts` pro rozhraní, `exercises.ts`, `programs.ts`, `research.ts`, `supplements.ts`, `amino.ts` a `sources.ts` pro knihovnu. Tvary podle čísla se řídí `Intl.PluralRules` daného jazyka (`one`, `few`, `many`, `other`).
+3. Zaregistruj jazyk jedním řádkem v `src/locales/index.ts`.
+4. Spusť `npm test` – testy vypíšou každý chybějící nebo nesedící překlad pro každý zaregistrovaný jazyk. `I18N_DUMP=missing-{code}.json npm test` uloží chybějící texty rozhraní do souboru.
+
+Jazyk se pak objeví v nastavení a vybere se sám, když ho používá Obsidian.
 
 ## Licence
 

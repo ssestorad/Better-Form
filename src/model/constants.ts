@@ -122,6 +122,92 @@ export const BLOCK_LABELS: Record<BlockType, string> = translated({
 export const EXERCISE_CATEGORIES = ["strength", "calisthenics", "kettlebell", "cardio", "mobility"] as const;
 export type ExerciseCategory = (typeof EXERCISE_CATEGORIES)[number];
 
+/** Vybavení cviku po skupinách; "none" = jde i bez vybavení. */
+export const EQUIPMENT_GROUPS = {
+	none: ["none"],
+	free_weights: ["barbell", "dumbbell", "kettlebell", "trap_bar", "plate", "landmine"],
+	stations: ["bench", "rack", "pull_up_bar", "dip_bars", "rings", "box", "back_extension_bench", "preacher_bench"],
+	machines: [
+		"cable",
+		"leg_press",
+		"hack_squat_machine",
+		"leg_curl_machine",
+		"leg_extension_machine",
+		"chest_press_machine",
+		"shoulder_press_machine",
+		"pec_deck",
+		"row_machine",
+		"hip_abduction_machine",
+		"calf_raise_machine",
+		"sled",
+	],
+	cardio_machines: ["treadmill", "stationary_bike", "rowing_machine", "elliptical", "ski_erg", "air_bike", "stair_climber"],
+	accessories: ["band", "jump_rope", "ab_wheel", "foam_roller", "heavy_bag"],
+	sport: ["bicycle", "pool", "skis", "inline_skates", "climbing_wall", "ball", "poles"],
+} as const;
+export type EquipmentGroup = keyof typeof EQUIPMENT_GROUPS;
+export type EquipmentId = (typeof EQUIPMENT_GROUPS)[EquipmentGroup][number];
+export const EQUIPMENT: EquipmentId[] = Object.values(EQUIPMENT_GROUPS).flat();
+
+export const EQUIPMENT_GROUP_LABELS: Record<EquipmentGroup, string> = translated({
+	none: "Without equipment",
+	free_weights: "Free weights",
+	stations: "Benches, racks and bars",
+	machines: "Machines",
+	cardio_machines: "Cardio machines",
+	accessories: "Accessories",
+	sport: "Sport",
+});
+
+export const EQUIPMENT_LABELS: Record<EquipmentId, string> = translated({
+	none: "no equipment",
+	barbell: "barbell",
+	dumbbell: "dumbbells",
+	kettlebell: "kettlebell",
+	trap_bar: "trap bar",
+	plate: "weight plate",
+	landmine: "landmine",
+	bench: "bench",
+	rack: "squat rack",
+	pull_up_bar: "pull-up bar",
+	dip_bars: "dip bars / power tower",
+	rings: "gymnastic rings",
+	box: "box or step",
+	back_extension_bench: "back extension bench",
+	preacher_bench: "preacher bench",
+	cable: "cable machine",
+	leg_press: "leg press",
+	hack_squat_machine: "hack squat machine",
+	leg_curl_machine: "leg curl machine",
+	leg_extension_machine: "leg extension machine",
+	chest_press_machine: "chest press machine",
+	shoulder_press_machine: "shoulder press machine",
+	pec_deck: "pec deck",
+	row_machine: "row machine",
+	hip_abduction_machine: "hip abduction machine",
+	calf_raise_machine: "calf raise machine",
+	sled: "sled",
+	treadmill: "treadmill",
+	stationary_bike: "stationary bike",
+	rowing_machine: "rowing machine",
+	elliptical: "elliptical trainer",
+	ski_erg: "SkiErg",
+	air_bike: "air bike",
+	stair_climber: "stair climber",
+	band: "resistance band",
+	jump_rope: "jump rope",
+	ab_wheel: "ab wheel",
+	foam_roller: "foam roller",
+	heavy_bag: "heavy bag",
+	bicycle: "bicycle",
+	pool: "swimming pool",
+	skis: "skis",
+	inline_skates: "inline skates",
+	climbing_wall: "climbing wall",
+	ball: "ball",
+	poles: "poles",
+});
+
 export const EXERCISE_KINDS = ["grind", "ballistic", "hold"] as const;
 export type ExerciseKind = (typeof EXERCISE_KINDS)[number];
 

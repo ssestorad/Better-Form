@@ -120,3 +120,20 @@ export function definedIndexes(values: readonly (number | null)[]): number[] {
 	});
 	return out;
 }
+
+/**
+ * Vrcholy radarového grafu: osa i míří od středu pod úhlem i × 360° / počet (první nahoru),
+ * vzdálenost = hodnota / max × poloměr. Chybějící hodnota = střed.
+ */
+export function radarPoints(values: readonly (number | null | undefined)[], max: number, radius: number, cx: number, cy: number): [number, number][] {
+	return values.map((v, i) => {
+		const r = v === null || v === undefined || !Number.isFinite(v) || max <= 0 ? 0 : (Math.min(Math.max(v, 0), max) / max) * radius;
+		const angle = (i / values.length) * 2 * Math.PI - Math.PI / 2;
+		return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+	});
+}
+
+/** Uzavřená lomená čára přes body (atribut `points` u <polygon>). */
+export function polygonPoints(points: readonly [number, number][]): string {
+	return points.map(([x, y]) => `${Math.round(x * 10) / 10},${Math.round(y * 10) / 10}`).join(" ");
+}

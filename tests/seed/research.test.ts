@@ -43,8 +43,9 @@ describe("výzkum u cviků a programů", () => {
 	});
 
 	it("témata ke cviku: konkrétní a u silových i obecné principy", () => {
-		expect(topicsForExercise("bench press", "strength").map((t) => t.id)).toEqual(["push", "training"]);
-		expect(topicsForExercise("Plank", "calisthenics").map((t) => t.id)).toEqual(["core", "training"]);
+		expect(topicsForExercise("bench press", "strength").map((t) => t.id)).toEqual(["push", "training", "technique"]);
+		expect(topicsForExercise("Leg curl", "strength").map((t) => t.id)).toEqual(["range_of_motion", "training", "technique"]);
+		expect(topicsForExercise("Plank", "calisthenics").map((t) => t.id)).toEqual(["core", "training", "technique"]);
 		expect(topicsForExercise("Běh", "cardio")).toEqual([]);
 		expect(topicsForProgram("Od gauče k 5 km").map((t) => t.id)).toEqual(["novice_running"]);
 		expect(topicsForProgram("Vlastní program")).toEqual([]);

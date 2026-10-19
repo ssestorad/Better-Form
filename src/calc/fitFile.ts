@@ -25,7 +25,8 @@ interface FieldDef {
 }
 
 interface MessageDef {
-	global: number;
+	/** Globální číslo zprávy (record, session…). */
+	message: number;
 	little: boolean;
 	fields: FieldDef[];
 	/** Bajty vývojářských polí na konci zprávy – jen se přeskočí. */
@@ -87,7 +88,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 		const def = defs.get(local);
 		if (!def) throw new RangeError("missing definition");
 		const values = new Map<number, number>();
-		const wanted = def.global === MESSAGE_RECORD || def.global === MESSAGE_SESSION;
+		const wanted = def.message === MESSAGE_RECORD || def.message === MESSAGE_SESSION;
 		for (const field of def.fields) {
 			if (wanted || field.num === FIELD_TIMESTAMP) {
 				const value = readInt(view, pos, field, def.little);
@@ -97,7 +98,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 		}
 		const stamp = values.get(FIELD_TIMESTAMP);
 		if (stamp !== undefined) lastTime = stamp;
-		if (def.global === MESSAGE_RECORD) {
+		if (def.message === MESSAGE_RECORD) {
 			const time = stamp ?? compressedTime;
 			const lat = values.get(0);
 			const lon = values.get(1);
@@ -113,7 +114,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 			if (values.has(3)) point.hr = values.get(3)!;
 			if (distance !== undefined) point.distM = distance / 100;
 			points.push(point);
-		} else if (def.global === MESSAGE_SESSION) {
+		} else if (def.message === MESSAGE_SESSION) {
 			const sport = values.get(5);
 			if (sport !== undefined && SPORTS[sport]) file.type = SPORTS[sport];
 			if (values.has(9)) file.lapDistanceM = values.get(9)! / 100;
@@ -135,7 +136,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 				pos = readMessage(pos, (header >> 5) & 0x3, lastTime);
 			} else if (header & 0x40) {
 				const little = view.getUint8(pos + 1) === 0;
-				const global = view.getUint16(pos + 2, little);
+				const message = view.getUint16(pos + 2, little);
 				const count = view.getUint8(pos + 4);
 				pos += 5;
 				const fields: FieldDef[] = [];
@@ -145,7 +146,7 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 					const devCount = view.getUint8(pos++);
 					for (let i = 0; i < devCount; i++, pos += 3) devBytes += view.getUint8(pos + 1);
 				}
-				defs.set(header & 0x0f, { global, little, fields, devBytes });
+				defs.set(header & 0x0f, { message, little, fields, devBytes });
 			} else {
 				pos = readMessage(pos, header & 0x0f, undefined);
 			}

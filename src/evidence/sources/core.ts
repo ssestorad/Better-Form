@@ -1,5 +1,5 @@
 // Zdroje ze SPEC kap. 14: zátěž, síla, běh, HRV, spánek, výživa, původní suplementy a programy
-// Část katalogu zdrojů – skládá se v src/evidence/sources.ts. Nové zdroje jen ověřené (CLAUDE.md).
+// Část katalogu zdrojů – skládá se v src/evidence/sources.ts. Nové zdroje jen ověřené.
 
 import type { Source } from "../sourceTypes";
 

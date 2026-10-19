@@ -58,6 +58,8 @@ export interface SupplementLocale {
 	safetyNote?: string;
 	/** Výchozí jednotka dávky, když je slovem (tablet). */
 	unit?: string;
+	/** Druhy látky; klíč = id druhu, `studies` ve stejném pořadí jako ve zdroji. */
+	variants?: Record<string, { name: string; aliases?: string[]; summary: string; studies: string[] }>;
 }
 
 /** Vestavěný obsah v jazyce; klíč = id položky v anglickém zdroji (src/seed, src/evidence). Co chybí, zůstane anglicky. */

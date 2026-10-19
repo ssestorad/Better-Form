@@ -2,7 +2,7 @@
 	// Karta Suplementy: dnešní odškrtávání, dodržování, moje suplementy a doporučení se zdroji.
 	import { t } from "../../i18n";
 	import { Notice } from "obsidian";
-	import { CAFFEINE_EXCESS_MG_PER_KG, caffeineIsExcessive, doseToMg, isTaken, trackedDays } from "../../calc/supplements";
+	import { CAFFEINE_EXCESS_MG_PER_KG, caffeineIsExcessive, doseToMg, isTaken, substanceTotals, trackedDays } from "../../calc/supplements";
 	import type { LabelPhoto, SupplementDraft, SupplementEntry } from "../../data/SupplementService";
 	import { SUPPLEMENT_TIMING_LABELS } from "../../model/constants";
 	import { toIsoDate } from "../../model/dates";
@@ -27,6 +27,8 @@
 		SUPPLEMENT_CONTAMINATION_NOTE,
 		SUPPLEMENT_DISCLAIMER,
 		matchesCatalogQuery,
+		matchingVariant,
+		variantName,
 		type CatalogSupplement,
 	} from "../../seed/supplements";
 	import type { Diet } from "../../settings/settings";
@@ -34,6 +36,7 @@
 	import AminoAcidTable from "../supplements/AminoAcidTable.svelte";
 	import DailyOverview from "../supplements/DailyOverview.svelte";
 	import LabelForm from "../supplements/LabelForm.svelte";
+	import ReferenceTables from "../supplements/ReferenceTables.svelte";
 	import ElectrolyteTable from "../supplements/ElectrolyteTable.svelte";
 	import RecommendationCard from "../supplements/RecommendationCard.svelte";
 	import SupplementForm from "../supplements/SupplementForm.svelte";
@@ -187,11 +190,23 @@
 		return all.some((e) => e.note.catalog === item.id || e.note.name.toLocaleLowerCase("cs") === item.name.toLocaleLowerCase("cs"));
 	}
 
+	function ownedVariants(item: CatalogSupplement): string[] {
+		return all.flatMap((e) => (e.note.catalog === item.id && e.note.variant ? [e.note.variant] : []));
+	}
+
+	/** Název musí být jedinečný (deník podle něj odškrtává) – druhý a další druh téže látky dostane druh do názvu. */
+	function catalogName(item: CatalogSupplement, variant: string | undefined): string {
+		const taken = all.some((e) => e.note.name.toLocaleLowerCase("cs") === item.name.toLocaleLowerCase("cs"));
+		const v = variantName(item.id, variant);
+		return taken && v ? `${item.name} – ${v}` : item.name;
+	}
+
 	function draftOf(entry: SupplementEntry): SupplementDraft {
 		const { note } = entry;
 		return {
 			name: note.name,
 			catalog: note.catalog,
+			variant: note.variant,
 			dose: note.dose,
 			unit: note.unit,
 			timing: note.timing,
@@ -199,10 +214,14 @@
 		};
 	}
 
+	/** Druh vybraný na kartě při klepnutí na „Přidat“. */
+	let addVariant = $state<string | undefined>(undefined);
+
 	function catalogDraft(item: CatalogSupplement): SupplementDraft {
 		return {
 			name: item.name,
 			catalog: item.id,
+			variant: addVariant,
 			dose: item.defaults.dose,
 			unit: item.defaults.unit,
 			timing: item.defaults.timing,
@@ -228,7 +247,8 @@
 
 	function meta(entry: SupplementEntry): string {
 		const composition = entry.note.ingredients ? t("ingredients: {ingredients_length}", { ingredients_length: entry.note.ingredients.length }) : "";
-		return [doseLabel(entry.note.dose, entry.note.unit), SUPPLEMENT_TIMING_LABELS[entry.note.timing], composition]
+		const variant = variantName(entry.note.catalog, entry.note.variant) ?? "";
+		return [entry.note.name.includes(variant) ? "" : variant, doseLabel(entry.note.dose, entry.note.unit), SUPPLEMENT_TIMING_LABELS[entry.note.timing], composition]
 			.filter((part) => part !== "")
 			.join(" · ");
 	}
@@ -366,7 +386,7 @@
 			{/each}
 		</div>
 		<label class="bf-supp-diet bf-small">
-			<span>Strava</span>
+			<span>{t("Diet")}</span>
 			<select value={diet} onchange={(e) => void setDiet(e.currentTarget.value as Diet)}>
 				{#each DIETS as d (d.value)}
 					<option value={d.value}>{d.label}</option>
@@ -416,11 +436,19 @@
 	{#each library as { group, items } (group)}
 		<h5>{MATCH_TITLES[group]}</h5>
 		{#each items as item (item.id)}
-			<RecommendationCard {item} {weightKg} owned={owned(item)} open={shownCount === 1} onAdd={() => (editing = `catalog:${item.id}`)} />
+			<RecommendationCard
+				{item}
+				{weightKg}
+				owned={owned(item)}
+				ownedVariants={ownedVariants(item)}
+				open={shownCount === 1}
+				variant={matchingVariant(item, query)}
+				onAdd={(v) => ((addVariant = v), (editing = `catalog:${item.id}`))}
+			/>
 			{#if editing === `catalog:${item.id}`}
 				<div class="bf-card">
 					<strong>{item.name}</strong>
-					<SupplementForm initial={catalogDraft(item)} saveLabel={t("Add")} onSave={(draft) => void create(draft)} onCancel={() => (editing = null)} />
+					<SupplementForm initial={catalogDraft(item)} saveLabel={t("Add")} onSave={(draft) => void create({ ...draft, name: catalogName(item, draft.variant) })} onCancel={() => (editing = null)} />
 				</div>
 			{/if}
 		{/each}
@@ -433,9 +461,9 @@
 {/if}
 
 {#if section === "tables"}
-<AminoAcidTable {weightKg} owned={active.map((e) => ({ name: e.note.name, catalog: e.note.catalog }))} />
-
+<ReferenceTables {sex} {bedtime} totals={substanceTotals(active.map((e) => ({ name: e.note.name, catalog: e.note.catalog, dose: e.note.dose, unit: e.note.unit, ingredients: e.note.ingredients })))} />
 <ElectrolyteTable {weightKg} {sex} />
+<AminoAcidTable {weightKg} owned={active.map((e) => ({ name: e.note.name, catalog: e.note.catalog }))} />
 {/if}
 
 <style>

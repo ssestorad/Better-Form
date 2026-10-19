@@ -11,7 +11,19 @@ import {
 	totalEssentialMgPerKg,
 } from "../../src/seed/aminoAcids";
 import { supplementToFrontmatter } from "../../src/model/serialize";
-import { MIN_STUDIES, SUPPLEMENT_CATALOG, catalog, catalogSupplement, findCatalogSupplement, matchesCatalogQuery } from "../../src/seed/supplements";
+import {
+	MIN_STUDIES,
+	MIN_VARIANT_STUDIES,
+	SUPPLEMENT_CATALOG,
+	catalog,
+	catalogSupplement,
+	findCatalogSupplement,
+	labelCatalogId,
+	matchesCatalogQuery,
+	matchingVariant,
+	variantName,
+} from "../../src/seed/supplements";
+import { getLanguage, setLanguage } from "../../src/i18n";
 import { CAFFEINE_EVENING_WARNING, adherenceLabel, doseLabel, formatAmount, limitMessage, personalDose } from "../../src/ui/supplements/text";
 import {
 	BENEFIT_AREAS,
@@ -43,7 +55,7 @@ describe("katalog suplementů", () => {
 		}
 	});
 
-	it("každá položka srovnává nejméně tři různé zdroje, z toho aspoň tři studie nebo stanoviska", () => {
+	it("každá položka srovnává nejméně čtyři různé zdroje, z toho aspoň čtyři studie nebo stanoviska", () => {
 		// Tabulky limitů a databáze (EFSA, LiverTox) se do minima nepočítají – nejsou to studie účinku.
 		const REFERENCE = ["efsaUl", "efsaOmega2012", "livertoxAshwagandha"];
 		for (const item of SUPPLEMENT_CATALOG) {
@@ -94,6 +106,66 @@ describe("katalog suplementů", () => {
 		expect(find("chondroitin")).toEqual(["glucosamine"]);
 		expect(find("  ")).toHaveLength(SUPPLEMENT_CATALOG.length);
 		expect(find("neexistuje")).toEqual([]);
+	});
+});
+
+describe("druhy látek (protein, hořčík…)", () => {
+	const withVariants = SUPPLEMENT_CATALOG.filter((item) => item.variants);
+
+	it("druhy mají látky, u kterých na formě záleží", () => {
+		const ids = ["protein", "magnesium", "creatine", "iron", "vitamin_d", "omega3", "zinc", "calcium", "curcumin", "carbohydrate"];
+		expect(withVariants.map((item) => item.id).sort()).toEqual([...ids].sort());
+	});
+
+	it("každý druh má jednoznačné id a název, popis a aspoň dva různé existující zdroje", () => {
+		for (const item of withVariants) {
+			const variants = item.variants!;
+			expect(new Set(variants.map((v) => v.id)).size, item.id).toBe(variants.length);
+			expect(new Set(variants.map((v) => v.name)).size, item.id).toBe(variants.length);
+			for (const v of variants) {
+				const key = `${item.id}/${v.id}`;
+				expect(v.summary.trim(), key).not.toBe("");
+				const ids = v.studies.map((s) => s.source);
+				expect(new Set(ids).size, key).toBe(ids.length);
+				expect(ids.length, key).toBeGreaterThanOrEqual(MIN_VARIANT_STUDIES);
+				for (const study of v.studies) {
+					expect(isSourceId(study.source), `${key}: ${study.source}`).toBe(true);
+					expect(study.finding.trim(), `${key}: ${study.source}`).not.toBe("");
+				}
+			}
+		}
+	});
+
+	it("hledání najde látku i podle druhu a druh předvybere", () => {
+		const magnesium = catalog("cs").find((s) => s.id === "magnesium")!;
+		expect(matchesCatalogQuery(magnesium, "bisglycinat")).toBe(true);
+		expect(matchingVariant(magnesium, "bisglycinát")).toBe("glycinate");
+		expect(matchingVariant(magnesium, "hořčík")).toBeUndefined();
+		expect(matchingVariant(magnesium, "")).toBeUndefined();
+		const protein = catalog("en").find((s) => s.id === "protein")!;
+		expect(matchingVariant(protein, "casein")).toBe("casein");
+		expect(matchingVariant(protein, "pea")).toBe("plant_blend");
+	});
+
+	it("název z etikety podle druhu vede na látku (kvůli horním limitům)", () => {
+		expect(findCatalogSupplement("Magnesium citrate")?.id).toBe("magnesium");
+		expect(findCatalogSupplement("citrát hořečnatý")?.id).toBe("magnesium");
+		expect(labelCatalogId("Magnesium bisglycinate")).toBe("magnesium");
+		expect(findCatalogSupplement("whey isolate")?.id).toBe("protein");
+		expect(labelCatalogId("Zinc gluconate")).toBe("zinc");
+		expect(labelCatalogId("Calcium carbonate")).toBe("calcium");
+	});
+
+	it("název druhu v jazyce rozhraní; neznámý druh nebo látka bez druhů = undefined", () => {
+		const language = getLanguage();
+		setLanguage("en");
+		expect(variantName("protein", "casein")).toBe("Casein");
+		setLanguage("cs");
+		expect(variantName("protein", "casein")).toBe("Kasein");
+		setLanguage(language);
+		expect(variantName("protein", "neexistuje")).toBeUndefined();
+		expect(variantName("creatine", "casein")).toBeUndefined();
+		expect(variantName("protein", undefined)).toBeUndefined();
 	});
 });
 
@@ -153,6 +225,14 @@ describe("poznámka suplementu", () => {
 		});
 		expect(note).not.toBeNull();
 		expect(parseSupplement(supplementToFrontmatter(note!))).toEqual(note);
+	});
+
+	it("druh látky se uloží a přečte; bez druhu klíč chybí", () => {
+		const note = parseSupplement({ forma: "supplement", schema: 1, name: "Hořčík", catalog: "magnesium", variant: "glycinate", timing: "evening" });
+		expect(note?.variant).toBe("glycinate");
+		expect(parseSupplement(supplementToFrontmatter(note!))).toEqual(note);
+		expect(supplementToFrontmatter({ ...note!, variant: undefined })).not.toHaveProperty("variant");
+		expect(parseSupplement({ forma: "supplement", name: "Hořčík", variant: "" })?.variant).toBeUndefined();
 	});
 
 	it("tolerantní výchozí hodnoty; bez názvu null", () => {
@@ -256,7 +336,7 @@ describe("hodnocení po oblastech přínosu", () => {
 		for (const id of ["psyllium", "taurine", "theanine", "curcumin", "cocoa_flavanols", "sodium_citrate", "glycine", "beta_glucan", "ginger", "capsaicin", "ecdysterone", "tongkat_ali", "ketones", "cbd"]) expect(catalogSupplement(id), id).toBeDefined();
 		// Doplněno 13. 10. 2026.
 		for (const id of ["phosphatidylcholine", "potassium_bicarbonate", "thiamine"]) expect(catalogSupplement(id), id).toBeDefined();
-		expect(SUPPLEMENT_CATALOG).toHaveLength(72);
+		expect(SUPPLEMENT_CATALOG).toHaveLength(93);
 		for (const item of SUPPLEMENT_CATALOG) {
 			for (const id of item.basis.sourceIds) {
 				const source = getSource(id);

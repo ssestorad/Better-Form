@@ -119,7 +119,7 @@ export const EXERCISE_ROWS: ExerciseRow[] = [
 	},
 	{ id: "leg-curl", name: "Leg curl", aliases: [], category: "strength", kind: "grind", measure: "reps_kg", primary: ["hamstrings"], secondary: ["calves"],
 		text: {
-			about: "A machine isolation exercise for the hamstrings.",
+			about: "A machine isolation exercise for the hamstrings. In a study the seated version built more hamstring muscle than the lying one.",
 			how: ["Machine axis level with your knee, pad above your heels.", "Pull your heels towards your glutes; your hips stay on the bench.", "Lower slowly."],
 			mistakes: ["Lifting your hips off the bench.", "Half range of motion."],
 		},
@@ -1043,7 +1043,7 @@ export const EXERCISE_ROWS: ExerciseRow[] = [
 	},
 	{ id: "overhead-triceps-extension", name: "Overhead triceps extension", aliases: [], category: "strength", kind: "grind", measure: "reps_kg", primary: ["triceps"], secondary: [],
 		text: {
-			about: "Straightening the arms overhead with a dumbbell or on a cable. The triceps works from a stretch.",
+			about: "Straightening the arms overhead with a dumbbell or on a cable. The triceps works from a stretch – in a study this built clearly more triceps than extensions with the arms at the sides.",
 			how: ["Hold a dumbbell overhead with both hands, elbows pointing forward and up.", "Lower it behind your head by bending the elbows; the upper arms don't move.", "Straighten your arms back up."],
 			mistakes: ["Elbows flaring out.", "Arching the lower back.", "Moving the whole arm instead of only at the elbow."],
 		},

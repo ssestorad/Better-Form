@@ -26,6 +26,7 @@ export const CHECK_IN_NUMBERS = {
 	soreness: { group: "check_in", min: 1, max: 5, integer: true },
 	mood: { group: "check_in", min: 1, max: 5, integer: true },
 	stress: { group: "check_in", min: 1, max: 5, integer: true },
+	motivation: { group: "check_in", min: 1, max: 5, integer: true },
 	rmssd_ms: { group: "hrv", min: 5, max: 300, integer: false },
 	resting_hr: { group: "hrv", min: 25, max: 150, integer: true },
 	elonga_readiness: { group: "hrv", min: 0, max: 100, integer: false },
@@ -176,4 +177,36 @@ export function initialCheckIn(date: string, existing: DayNote | undefined, hist
 		if (value !== undefined) values[field] = value;
 	}
 	return values;
+}
+
+// ---------- Graf pocitů (karta Dnes) ----------
+
+/** Škály 1–5 z check-inu, u kterých 5 = nejlepší, v pořadí os grafu. */
+export const WELLNESS_AXES = ["quality", "morning_feeling", "fatigue", "soreness", "mood", "stress", "motivation"] as const;
+export type WellnessAxis = (typeof WELLNESS_AXES)[number];
+
+export interface WellnessPoint {
+	axis: WellnessAxis;
+	/** Dnešní hodnota 1–5, nebo null. */
+	today: number | null;
+	/** Průměr předchozích dnů (bez dneška), nebo null. */
+	average: number | null;
+}
+
+function axisValue(day: DayNote, axis: WellnessAxis): number | undefined {
+	return axis === "quality" || axis === "morning_feeling" ? day.sleep[axis] : day.check_in[axis];
+}
+
+/** Dnešní pocity a průměr za předchozích `days` dní pro radarový graf. */
+export function wellnessPoints(today: DayNote | undefined, history: readonly DayNote[], date: string, days = 14): WellnessPoint[] {
+	const from = addDays(date, -days);
+	const past = history.filter((d) => d.date >= from && d.date < date);
+	return WELLNESS_AXES.map((axis) => {
+		const values = past.map((d) => axisValue(d, axis)).filter((v): v is number => v !== undefined);
+		return {
+			axis,
+			today: (today && axisValue(today, axis)) ?? null,
+			average: values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null,
+		};
+	});
 }

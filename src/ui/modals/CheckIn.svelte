@@ -150,6 +150,7 @@
 			<Scale5 label={t("Muscle soreness")} low={t("severe")} high={t("none")} bind:value={values.soreness} hint={hints.soreness} error={errors.soreness} />
 			<Scale5 label={t("Mood")} low={t("very poor")} high={t("excellent")} bind:value={values.mood} hint={hints.mood} error={errors.mood} />
 			<Scale5 label={t("Stress")} low={t("high", undefined, "stress")} high={t("none", undefined, "stress")} bind:value={values.stress} hint={hints.stress} error={errors.stress} />
+			<Scale5 label={t("Desire to train")} low={t("none", undefined, "motivation")} high={t("can't wait")} bind:value={values.motivation} hint={hints.motivation} error={errors.motivation} />
 		</fieldset>
 
 		<fieldset>

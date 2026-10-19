@@ -103,7 +103,7 @@ export const EXERCISES: Record<string, ExerciseLocale> = {
 	},
 	"leg-curl": {
 		name: "Zakopávání",
-		about: "Izolovaný cvik na zadní stranu stehen na stroji.",
+		about: "Izolovaný cvik na zadní stranu stehen na stroji. Ve studii postavila varianta vsedě víc svalu než vleže.",
 		how: ["Osa stroje v úrovni kolena, opěrka nad patami.", "Přitahuj paty k hýždím, pánev zůstává na lavici.", "Pomalu zpět."],
 		mistakes: ["Zvedání pánve z lavice.", "Poloviční rozsah pohybu."],
 	},
@@ -928,7 +928,7 @@ export const EXERCISES: Record<string, ExerciseLocale> = {
 	"overhead-triceps-extension": {
 		name: "Tricepsový tlak za hlavou",
 		aliases: ["Tricepsová extenze nad hlavou"],
-		about: "Natahování paží nad hlavou s jednoručkou nebo na kladce. Triceps pracuje z protažení.",
+		about: "Natahování paží nad hlavou s jednoručkou nebo na kladce. Triceps pracuje z protažení – ve studii to postavilo výrazně víc tricepsu než natahování s pažemi u těla.",
 		how: ["Jednoručku drž oběma rukama nad hlavou, lokty míří vpřed a vzhůru.", "Spusť ji za hlavu ohnutím loktů, nadloktí se nehýbe.", "Natáhni paže zpět nahoru."],
 		mistakes: ["Lokty rozjeté do stran.", "Prohýbání beder.", "Pohyb celou paží místo jen v lokti."],
 	},
