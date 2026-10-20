@@ -5,8 +5,10 @@ import {
 	hrZones,
 	longestRun,
 	pendingImports,
+	cadenceSpm,
 	resolveHrMax,
 	runRecords,
+	runSpike,
 	shoeUsage,
 } from "../../src/calc/running";
 import type { RunData, WorkoutNote } from "../../src/model/types";
@@ -62,6 +64,32 @@ describe("longestRun", () => {
 			date: "2026-09-05",
 		});
 		expect(longestRun([])).toBeNull();
+	});
+});
+
+describe("runSpike (Frandsen 2025)", () => {
+	const history = [run("2026-08-20", { distance_km: 30 }), run("2026-09-05", { distance_km: 10 }), run("2026-09-20", { distance_km: 8 }), run("2026-10-01", { distance_km: 12 })];
+
+	it("nejdelší běh za předchozích 30 dní, hranice +10 %", () => {
+		// 2026-10-01: okno od 1. 9. – 30 km z 20. 8. se nepočítá, nejdelší je 10 km; 12 km je o 20 % víc.
+		expect(runSpike(history, "2026-10-01", 12)).toEqual({ km: 12, longestKm: 10, pct: expect.closeTo(20), maxKm: 11 });
+		expect(runSpike(history, "2026-10-01", 11)).toBeNull();
+		// Do srovnání jde i dnešek předcházející běh, ne běh téhož dne: 2026-10-02 je nejdelší 12 km → hranice 13,2 km.
+		expect(runSpike(history, "2026-10-02", 13.3)).toMatchObject({ longestKm: 12, maxKm: 13.2 });
+		expect(runSpike(history, "2026-10-02", 13.2)).toBeNull();
+	});
+
+	it("bez běhu za 30 dní není s čím srovnat", () => {
+		expect(runSpike(history, "2026-12-01", 20)).toBeNull();
+		expect(runSpike([], "2026-10-01", 5)).toBeNull();
+	});
+});
+
+describe("cadenceSpm", () => {
+	it("za jednu nohu × 2; od 120 už je za obě nohy", () => {
+		expect(cadenceSpm(85)).toBe(170);
+		expect(cadenceSpm(84.6)).toBe(169);
+		expect(cadenceSpm(172)).toBe(172);
 	});
 });
 

@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { t } from "../../i18n";
 	import { hasCheckIn, wellnessPoints } from "../../calc/checkIn";
+	import { sleepWeek } from "../../calc/sleep";
 	import { PLAN_STATUS_LABELS } from "../../calc/weekPlan";
 	import { daySummary, workoutDetails, workoutLabel } from "../../data/dayBlock";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
 	import type { PlanEntry } from "../../data/PlanService";
 	import { addDays, startOfWeek, toIsoDate } from "../../model/dates";
 	import { usePlugin } from "../context";
-	import { formatCzechDate } from "../format";
+	import { formatCzechDate, formatDurationMin } from "../format";
 	import { nutritionLine } from "../nutrition/text";
 	import ProgramCard from "../program/ProgramCard.svelte";
 	import StravaCard from "../strava/StravaCard.svelte";
 	import CheckInRadar from "../today/CheckInRadar.svelte";
 	import ReadinessCard from "../today/ReadinessCard.svelte";
 	import RecommendationList from "../today/RecommendationList.svelte";
+	import ResearchCard from "../components/ResearchCard.svelte";
+	import { researchTopic } from "../../seed/research";
 
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
@@ -55,12 +58,22 @@
 		return plan ? nutritionLine(plan) : null;
 	});
 	const checkedIn = $derived(hasCheckIn(day));
-	// Graf pocitů: dnešek proti průměru předchozích 14 dní.
-	const wellness = $derived.by(() => {
-		void $indexVersion;
-		return wellnessPoints(day, plugin.index.all("day").map((e) => e.note), today);
+	const femaleProfile = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.settings.profile.sex === "female";
 	});
+	const dayNotes = $derived.by(() => {
+		void $indexVersion;
+		return plugin.index.all("day").map((e) => e.note);
+	});
+	// Graf pocitů: dnešek proti průměru předchozích 14 dní.
+	const wellness = $derived(wellnessPoints(day, dayNotes, today));
 	const hasWellness = $derived(wellness.some((p) => p.today !== null));
+	// Spánkový dluh za 7 nocí; podrobnosti v Přehledu u grafu spánku.
+	const sleep = $derived.by(() => {
+		void $settingsVersion;
+		return sleepWeek(dayNotes, today, plugin.settings.thresholds.sleepTargetHours * 60);
+	});
 	const summary = $derived(daySummary(day));
 	// Plán týdne (SPEC 5.16): dnešní položky a co je v plánu zítra.
 	const planned = $derived.by(() => {
@@ -94,6 +107,7 @@
 	{#if checkedIn}
 		<dl class="bf-summary">
 			{#if summary.sleep}<dt>{t("Sleep")}</dt><dd>{summary.sleep}</dd>{/if}
+			{#if sleep.debtMin !== null}<dt>{t("Sleep debt")}</dt><dd>{sleep.debtMin === 0 ? t("no debt") : formatDurationMin(sleep.debtMin)} <span class="bf-muted">{t("({v} of the last 7 nights logged)", { v: sleep.nights })}</span></dd>{/if}
 			{#if summary.feelings}<dt>{t("How you feel")}</dt><dd>{summary.feelings}</dd>{/if}
 			{#if summary.hrv}<dt>HRV</dt><dd>{summary.hrv}</dd>{/if}
 			{#if summary.weight}<dt>{t("Weight")}</dt><dd>{summary.weight}</dd>{/if}
@@ -107,6 +121,10 @@
 
 <ReadinessCard readiness={insights.readiness} history={readinessHistory} onCheckIn={() => plugin.openCheckIn(today)} />
 <RecommendationList recommendations={insights.recommendations} />
+<!-- Menstruační cyklus a trénink – jen u ženského profilu. -->
+{#if femaleProfile && researchTopic("menstrual_cycle")}
+	<section class="bf-card"><ResearchCard topic={researchTopic("menstrual_cycle")!} /></section>
+{/if}
 
 <StravaCard />
 

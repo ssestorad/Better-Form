@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dateRange, daySamples, hrvChart, loadChart, oneRmChart, paceChart, sleepChart } from "../../src/calc/chartData";
+import { cadenceChart, dateRange, daySamples, hrvChart, loadChart, oneRmChart, paceChart, sleepChart } from "../../src/calc/chartData";
 import { monthSummaryInput } from "../../src/calc/monthlySummary";
 import { addDays } from "../../src/model/dates";
 import type { DayNote, WorkoutNote } from "../../src/model/types";
@@ -86,5 +86,18 @@ describe("vstup měsíčního souhrnu", () => {
 		expect(input.sleepAvgMin).toBe(450);
 		expect(input.previousSleepAvgMin).toBeNull();
 		expect(input.weightChangeKg).toBeCloseTo(-0.8, 10);
+	});
+});
+
+describe("cadenceChart", () => {
+	it("průměr dne vážený časem běhu; dny bez kadence null", () => {
+		const workouts = [
+			workout({ date: "2026-10-01", run: { cadence_spm: 170, moving_time_s: 1800 } }),
+			workout({ date: "2026-10-01", run: { cadence_spm: 180, moving_time_s: 600 } }),
+			workout({ date: "2026-10-02", run: { distance_km: 5 } }),
+			workout({ date: "2026-10-03", sport: "strength", run: { cadence_spm: 100 } }),
+		];
+		// (170 × 1800 + 180 × 600) / 2400 = 172,5
+		expect(cadenceChart(workouts, ["2026-10-01", "2026-10-02", "2026-10-03"])).toEqual([172.5, null, null]);
 	});
 });

@@ -2,7 +2,7 @@
 // Bez závislosti na Obsidianu.
 
 import { isLanguage, type Language } from "../i18n";
-import { SPORTS, type MuscleId, type Sport } from "../model/constants";
+import { SPORTS, type MuscleId, type Sport, MEDICATIONS, type MedicationId } from "../model/constants";
 import { builtinName, exerciseId } from "../seed/localize";
 
 export type SettingsSex = "male" | "female";
@@ -23,6 +23,8 @@ export interface ProfileSettings {
 	hrMax: number | null;
 	activity: ActivityLevel;
 	goal: BodyGoal;
+	/** Skupiny léků, které uživatel bere – jen pro upozornění na interakce se suplementy. */
+	medications: MedicationId[];
 }
 
 export const RMR_FORMULAS = ["ten_haaf", "mifflin", "ten_haaf_ffm", "cunningham"] as const;
@@ -282,6 +284,7 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 		hrMax: null,
 		activity: "light",
 		goal: "maintain",
+		medications: [],
 	},
 	mode: "full",
 	basicExercises: ["Push-up", "Pull-up", "Bodyweight squat", "Sit-up", "Running"],
@@ -351,6 +354,7 @@ function migrateSettings(settings: BetterFormSettings): BetterFormSettings {
 	}
 	if (!(RMR_FORMULAS as readonly string[]).includes(settings.nutrition.rmrFormula)) settings.nutrition.rmrFormula = DEFAULT_NUTRITION.rmrFormula;
 	if (!isLanguage(settings.language)) settings.language = DEFAULT_SETTINGS.language;
+	settings.profile.medications = MEDICATIONS.filter((m) => settings.profile.medications.includes(m));
 	settings.settingsVersion = SETTINGS_VERSION;
 	return settings;
 }
@@ -366,4 +370,12 @@ export function parseNumberList(text: string): number[] {
 		.map(Number)
 		.filter((n) => Number.isFinite(n) && n > 0);
 	return [...new Set(numbers)].sort((a, b) => a - b);
+}
+
+/** "Run, TrailRun , ,VirtualRun" → ["Run", "TrailRun", "VirtualRun"]: položky oddělené čárkou, bez prázdných. */
+export function parseTextList(text: string): string[] {
+	return text
+		.split(",")
+		.map((part) => part.trim())
+		.filter((part) => part !== "");
 }

@@ -14,7 +14,7 @@ export function confirmAction(app: App, title: string, message: string, confirmT
 					.addButton((b) =>
 						b
 							.setButtonText(confirmText)
-							.setWarning()
+							.setDestructive()
 							.onClick(() => {
 								confirmed = true;
 								this.close();

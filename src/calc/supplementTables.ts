@@ -116,70 +116,92 @@ export function intakeRows(sex: Sex, totals: readonly SubstanceTotal[]): IntakeR
 
 export interface Combination {
 	id: string;
-	/** Co s čím. */
-	pair: string;
-	/** Co studie ukázaly. */
-	finding: string;
-	/** Co s tím dělat. */
-	advice: string;
 	sources: SourceId[];
+	/** Co s čím, co studie ukázaly a co s tím dělat. */
+	text: { pair: string; finding: string; advice: string };
 }
 
-export const COMBINATIONS: Combination[] = translated([
+/** Texty jsou v translated(), id a zdroje ne – id se používá v logice (supplementSafety.ts). */
+export const COMBINATIONS: readonly Combination[] = [
 	{
 		id: "iron-calcium",
-		pair: "Iron + calcium or dairy",
-		finding: "300–600 mg of calcium, or 165 mg from milk or cheese, cut iron absorption from a meal by 50–60 %. Long-term calcium supplementation hasn't worsened iron status.",
-		advice: "Take iron at a different time of day than calcium and dairy.",
 		sources: ["hallberg1991", "lonnerdal2010"],
+		text: translated({
+			pair: "Iron + calcium or dairy",
+			finding: "300–600 mg of calcium, or 165 mg from milk or cheese, cut iron absorption from a meal by 50–60 %. Long-term calcium supplementation hasn't worsened iron status.",
+			advice: "Take iron at a different time of day than calcium and dairy.",
+		}),
 	},
 	{
 		id: "iron-coffee",
-		pair: "Iron + coffee or tea",
-		finding: "A cup of coffee with a meal cut iron absorption by 39 %, tea by 64 %; coffee an hour before the meal didn't, an hour after did. Herbal teas and cocoa inhibit it too.",
-		advice: "Have coffee and tea at least an hour before iron, not with it or right after.",
 		sources: ["morck1983", "hurrell1999"],
+		text: translated({
+			pair: "Iron + coffee or tea",
+			finding: "A cup of coffee with a meal cut iron absorption by 39 %, tea by 64 %; coffee an hour before the meal didn't, an hour after did. Herbal teas and cocoa inhibit it too.",
+			advice: "Have coffee and tea at least an hour before iron, not with it or right after.",
+		}),
 	},
 	{
 		id: "iron-vitamin-c",
-		pair: "Iron + vitamin C",
-		finding: "Vitamin C helps iron absorption from single meals much more than across a whole diet; added to iron tablets in anaemia it didn't improve haemoglobin.",
-		advice: "With iron tablets it isn't needed; vitamin C-rich food helps iron from plant-based meals.",
 		sources: ["cook2001", "li2020vitc"],
+		text: translated({
+			pair: "Iron + vitamin C",
+			finding: "Vitamin C helps iron absorption from single meals much more than across a whole diet; added to iron tablets in anaemia it didn't improve haemoglobin.",
+			advice: "With iron tablets it isn't needed; vitamin C-rich food helps iron from plant-based meals.",
+		}),
 	},
 	{
 		id: "iron-alternate",
-		pair: "Iron every day",
-		finding: "In women with low iron stores, one dose every other day was absorbed better than daily doses.",
-		advice: "Ask about taking iron every other day instead of daily.",
 		sources: ["stoffel2017"],
+		text: translated({
+			pair: "Iron every day",
+			finding: "In women with low iron stores, one dose every other day was absorbed better than daily doses.",
+			advice: "Ask about taking iron every other day instead of daily.",
+		}),
 	},
 	{
 		id: "zinc-iron",
-		pair: "Zinc + iron",
-		finding: "More than about 25 mg of iron taken together with zinc can reduce zinc absorption.",
-		advice: "Take larger doses of iron and zinc apart.",
 		sources: ["whittaker1998"],
+		text: translated({
+			pair: "Zinc + iron",
+			finding: "More than about 25 mg of iron taken together with zinc can reduce zinc absorption.",
+			advice: "Take larger doses of iron and zinc apart.",
+		}),
 	},
 	{
 		id: "zinc-calcium",
-		pair: "Zinc + calcium",
-		finding: "600 mg of calcium carbonate with a meal halved zinc absorption.",
-		advice: "Don't take a calcium supplement together with zinc.",
 		sources: ["wood1997"],
+		text: translated({
+			pair: "Zinc + calcium",
+			finding: "600 mg of calcium carbonate with a meal halved zinc absorption.",
+			advice: "Don't take a calcium supplement together with zinc.",
+		}),
 	},
 	{
 		id: "vitamin-d-meal",
-		pair: "Vitamin D on an empty stomach",
-		finding: "Taking vitamin D with the largest meal of the day raised its blood level by about 50 %.",
-		advice: "Take vitamin D (and other fat-soluble vitamins) with a meal that contains fat.",
 		sources: ["mulligan2010"],
+		text: translated({
+			pair: "Vitamin D on an empty stomach",
+			finding: "Taking vitamin D with the largest meal of the day raised its blood level by about 50 %.",
+			advice: "Take vitamin D (and other fat-soluble vitamins) with a meal that contains fat.",
+		}),
 	},
 	{
 		id: "calcium-carbonate",
-		pair: "Calcium carbonate on an empty stomach",
-		finding: "Fasting people with low stomach acid absorbed only about 4 % of calcium from carbonate; with breakfast it was absorbed normally.",
-		advice: "Take calcium carbonate with food; citrate works on an empty stomach too.",
 		sources: ["recker1985"],
+		text: translated({
+			pair: "Calcium carbonate on an empty stomach",
+			finding: "Fasting people with low stomach acid absorbed only about 4 % of calcium from carbonate; with breakfast it was absorbed normally.",
+			advice: "Take calcium carbonate with food; citrate works on an empty stomach too.",
+		}),
 	},
-]);
+	{
+		id: "stimulants",
+		sources: ["dejonge2023", "kearney2010"],
+		text: translated({
+			pair: "Several stimulants (caffeine or a pre-workout + synephrine or yohimbine)",
+			finding: "Case reports of chest pain, palpitations, arrhythmia and stroke after synephrine-containing pre-workouts; poison centre reports of yohimbine products: racing heart, high blood pressure and anxiety.",
+			advice: "Don't stack stimulants; add up all caffeine, including what's in the pre-workout.",
+		}),
+	},
+];

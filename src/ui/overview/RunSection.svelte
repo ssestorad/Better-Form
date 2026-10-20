@@ -143,6 +143,10 @@
 		<p class="bf-muted">{t("Collecting data – the distribution is calculated from time in heart rate zones, which Strava provides for runs (subscription only).")}</p>
 	{/if}
 	{#if researchTopic("intensity")}<ResearchCard topic={researchTopic("intensity")!} />{/if}
+	{#if researchTopic("runners_strength")}<ResearchCard topic={researchTopic("runners_strength")!} />{/if}
+	{#if researchTopic("concurrent")}<ResearchCard topic={researchTopic("concurrent")!} />{/if}
+	{#if researchTopic("hiit")}<ResearchCard topic={researchTopic("hiit")!} />{/if}
+	{#if researchTopic("running_injuries")}<ResearchCard topic={researchTopic("running_injuries")!} />{/if}
 </section>
 
 <section class="bf-card">

@@ -55,6 +55,15 @@ export class ExportService {
 		return { folder, files, workouts: workouts.length, days: days.length };
 	}
 
+	/** Uloží text do složky exportů pod volným názvem; vrátí cestu. */
+	async saveText(name: string, content: string): Promise<string> {
+		const folder = folderPath(this.settings().folders, "exports");
+		await this.writer.ensureFolder(folder);
+		const path = uniquePath(joinPath(folder, name), (p) => this.app.vault.getAbstractFileByPath(p) !== null);
+		await this.app.vault.create(path, content);
+		return path;
+	}
+
 	/** Zabalí celou kořenovou složku do ZIP ve složce záloh (mimo kořen). */
 	async backup(now = new Date()): Promise<BackupResult> {
 		const settings = this.settings();

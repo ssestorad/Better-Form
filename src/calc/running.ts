@@ -74,6 +74,47 @@ export function longestRun(workouts: readonly WorkoutNote[]): LongestRun | null 
 	return best;
 }
 
+/** Jeden běh delší o víc než 10 % než nejdelší za předchozích 30 dní souvisel s častějšími zraněními (Frandsen 2025). */
+export const RUN_SPIKE_DAYS = 30;
+export const RUN_SPIKE_PCT = 10;
+export const RUN_SPIKE_BASIS: Basis = { sourceIds: ["frandsen2025"], evidence: "research" };
+
+export interface RunSpike {
+	km: number;
+	/** Nejdelší běh za předchozích 30 dní (bez daného dne). */
+	longestKm: number;
+	/** O kolik procent je běh delší. */
+	pct: number;
+	/** Nejdelší běh, který ještě nepřekročí hranici (zaokrouhleno dolů na 0,1 km). */
+	maxKm: number;
+}
+
+/** Běh `km` v den `date` proti nejdelšímu běhu za předchozích 30 dní; null = v pořádku nebo není s čím srovnat. */
+export function runSpike(workouts: readonly WorkoutNote[], date: string, km: number): RunSpike | null {
+	const from = addDaysIso(date, -RUN_SPIKE_DAYS);
+	let longestKm = 0;
+	for (const workout of workouts) {
+		const distance = workout.sport === "run" ? workout.run?.distance_km : undefined;
+		if (distance !== undefined && workout.date >= from && workout.date < date) longestKm = Math.max(longestKm, distance);
+	}
+	const limit = longestKm * (1 + RUN_SPIKE_PCT / 100);
+	if (longestKm <= 0 || km <= limit) return null;
+	return { km, longestKm, pct: (km / longestKm - 1) * 100, maxKm: Math.floor(limit * 10 + 1e-9) / 10 };
+}
+
+// ---------- Kadence ----------
+
+/** Vyšší kadence snižuje zatížení kolene (Anderson 2022, Doyle 2022). */
+export const CADENCE_BASIS: Basis = { sourceIds: ["anderson2022", "doyle2022"], evidence: "research" };
+
+/**
+ * Kadence v krocích za minutu. Hodinky, Strava, FIT i GPX ji obvykle zapisují za
+ * jednu nohu (běh 70–110), proto ×2; hodnota od 120 už je za obě nohy.
+ */
+export function cadenceSpm(raw: number): number {
+	return Math.round(raw >= 120 ? raw : raw * 2);
+}
+
 // ---------- Tepové zóny ----------
 
 /** Odhad maximálního tepu podle věku: 208 − 0,7 × věk (Tanaka 2001). */

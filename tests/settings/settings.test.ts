@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS, mergeSettings, parseNumberList } from "../../src/settings/settings";
+import { DEFAULT_SETTINGS, mergeSettings, parseNumberList, parseTextList } from "../../src/settings/settings";
 
 describe("mergeSettings", () => {
 	it("bez uložených dat vrátí výchozí nastavení (kopii)", () => {
@@ -102,5 +102,20 @@ describe("parseNumberList", () => {
 		expect(parseNumberList("24, 12;16 16  8")).toEqual([8, 12, 16, 24]);
 		expect(parseNumberList("20.5, x, -4, 0")).toEqual([20.5]);
 		expect(parseNumberList("")).toEqual([]);
+	});
+});
+
+describe("léky v profilu", () => {
+	it("výchozí bez léků; neznámé skupiny se při načtení zahodí", () => {
+		expect(DEFAULT_SETTINGS.profile.medications).toEqual([]);
+		const settings = mergeSettings({ profile: { medications: ["thyroid", "nesmysl", "antidepressants"] } });
+		expect(settings.profile.medications).toEqual(["antidepressants", "thyroid"]);
+	});
+});
+
+describe("parseTextList", () => {
+	it("položky oddělené čárkou, bez mezer na krajích a bez prázdných", () => {
+		expect(parseTextList(" Run, TrailRun , ,VirtualRun ")).toEqual(["Run", "TrailRun", "VirtualRun"]);
+		expect(parseTextList("")).toEqual([]);
 	});
 });

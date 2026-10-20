@@ -1,134 +1,96 @@
 // Nastavení – skupina Import dat: běh ze souboru, denní data z CSV, historie ze Strong a Hevy, Strava.
 
-import { Notice, Setting } from "obsidian";
+import { Notice, type SettingDefinitionGroup, type SettingGroupItem } from "obsidian";
 import type { WeightUnit } from "../calc/historyImport";
 import { intlCode, t } from "../i18n";
 import { LOCAL_AUTH_PORT } from "../strava/oauth";
 import { StravaCodeModal } from "../ui/modals/StravaCodeModal";
-import { collapsible, numberSetting, type SettingsHost } from "./settingsUi";
+import { DEFAULT_SETTINGS, parseTextList } from "./settings";
+import { note, type SettingsHost } from "./settingsUi";
 
-export function displayImports(el: HTMLElement, host: SettingsHost): void {
-	new Setting(el)
-		.setName(t("Import data"))
-		.setDesc(t("Files are read only on this device and aren't sent anywhere."))
-		.setHeading();
-	displayRunImport(el, host);
-	displayDailyImport(el, host);
-	displayHistoryImport(el, host);
-	displayStrava(el, host);
+export function importGroup(host: SettingsHost): SettingDefinitionGroup {
+	return {
+		type: "group",
+		heading: t("Import data"),
+		items: [note(t("Files are read only on this device and aren't sent anywhere.")), ...runImport(host), ...dailyImport(host), ...historyImport(host), strava(host)],
+	};
 }
 
-function displayRunImport(el: HTMLElement, host: SettingsHost): void {
-	new Setting(el)
-		.setName(t("Import run from file"))
-		.setDesc(t("A run from a GPX, TCX or FIT file – works without a Strava subscription. The file is read only on this device and isn't sent anywhere."))
-		.addButton((b) => b.setButtonText(t("Choose files")).onClick(() => host.plugin.pickRunFiles()));
-	const guide = collapsible(el, t("Guide: where to get the file"));
-	const list = guide.createEl("ul");
-	const strava = list.createEl("li");
-	strava.createEl("strong", { text: "Strava: " });
-	strava.appendText(t("on strava.com, open your activity, click the three dots (More) and choose Export GPX. The mobile app has no export."));
-	const mapMyRun = list.createEl("li");
-	mapMyRun.createEl("strong", { text: "MapMyRun: " });
-	mapMyRun.appendText(t("on mapmyrun.com, open the workout, click the three dots and choose Download as TCX."));
-	const watch = list.createEl("li");
-	watch.createEl("strong", { text: t("Watches and other apps: ") });
-	watch.appendText(t("most can export to GPX, TCX or FIT (Garmin Connect, Polar Flow, Suunto, Coros). A FIT file from a watch includes heart rate too."));
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("The run's date and time, distance, moving time, heart rate, elevation gain and fastest splits are read. Distance from GPS positions and elevation gain are estimates – they can differ from the app's numbers by a few percent. You add RPE, run type and shoes afterwards in the list of runs to complete. The same file a second time is skipped; a manually logged run on the same day with the same distance gets the measured data added."),
-	});
+/** Stránka s textem návodu: řádky jen s popisem. */
+function guidePage(name: string, rows: { name?: string; desc: string | DocumentFragment }[]): SettingGroupItem {
+	return { type: "page", name, items: [{ type: "group", items: rows.map((r) => note(r.desc, r.name)) }] };
 }
 
-function displayDailyImport(el: HTMLElement, host: SettingsHost): void {
-	new Setting(el)
-		.setName(t("Import daily data from CSV"))
-		.setDesc(t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export. Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."))
-		.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickDailyFile()));
-	const guide = collapsible(el, t("Which files it reads"));
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("A CSV with a date column and at least one column recognized by its name (Czech or English): steps (Steps, Step count), sleep duration (Sleep duration – hours, minutes, seconds or 7:45), HRV (HRV, rMSSD), resting heart rate (Resting heart rate) or weight (Weight). Scores, goals and sleep stages are skipped. Several rows for one day are merged."),
-	});
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("Example: Google Fit via Google Takeout – the file Daily activity metrics.csv contains steps. Elonga has no export, so its HRV is still copied by hand. Tested only on hand-built files; before writing you'll see what will be added."),
-	});
+function runImport(host: SettingsHost): SettingGroupItem[] {
+	return [
+		{
+			name: t("Import run from file"),
+			desc: t("A run from a GPX, TCX or FIT file – works without a Strava subscription. The file is read only on this device and isn't sent anywhere."),
+			aliases: ["GPX", "TCX", "FIT"],
+			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose files")).onClick(() => host.plugin.pickRunFiles())),
+		},
+		guidePage(t("Guide: where to get the file"), [
+			{ name: "Strava", desc: t("on strava.com, open your activity, click the three dots (More) and choose Export GPX. The mobile app has no export.") },
+			{ name: "MapMyRun", desc: t("on mapmyrun.com, open the workout, click the three dots and choose Download as TCX.") },
+			{ name: t("Watches and other apps"), desc: t("most can export to GPX, TCX or FIT (Garmin Connect, Polar Flow, Suunto, Coros). A FIT file from a watch includes heart rate too.") },
+			{
+				desc: t("The run's date and time, distance, moving time, heart rate, elevation gain and fastest splits are read. Distance from GPS positions and elevation gain are estimates – they can differ from the app's numbers by a few percent. You add RPE, run type and shoes afterwards in the list of runs to complete. The same file a second time is skipped; a manually logged run on the same day with the same distance gets the measured data added."),
+			},
+		]),
+	];
 }
 
-function displayHistoryImport(el: HTMLElement, host: SettingsHost): void {
+function dailyImport(host: SettingsHost): SettingGroupItem[] {
+	return [
+		{
+			name: t("Import daily data from CSV"),
+			desc: t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export. Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."),
+			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickDailyFile())),
+		},
+		guidePage(t("Which files it reads"), [
+			{
+				desc: t("A CSV with a date column and at least one column recognized by its name (Czech or English): steps (Steps, Step count), sleep duration (Sleep duration – hours, minutes, seconds or 7:45), HRV (HRV, rMSSD), resting heart rate (Resting heart rate) or weight (Weight). Scores, goals and sleep stages are skipped. Several rows for one day are merged."),
+			},
+			{
+				desc: t("Example: Google Fit via Google Takeout – the file Daily activity metrics.csv contains steps. Elonga has no export, so its HRV is still copied by hand. Tested only on hand-built files; before writing you'll see what will be added."),
+			},
+		]),
+	];
+}
+
+function historyImport(host: SettingsHost): SettingGroupItem[] {
 	let unit: WeightUnit = "kg";
-	new Setting(el)
-		.setName(t("History import from Strong and Hevy"))
-		.setDesc(t("Brings over strength workouts from a CSV export: exercises, sets, weights, warm-up and drop sets, supersets. The file is read only on this device."))
-		.addDropdown((d) =>
-			d
-				.addOption("kg", t("Strong in kilograms"))
-				.addOption("lb", t("Strong in pounds"))
-				.setValue(unit)
-				.onChange((v) => (unit = v === "lb" ? "lb" : "kg")),
-		)
-		.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickHistoryFile(unit)));
-	const guide = collapsible(el, t("Guide: where to get the export and what to expect"));
-	const list = guide.createEl("ul");
-	const strong = list.createEl("li");
-	strong.createEl("strong", { text: "Strong: " });
-	strong.appendText(t("in the app, open Settings and choose Export Workouts (under Data Management). The file doesn't include the weight unit – pick it in the menu above according to what you log in the app."));
-	const hevy = list.createEl("li");
-	hevy.createEl("strong", { text: "Hevy: " });
-	hevy.appendText(t("in the app settings, find the data export and download the workout file (workout data, CSV). The file includes the unit."));
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("Exercise names are matched with the library (English names too); unknown exercises keep their original name. Set RPE is converted to RIR (10 − RPE). Runs and other cardio are skipped – import runs from a GPX or TCX file. Before the import you'll see a summary and confirm it; workouts already in the journal are skipped. The import has only been tested on files built according to both apps' help pages – try it on a backup first."),
-	});
+	return [
+		{
+			name: t("History import from Strong and Hevy"),
+			desc: t("Brings over strength workouts from a CSV export: exercises, sets, weights, warm-up and drop sets, supersets. The file is read only on this device."),
+			aliases: ["Strong", "Hevy"],
+			render: (s) =>
+				void s
+					.addDropdown((d) =>
+						d
+							.addOption("kg", t("Strong in kilograms"))
+							.addOption("lb", t("Strong in pounds"))
+							.setValue(unit)
+							.onChange((v) => (unit = v === "lb" ? "lb" : "kg")),
+					)
+					.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickHistoryFile(unit))),
+		},
+		guidePage(t("Guide: where to get the export and what to expect"), [
+			{ name: "Strong", desc: t("in the app, open Settings and choose Export Workouts (under Data Management). The file doesn't include the weight unit – pick it in the menu above according to what you log in the app.") },
+			{ name: "Hevy", desc: t("in the app settings, find the data export and download the workout file (workout data, CSV). The file includes the unit.") },
+			{
+				desc: t("Exercise names are matched with the library (English names too); unknown exercises keep their original name. Set RPE is converted to RIR (10 − RPE). Runs and other cardio are skipped – import runs from a GPX or TCX file. Before the import you'll see a summary and confirm it; workouts already in the journal are skipped. The import has only been tested on files built according to both apps' help pages – try it on a backup first."),
+			},
+		]),
+	];
 }
 
-/** Strava potřebuje vlastní API aplikaci a předplatné – sbalené, ať nepřekáží importu ze souboru. */
-function displayStrava(el: HTMLElement, host: SettingsHost): void {
+/** Strava potřebuje vlastní API aplikaci a předplatné – na vlastní stránce, ať nepřekáží importu ze souboru. */
+function strava(host: SettingsHost): SettingGroupItem {
 	const { plugin, settings } = host;
 	const strava = settings.strava;
 	const auth = plugin.strava;
-	const box = collapsible(el, auth.isConnected ? t("Strava – connected") : "Strava");
-	box.createEl("p", {
-		cls: "setting-item-description",
-		text: t("Import runs from Strava. Each user uses their own API application – the credentials stay in this vault only."),
-	});
-
-	const guide = collapsible(box, t("Guide: how to create an API application on Strava"));
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("Since June 2026, Strava only lets accounts with a paid subscription create an API application. Without one the connection can't be set up – import runs from a file instead (see above) or log them by hand."),
-	});
-	const steps = guide.createEl("ol");
-	const first = steps.createEl("li", { text: t("Sign in to Strava and open ") });
-	first.createEl("a", { text: "strava.com/settings/api", href: "https://www.strava.com/settings/api" });
-	first.appendText(".");
-	steps.createEl("li", { text: t("Fill in the application name (anything, e.g. “My journal”), the category and the website (http://localhost is enough).") });
-	steps.createEl("li", { text: t("In the Authorization Callback Domain field, enter exactly: localhost") });
-	steps.createEl("li", { text: t("Upload any image as the icon – Strava requires one.") });
-	steps.createEl("li", { text: t("Copy the Client ID and Client Secret into the fields below and click Connect.") });
-	guide.createEl("p", {
-		cls: "setting-item-description",
-		text: t("Never share the Client Secret. A new application can only connect you – that's enough for a personal journal."),
-	});
-
-	new Setting(box).setName("Client ID").addText((text) =>
-		text.setValue(strava.clientId).onChange((v) => {
-			strava.clientId = v.trim();
-			host.save();
-		}),
-	);
-	new Setting(box)
-		.setName("Client Secret")
-		.setDesc(t("Stored only in this plugin's data.json file."))
-		.addText((text) => {
-			text.inputEl.type = "password";
-			text.inputEl.autocomplete = "off";
-			text.setValue(strava.clientSecret).onChange((v) => {
-				strava.clientSecret = v.trim();
-				host.save();
-			});
-		});
 
 	const run = async (action: () => Promise<void>, done: string) => {
 		try {
@@ -139,75 +101,131 @@ function displayStrava(el: HTMLElement, host: SettingsHost): void {
 		} catch (err) {
 			new Notice(`Strava: ${err instanceof Error ? err.message : String(err)}`);
 		}
-		host.display();
+		host.update();
 	};
 
-	new Setting(box)
-		.setName(t("Activity types"))
-		.setDesc(t("Which Strava activity types are imported as runs, separated by commas. Default: Run, TrailRun, VirtualRun."))
-		.addText((text) =>
-			text.setValue(strava.activityTypes.join(", ")).onChange((v) => {
-				const types = v
-					.split(",")
-					.map((part) => part.trim())
-					.filter((part) => part !== "");
-				if (types.length > 0) {
-					strava.activityTypes = types;
-					host.save();
-				}
-			}),
-		);
-	numberSetting(host, box, t("First sync"), t("How many days back to download on the first sync."), strava.initialDays, (v) => (strava.initialDays = v ?? 90), {
-		min: 1,
-		max: 3650,
+	const first = createFragment((f) => {
+		f.appendText(t("Sign in to Strava and open "));
+		f.createEl("a", { text: "strava.com/settings/api", href: "https://www.strava.com/settings/api" });
+		f.appendText(".");
 	});
+	const last = strava.lastSyncAt > 0 ? new Date(strava.lastSyncAt * 1000).toLocaleString(intlCode()) : t("not yet");
 
-	if (auth.isConnected) {
-		const last = strava.lastSyncAt > 0 ? new Date(strava.lastSyncAt * 1000).toLocaleString(intlCode()) : t("not yet");
-		new Setting(box)
-			.setName(t("Sync"))
-			.setDesc(t("Downloads new runs; only runs when you start it. Last: {last}.", { last }))
-			.addButton((b) =>
-				b.setButtonText(t("Sync now")).onClick(async () => {
-					b.setDisabled(true);
-					await plugin.syncStrava();
-					host.display();
-				}),
-			);
-		new Setting(box)
-			.setName(strava.athleteName ? t("Connected: {athleteName}", { athleteName: strava.athleteName }) : t("Connected"))
-			.setDesc(t("Disconnecting removes the sign-in on this device only. Revoke the app's access on Strava under Settings → My Apps."))
-			.addButton((b) => b.setButtonText(t("Disconnect")).onClick(() => void run(() => auth.disconnect(), t("Strava disconnected."))));
-	} else {
-		if (auth.canUseLocalServer) {
-			new Setting(box)
-				.setName(t("Connect"))
-				.setDesc(t("Opens Strava in the browser and returns by itself after you allow access (temporary server on localhost:{LOCAL_AUTH_PORT}).", { LOCAL_AUTH_PORT }))
-				.addButton((b) =>
-					b
-						.setButtonText(t("Connect"))
-						.setCta()
-						.onClick(() => {
-							b.setDisabled(true).setButtonText(t("Waiting for approval…"));
-							void run(() => auth.connectWithLocalServer(), t("Strava connected."));
-						}),
-				);
-		}
-		new Setting(box)
-			.setName(auth.canUseLocalServer ? t("Connect manually") : t("Connect"))
-			.setDesc(t("Opens Strava; after you allow access, copy the address from the browser and paste it here. Works on mobile too."))
-			.addButton((b) => {
-				b.setButtonText(t("Connect manually")).onClick(() => {
-					try {
-						plugin.requestSaveSettings.run();
-						auth.openManualAuthorization();
-					} catch (err) {
-						new Notice(`Strava: ${err instanceof Error ? err.message : String(err)}`);
-						return;
-					}
-					new StravaCodeModal(host.app, (text) => run(() => auth.connectWithPastedCode(text), t("Strava connected."))).open();
-				});
-				if (!auth.canUseLocalServer) b.setCta();
-			});
-	}
+	return {
+		type: "page",
+		name: "Strava",
+		desc: t("Import runs from Strava. Each user uses their own API application – the credentials stay in this vault only."),
+		displayValue: () => (auth.isConnected ? t("Connected") : ""),
+		items: [
+			{
+				type: "group",
+				items: [
+					guidePage(t("Guide: how to create an API application on Strava"), [
+						{ desc: t("Since June 2026, Strava only lets accounts with a paid subscription create an API application. Without one the connection can't be set up – import runs from a file instead (see above) or log them by hand.") },
+						{ name: "1", desc: first },
+						{ name: "2", desc: t("Fill in the application name (anything, e.g. “My journal”), the category and the website (http://localhost is enough).") },
+						{ name: "3", desc: t("In the Authorization Callback Domain field, enter exactly: localhost") },
+						{ name: "4", desc: t("Upload any image as the icon – Strava requires one.") },
+						{ name: "5", desc: t("Copy the Client ID and Client Secret into the fields below and click Connect.") },
+						{ desc: t("Never share the Client Secret. A new application can only connect you – that's enough for a personal journal.") },
+					]),
+					{
+						name: "Client ID",
+						render: (s) =>
+							void s.addText((text) =>
+								text.setValue(strava.clientId).onChange((v) => {
+									strava.clientId = v.trim();
+									host.save();
+								}),
+							),
+					},
+					{
+						name: "Client Secret",
+						desc: t("Stored only in this plugin's data.json file."),
+						render: (s) =>
+							void s.addText((text) => {
+								text.inputEl.type = "password";
+								text.inputEl.autocomplete = "off";
+								text.setValue(strava.clientSecret).onChange((v) => {
+									strava.clientSecret = v.trim();
+									host.save();
+								});
+							}),
+					},
+					{
+						name: t("Activity types"),
+						desc: t("Which Strava activity types are imported as runs, separated by commas. Default: Run, TrailRun, VirtualRun."),
+						render: (s) =>
+							void s.addText((text) =>
+								text.setValue(strava.activityTypes.join(", ")).onChange((v) => {
+									const types = parseTextList(v);
+									if (types.length > 0) {
+										strava.activityTypes = types;
+										host.save();
+									}
+								}),
+							),
+					},
+					{
+						name: t("First sync"),
+						desc: t("How many days back to download on the first sync."),
+						control: { type: "number", key: "strava.initialDays", min: 1, max: 3650, step: 1, defaultValue: DEFAULT_SETTINGS.strava.initialDays },
+					},
+					{
+						name: t("Sync"),
+						desc: t("Downloads new runs; only runs when you start it. Last: {last}.", { last }),
+						visible: () => auth.isConnected,
+						render: (s) =>
+							void s.addButton((b) =>
+								b.setButtonText(t("Sync now")).onClick(async () => {
+									b.setDisabled(true);
+									await plugin.syncStrava();
+									host.update();
+								}),
+							),
+					},
+					{
+						name: strava.athleteName ? t("Connected: {athleteName}", { athleteName: strava.athleteName }) : t("Connected"),
+						desc: t("Disconnecting removes the sign-in on this device only. Revoke the app's access on Strava under Settings → My Apps."),
+						visible: () => auth.isConnected,
+						render: (s) => void s.addButton((b) => b.setButtonText(t("Disconnect")).onClick(() => void run(() => auth.disconnect(), t("Strava disconnected.")))),
+					},
+					{
+						name: t("Connect"),
+						desc: t("Opens Strava in the browser and returns by itself after you allow access (temporary server on localhost:{LOCAL_AUTH_PORT}).", { LOCAL_AUTH_PORT }),
+						visible: () => !auth.isConnected && auth.canUseLocalServer,
+						render: (s) =>
+							void s.addButton((b) =>
+								b
+									.setButtonText(t("Connect"))
+									.setCta()
+									.onClick(() => {
+										b.setDisabled(true).setButtonText(t("Waiting for approval…"));
+										void run(() => auth.connectWithLocalServer(), t("Strava connected."));
+									}),
+							),
+					},
+					{
+						name: auth.canUseLocalServer ? t("Connect manually") : t("Connect"),
+						desc: t("Opens Strava; after you allow access, copy the address from the browser and paste it here. Works on mobile too."),
+						visible: () => !auth.isConnected,
+						render: (s) =>
+							void s.addButton((b) => {
+								b.setButtonText(t("Connect manually")).onClick(() => {
+									try {
+										plugin.requestSaveSettings.run();
+										auth.openManualAuthorization();
+									} catch (err) {
+										new Notice(`Strava: ${err instanceof Error ? err.message : String(err)}`);
+										return;
+									}
+									new StravaCodeModal(host.app, (text) => run(() => auth.connectWithPastedCode(text), t("Strava connected."))).open();
+								});
+								if (!auth.canUseLocalServer) b.setCta();
+							}),
+					},
+				],
+			},
+		],
+	};
 }

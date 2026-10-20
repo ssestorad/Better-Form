@@ -91,6 +91,7 @@ export function runLine(note: WorkoutNote): string | null {
 	if (run.type) extra.push(RUN_TYPE_LABELS[run.type]);
 	if (run.avg_hr !== undefined) extra.push(t("heart rate {avg_hr}{v}", { avg_hr: run.avg_hr, v: run.max_hr !== undefined ? `/${run.max_hr}` : "" }));
 	if (run.elevation_m !== undefined) extra.push(t("elevation gain {v} m", { v: formatNumber(run.elevation_m, 0) }));
+	if (run.cadence_spm !== undefined) extra.push(t("cadence {v} steps/min", { v: formatNumber(run.cadence_spm, 0) }));
 	if (run.shoes) extra.push(t("shoes [[{shoes}]]", { shoes: run.shoes }));
 	if (extra.length > 0) text += ` · ${extra.join(" · ")}`;
 	return text;

@@ -7,7 +7,7 @@ import type { ForecastStatus } from "../calc/goals";
 import type { Baseline } from "../calc/hrv";
 import type { Recovery } from "../calc/muscleVolume";
 import type { PainAssessment } from "../calc/pain";
-import type { IntensityShare } from "../calc/running";
+import type { IntensityShare, RunSpike } from "../calc/running";
 import type { SourceId } from "../evidence/sources";
 import type { EvidenceLevel, MuscleId, PlanIntensity } from "../model/constants";
 import type { ThresholdSettings } from "../settings/settings";
@@ -69,6 +69,13 @@ export interface RulePlanItem {
 	movable: boolean;
 }
 
+/** Běh delší než obvykle: dnes zapsaný, nebo naplánovaný do konce týdne. */
+export interface RuleRunSpike extends RunSpike {
+	date: string;
+	/** Naplánovaný běh; chybí = běh už je dnes zapsaný. */
+	planned?: { id: string; label: string };
+}
+
 /** Plán týdne z pohledu pravidel (SPEC 5.16). */
 export interface RulePlan {
 	/** Dnešní položky plánu, které ještě nejsou splněné. */
@@ -112,6 +119,8 @@ export interface RuleContext {
 	challenges: RuleChallenge[];
 	/** Plán týdne; null, když v tomto týdnu žádný není. */
 	plan: RulePlan | null;
+	/** Běhy o víc než 10 % delší než nejdelší za předchozích 30 dní. */
+	runSpikes: RuleRunSpike[];
 	/** Týdenní kontrola výživy: o kolik kcal je odhad výdeje podle váhy vedle; null = v pořádku nebo málo dat. */
 	nutritionCheck: { stepKcal: number } | null;
 }

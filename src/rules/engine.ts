@@ -9,15 +9,15 @@ import { dailyLoads } from "../calc/load";
 import { recovery, volumeHistory, weeklySets, type Recovery, type VolumeContext } from "../calc/muscleVolume";
 import { assessPain, isOpenPain } from "../calc/pain";
 import type { SessionBest } from "../calc/records";
-import { intensityShare } from "../calc/running";
-import { sleepDurationMin } from "../calc/sleep";
+import { intensityShare, runSpike } from "../calc/running";
+import { nightMin } from "../calc/sleep";
 import { mean } from "../calc/stats";
 import { MUSCLES, type MuscleId } from "../model/constants";
 import { addDays } from "../model/dates";
 import type { DayNote, PainNote, WorkoutNote } from "../model/types";
 import type { ThresholdSettings } from "../settings/settings";
 import { RULES } from "./rules";
-import type { Recommendation, RecommendationLevel, Rule, RuleContext, RuleGoal, RulePlan } from "./types";
+import type { Recommendation, RecommendationLevel, Rule, RuleContext, RuleGoal, RulePlan, RuleRunSpike } from "./types";
 
 const LEVEL_ORDER: Record<RecommendationLevel, number> = { warn: 0, suggest: 1, info: 2 };
 
@@ -72,12 +72,26 @@ export interface ContextInput {
 	plan?: RulePlan | null;
 	/** Týdenní kontrola výživy podle váhy. */
 	nutritionCheck?: { stepKcal: number } | null;
+	/** Nesplněné běhy s plánovanou vzdáleností od dneška do konce týdne. */
+	plannedRuns?: readonly { id: string; date: string; label: string; km: number }[];
+}
+
+/** Dnes zapsané a naplánované běhy, které jsou výrazně delší než obvykle. */
+function runSpikes(workouts: readonly WorkoutNote[], today: string, planned: ContextInput["plannedRuns"] = []): RuleRunSpike[] {
+	const done = workouts.flatMap((w) => {
+		const km = w.sport === "run" && w.date === today ? w.run?.distance_km : undefined;
+		const spike = km !== undefined ? runSpike(workouts, today, km) : null;
+		return spike ? [{ ...spike, date: today }] : [];
+	});
+	const ahead = planned.flatMap((p) => {
+		const spike = runSpike(workouts, p.date, p.km);
+		return spike ? [{ ...spike, date: p.date, planned: { id: p.id, label: p.label } }] : [];
+	});
+	return [...done, ...ahead];
 }
 
 function sleepOf(day: DayNote | undefined): number | null {
-	if (!day) return null;
-	const minutes = day.sleep.duration_min ?? sleepDurationMin(day.sleep);
-	return minutes !== null && minutes !== undefined && minutes > 0 ? minutes : null;
+	return day ? nightMin(day.sleep) : null;
 }
 
 export function baselineOptions(th: ThresholdSettings): BaselineOptions {
@@ -149,5 +163,6 @@ export function buildContext(input: ContextInput): RuleContext {
 		challenges: input.challenges.map((c) => ({ name: c.name, muscles: primaryOf(c.exercises) })),
 		plan: input.plan ?? null,
 		nutritionCheck: input.nutritionCheck ?? null,
+		runSpikes: runSpikes(workouts, today, input.plannedRuns),
 	};
 }

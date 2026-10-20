@@ -148,17 +148,6 @@ button.bf-link-button:not(.clickable-icon):hover {
 }
 
 /* Nastavení */
-.bf-settings-details {
-	margin: var(--size-4-2) 0;
-}
-
-.bf-settings-details > summary {
-	cursor: pointer;
-	padding: var(--size-4-1) 0;
-	color: var(--text-normal);
-	font-weight: var(--font-medium);
-}
-
 .bf-number-input {
 	width: 8em;
 }

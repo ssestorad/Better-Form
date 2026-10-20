@@ -61,7 +61,9 @@
 {#if current}
 	<div class="bf-library">
 		<button type="button" class="bf-link-button" onclick={() => (selected = null)}>{t("← Back to the list")}</button>
-		<ExerciseDetail exercise={current} last={lastText(current.name)} history={history?.(current)} onOpenNote={() => onOpenNote(current.name)} />
+		{#key current.name}
+			<ExerciseDetail exercise={current} last={lastText(current.name)} history={history?.(current)} onOpenNote={() => onOpenNote(current.name)} library={exercises} onSelect={(name) => (selected = name)} />
+		{/key}
 	</div>
 {:else}
 	<div class="bf-library">

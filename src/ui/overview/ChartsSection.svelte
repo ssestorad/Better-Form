@@ -2,9 +2,10 @@
 	// Grafy karty Přehled (SPEC 5.4): zátěž s kondicí / únavou / formou, tempo běhu,
 	// odhad 1RM, spánek vs. zátěž, HRV s normálním pásmem. Vlastní SVG, bez knihovny.
 	import { t } from "../../i18n";
-	import { dateRange, daySamples, hrvChart, loadChart, oneRmChart, paceChart, sleepChart } from "../../calc/chartData";
+	import { cadenceChart, dateRange, daySamples, hrvChart, loadChart, oneRmChart, paceChart, sleepChart } from "../../calc/chartData";
 	import { FITNESS_BASIS, loadDataDays } from "../../calc/fitness";
 	import { HRV_BASIS, hrvBaseline } from "../../calc/hrv";
+	import { SLEEP_DEBT_MIN_NIGHTS, SLEEP_REGULARITY_MIN_NIGHTS, SLEEP_WEEK_BASIS, sleepWeek } from "../../calc/sleep";
 	import { EPLEY_BASIS } from "../../calc/oneRm";
 	import { formatPace } from "../../calc/performance";
 	import { exerciseSeries, type RecordContext } from "../../calc/records";
@@ -15,9 +16,10 @@
 	import type { ThresholdSettings } from "../../settings/settings";
 	import LineChart from "../charts/LineChart.svelte";
 	import { researchTopic } from "../../seed/research";
+	import { CADENCE_BASIS } from "../../calc/running";
 	import BasisTag from "../components/BasisTag.svelte";
 	import ResearchCard from "../components/ResearchCard.svelte";
-	import { formatNumber } from "../format";
+	import { formatDurationMin, formatNumber } from "../format";
 
 	interface Props {
 		workouts: WorkoutNote[];
@@ -48,6 +50,8 @@
 	// 2. Tempo běhu.
 	const pace = $derived(paceChart(workouts, dates));
 	const hasPace = $derived(pace.some((v) => v !== null));
+	const cadence = $derived(cadenceChart(workouts, dates));
+	const hasCadence = $derived(cadence.some((v) => v !== null));
 
 	// 3. Odhad 1RM.
 	const oneRm = $derived(oneRmChart(exerciseSeries(workouts, ctx), dates, 3));
@@ -55,6 +59,9 @@
 	// 4. Spánek a zátěž.
 	const sleep = $derived(sleepChart(days, dates));
 	const hasSleep = $derived(sleep.some((v) => v !== null));
+	const week = $derived(sleepWeek(days, today, thresholds.sleepTargetHours * 60));
+	const spread = (minutes: number | null, nights: number) =>
+		minutes === null ? t("Collecting data ({v} of {v2} nights).", { v: nights, v2: SLEEP_REGULARITY_MIN_NIGHTS }) : `± ${formatDurationMin(minutes)}`;
 
 	// 5. HRV.
 	const hrvOptions = $derived({
@@ -112,6 +119,7 @@
 		{t("Fitness = long-term average load ({ctlDays} days), fatigue = short-term ({atlDays} days), form = fitness − fatigue.", { ctlDays: thresholds.ctlDays, atlDays: thresholds.atlDays })}
 		<BasisTag basis={FITNESS_BASIS} named /> {t("It's a trend model, not an exact performance prediction.")}
 	</p>
+	{#if researchTopic("training_load")}<ResearchCard topic={researchTopic("training_load")!} />{/if}
 </section>
 
 <section class="bf-card">
@@ -125,6 +133,16 @@
 </section>
 
 <section class="bf-card">
+	<h4>{t("Running cadence")}</h4>
+	{#if hasCadence}
+		<LineChart {dates} lines={[{ label: t("Cadence"), color: COLORS[0]!, values: cadence, connect: true, dots: true }]} format={(v) => t("{v} steps/min", { v: formatNumber(v, 0) })} label={t("Running cadence")} />
+		<p class="bf-muted bf-ch-note">{t("Average steps per minute of the day's runs, from Strava or an imported file. A slightly higher cadence reduces load on the knee; it also rises with pace.")} <BasisTag basis={CADENCE_BASIS} /></p>
+	{:else}
+		<p class="bf-muted">{t("Collecting data – cadence comes from runs imported from Strava or from a FIT, GPX or TCX file recorded with a watch.")}</p>
+	{/if}
+</section>
+
+<section class="bf-card">
 	<h4>{t("Estimated 1RM of main exercises")}</h4>
 	{#if oneRm.length > 0}
 		<LineChart {dates} lines={oneRm.map((line, i) => ({ label: line.name, color: COLORS[i % COLORS.length]!, values: line.values, connect: true, dots: true }))} format={kg} label={t("Estimated 1RM")} />
@@ -134,6 +152,7 @@
 	{:else}
 		<p class="bf-muted">{t("Collecting data – the chart appears once a strength exercise has at least two workouts in the period with a set of up to 10 reps.")}</p>
 	{/if}
+	{#if researchTopic("strength_health")}<ResearchCard topic={researchTopic("strength_health")!} />{/if}
 </section>
 
 <section class="bf-card">
@@ -149,6 +168,31 @@
 	{:else}
 		<p class="bf-muted">{t("Collecting data – sleep duration comes from the morning check-in.")}</p>
 	{/if}
+	<h5>{t("Last 7 nights")}</h5>
+	{#if week.debtMin !== null && week.averageMin !== null}
+		<dl class="bf-sleep-week">
+			<dt>{t("Sleep debt")}</dt>
+			<dd>{week.debtMin === 0 ? t("no debt") : formatDurationMin(week.debtMin)}</dd>
+			<dt>{t("Average")}</dt>
+			<dd>{formatDurationMin(week.averageMin)} <span class="bf-muted">({t("target {v} h", { v: formatNumber(thresholds.sleepTargetHours, 2) })})</span></dd>
+			<dt>{t("Below target")}</dt>
+			<dd>{t("{short} of {nights} nights", { short: week.shortNights, nights: week.nights })}</dd>
+		</dl>
+	{:else}
+		<p class="bf-muted">{t("Collecting data ({v} of {v2} nights).", { v: week.nights, v2: SLEEP_DEBT_MIN_NIGHTS })}</p>
+	{/if}
+	<dl class="bf-sleep-week">
+		<dt>{t("Falling asleep")}</dt>
+		<dd>{spread(week.onsetSpreadMin, week.onsetNights)}</dd>
+		<dt>{t("Waking up")}</dt>
+		<dd>{spread(week.wakeSpreadMin, week.wakeNights)}</dd>
+	</dl>
+	<p class="bf-muted bf-ch-note">
+		{t("Debt = minutes missing to your target, added up. ± = how much your times vary over the last 14 nights. Regular times of falling asleep and waking up matter for health and performance; if you sleep too little during the week, catching up on days off may help.")}
+		<BasisTag basis={SLEEP_WEEK_BASIS} named />
+	</p>
+	{#if researchTopic("sleep_training")}<ResearchCard topic={researchTopic("sleep_training")!} />{/if}
+	{#if researchTopic("training_time")}<ResearchCard topic={researchTopic("training_time")!} />{/if}
 </section>
 
 <section class="bf-card">
@@ -208,8 +252,26 @@
 
 <style>
 	h4,
+	h5,
 	p {
 		margin: 0;
+	}
+
+	.bf-sleep-week {
+		display: grid;
+		grid-template-columns: 8em minmax(0, 1fr);
+		gap: 2px var(--size-4-2);
+		margin: 0;
+		font-size: var(--font-ui-small);
+	}
+
+	.bf-sleep-week dt {
+		color: var(--text-muted);
+	}
+
+	.bf-sleep-week dd {
+		margin: 0;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.bf-ch-note {

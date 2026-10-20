@@ -32,7 +32,8 @@ import { describeSync } from "./strava/activities";
 import { StravaSync } from "./strava/StravaSync";
 import { DayService } from "./data/DayService";
 import { workoutLabel } from "./data/dayBlock";
-import { planItemTitle } from "./data/planBlock";
+import { planEvents, planItemTitle } from "./data/planBlock";
+import { toIcs } from "./calc/ics";
 import { formatCzechDate, formatShortDate } from "./ui/format";
 import { FormaIndex } from "./data/FormaIndex";
 import { NoteWriter } from "./data/NoteWriter";
@@ -492,6 +493,21 @@ export default class BetterFormPlugin extends Plugin {
 		try {
 			const result = await this.exporter.exportCsv();
 			new Notice(t("Export done – workouts: {workouts}, days: {days}, folder “{folder}”.", { workouts: result.workouts, days: result.days, folder: result.folder }), 8000);
+		} catch (err) {
+			this.fail(t("Export failed"), err);
+		}
+	}
+
+	/** Plán týdne jako soubor .ics do složky exportů – jde importovat do kalendáře. */
+	async exportPlanCalendar(week: string): Promise<void> {
+		try {
+			const events = planEvents(this.plans.view(week, toIsoDate(new Date())).days);
+			if (events.length === 0) {
+				new Notice(t("Nothing is planned this week."));
+				return;
+			}
+			const path = await this.exporter.saveText(t("Plan {week}.ics", { week }), toIcs(events, new Date()));
+			new Notice(t("Saved “{path}” – import it into your calendar (e.g. Google Calendar: Settings → Import).", { path }), 10000);
 		} catch (err) {
 			this.fail(t("Export failed"), err);
 		}

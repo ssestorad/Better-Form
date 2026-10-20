@@ -197,6 +197,8 @@ export interface RunData {
 	avg_hr?: number;
 	max_hr?: number;
 	elevation_m?: number;
+	/** Průměrná kadence v krocích za minutu (oběma nohama). */
+	cadence_spm?: number;
 	type?: RunType;
 	shoes?: LinkTarget;
 	/** Čas v tepových zónách 1–5 v sekundách. */

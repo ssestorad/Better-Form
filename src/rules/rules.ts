@@ -5,7 +5,7 @@
 import { HARD_RPE } from "../calc/weekPlan";
 import { MUSCLE_LABELS, type MuscleId } from "../model/constants";
 import { addDays } from "../model/dates";
-import { formatCzechDate, formatDays, formatDurationMin, formatNumber } from "../ui/format";
+import { formatCzechDate, formatDays, formatDurationMin, formatNumber, formatShortDate } from "../ui/format";
 import type { RecommendationAction, Rule, RuleContext, RuleOutput, RulePlanItem } from "./types";
 import { t, tn } from "../i18n";
 
@@ -376,6 +376,41 @@ export const nutritionCheckRule: Rule = {
 	},
 };
 
+/** 15. Běh o víc než 10 % delší než nejdelší za 30 dní → zkrátit, nebo pak volněji (Frandsen 2025). */
+export const runSpikeRule: Rule = {
+	id: "run_spike",
+	sources: ["frandsen2025"],
+	evidence: "research",
+	evaluate(ctx) {
+		if (ctx.runSpikes.length === 0) return null;
+		const reasons = ctx.runSpikes.map((s) =>
+			t("{what}: {v} km, the longest run of the previous 30 days is {v2} km (+{v3} %).", {
+				what: s.planned ? `${s.planned.label} (${formatShortDate(s.date)})` : t("Today's run"),
+				v: formatNumber(s.km, 1),
+				v2: formatNumber(s.longestKm, 1),
+				v3: formatNumber(s.pct, 0),
+			}),
+		);
+		reasons.push(t("In a study of 5,200 runners, injuries were more frequent when a single run was more than 10 % longer than the longest run of the previous 30 days."));
+		const planned = ctx.runSpikes.find((s) => s.planned);
+		if (planned) {
+			return {
+				level: "warn",
+				title: t("A planned run is much longer than usual"),
+				text: t("Shorten it to at most {v} km and add distance gradually.", { v: formatNumber(planned.maxKm, 1) }),
+				reasons,
+				action: { label: t("Weekly plan"), target: "plan" },
+			};
+		}
+		return {
+			level: "suggest",
+			title: t("Today's run was much longer than usual"),
+			text: t("Keep the next few days easy and don't add more distance yet."),
+			reasons,
+		};
+	},
+};
+
 export const RULES: Rule[] = [
 	sleepRule,
 	hrvRule,
@@ -391,6 +426,7 @@ export const RULES: Rule[] = [
 	planLoadRule,
 	planHardDaysRule,
 	nutritionCheckRule,
+	runSpikeRule,
 ];
 
 export type { RuleContext, RuleOutput };

@@ -425,6 +425,7 @@ export function parseWorkout(raw: Raw): WorkoutNote | null {
 					avg_hr: asNumber(run.avg_hr),
 					max_hr: asNumber(run.max_hr),
 					elevation_m: asNumber(run.elevation_m),
+					cadence_spm: asNumber(run.cadence_spm),
 					type: asOneOf(run.type, RUN_TYPES),
 					shoes: asLink(run.shoes),
 					hr_zone_s: Array.isArray(run.hr_zone_s) ? asNumberList(run.hr_zone_s) : undefined,

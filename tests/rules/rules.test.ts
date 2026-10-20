@@ -19,6 +19,7 @@ import {
 	planHardDaysRule,
 	planLoadRule,
 	recoveryRule,
+	runSpikeRule,
 	sleepRule,
 	volumeRule,
 } from "../../src/rules/rules";
@@ -55,6 +56,7 @@ function ctx(partial: Partial<RuleContext> = {}): RuleContext {
 		challenges: [],
 		plan: null,
 		nutritionCheck: null,
+		runSpikes: [],
 		...partial,
 	};
 }
@@ -130,7 +132,7 @@ describe("engine", () => {
 	});
 
 	it("minimum 11 pravidel ze SPEC, jednoznačná ID", () => {
-		expect(RULES.map((r) => r.id)).toEqual(["sleep", "hrv", "acwr", "monotony", "volume", "recovery", "intensity", "pain", "deload", "goal", "challenge", "plan_load", "plan_hard_days", "nutrition_check"]);
+		expect(RULES.map((r) => r.id)).toEqual(["sleep", "hrv", "acwr", "monotony", "volume", "recovery", "intensity", "pain", "deload", "goal", "challenge", "plan_load", "plan_hard_days", "nutrition_check", "run_spike"]);
 	});
 
 	it("každé pravidlo má zdroj a štítek, který není silnější než nejslabší zdroj", () => {
@@ -429,9 +431,40 @@ describe("sestavení kontextu z dat", () => {
 		expect(buildContext({ ...input, plan }).plan).toBe(plan);
 	});
 
+	it("běhy delší než obvykle: dnes zapsaný a naplánované", () => {
+		expect(context.runSpikes).toEqual([]);
+		const runs = [workout({ date: "2026-09-25", sport: "run", run: { distance_km: 10 } }), workout({ date: TODAY, sport: "run", run: { distance_km: 12 } })];
+		const spikes = buildContext({ ...input, workouts: [...input.workouts, ...runs], plannedRuns: [{ id: "p1", date: "2026-10-04", label: "Běh – Dlouhý", km: 15 }, { id: "p2", date: "2026-10-03", label: "Běh – Lehký", km: 6 }] }).runSpikes;
+		expect(spikes).toEqual([
+			{ km: 12, longestKm: 10, pct: expect.closeTo(20), maxKm: 11, date: TODAY },
+			{ km: 15, longestKm: 12, pct: expect.closeTo(25), maxKm: 13.2, date: "2026-10-04", planned: { id: "p1", label: "Běh – Dlouhý" } },
+		]);
+	});
+
 	it("z kontextu vzniknou doporučení seřazená podle závažnosti", () => {
 		const ids = evaluateRules(context).map((r) => `${r.level}:${r.ruleId}`);
 		expect(ids).toEqual(["warn:pain", "suggest:sleep", "suggest:volume", "suggest:recovery"]);
+	});
+});
+
+describe("běh delší než obvykle (Frandsen 2025)", () => {
+	const done = { km: 12, longestKm: 10, pct: 20, maxKm: 11, date: TODAY };
+	const planned = { km: 15, longestKm: 12, pct: 25, maxKm: 13.2, date: "2026-10-04", planned: { id: "p1", label: "Běh – Dlouhý" } };
+
+	it("naplánovaný běh → varování s nejvyšší vzdáleností a odkazem na plán", () => {
+		const rec = runSpikeRule.evaluate(ctx({ runSpikes: [done, planned] }))!;
+		expect(rec.level).toBe("warn");
+		expect(rec.text).toBe("Zkrať ho nejvýš na 13,2 km a vzdálenost přidávej postupně.");
+		expect(rec.reasons[0]).toBe("Dnešní běh: 12 km, nejdelší běh za předchozích 30 dní měl 10 km (+20 %).");
+		expect(rec.reasons[1]).toBe("Běh – Dlouhý (ne 4. 10.): 15 km, nejdelší běh za předchozích 30 dní měl 12 km (+25 %).");
+		expect(rec.action).toEqual({ label: "Plán týdne", target: "plan" });
+	});
+
+	it("jen dnes zapsaný běh → návrh dalších dní volněji; bez běhů nic", () => {
+		const rec = runSpikeRule.evaluate(ctx({ runSpikes: [done] }))!;
+		expect(rec.level).toBe("suggest");
+		expect(rec.action).toBeUndefined();
+		expect(runSpikeRule.evaluate(ctx())).toBeNull();
 	});
 });
 

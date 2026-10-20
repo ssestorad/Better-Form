@@ -119,6 +119,10 @@ export const BLOCK_LABELS: Record<BlockType, string> = translated({
 	timed: "For time",
 });
 
+/** Skupiny léků v profilu – jen kvůli upozornění na interakce se suplementy. */
+export const MEDICATIONS = ["antidepressants", "blood_thinners", "thyroid", "antibiotics", "diabetes", "blood_pressure", "sleep_aids", "antiseizure"] as const;
+export type MedicationId = (typeof MEDICATIONS)[number];
+
 export const EXERCISE_CATEGORIES = ["strength", "calisthenics", "kettlebell", "cardio", "mobility"] as const;
 export type ExerciseCategory = (typeof EXERCISE_CATEGORIES)[number];
 

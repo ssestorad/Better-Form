@@ -1,8 +1,8 @@
 {
 	"id": "better-form",
 	"name": "Better Form",
-	"version": "0.3.2",
-	"minAppVersion": "1.8.7",
+	"version": "0.4.0",
+	"minAppVersion": "1.13.0",
 	"description": "Log workouts, track recovery and get daily training and nutrition recommendations. Your data stays in plain Markdown notes.",
 	"author": "ssestorad",
 	"authorUrl": "https://github.com/ssestorad",

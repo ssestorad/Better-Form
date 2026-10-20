@@ -2,6 +2,8 @@
 	// Detail cviku: panáček se zapojenými partiemi, popis, provedení, časté chyby.
 	import { t, tn } from "../../i18n";
 	import { HISTORY_BEST_LABELS, HISTORY_METRIC_LABELS, type ExerciseHistory } from "../../calc/exerciseHistory";
+	import { SUBSTITUTES_BASIS, substitutes } from "../../calc/substitutes";
+	import BasisTag from "../components/BasisTag.svelte";
 	import { EQUIPMENT_LABELS, MUSCLE_LABELS } from "../../model/constants";
 	import type { ExerciseNote } from "../../model/types";
 	import { bulletLines } from "../../seed/lookup";
@@ -19,8 +21,11 @@
 		/** Všechny tréninky s cvikem a řada nejlepších výkonů. */
 		history?: ExerciseHistory;
 		onOpenNote: () => void;
+		/** Knihovna pro náhrady cviku; chybí = náhrady se neukazují. */
+		library?: readonly ExerciseNote[];
+		onSelect?: (name: string) => void;
 	}
-	let { exercise, last, history, onOpenNote }: Props = $props();
+	let { exercise, last, history, onOpenNote, library, onSelect }: Props = $props();
 
 	/** Kolik posledních tréninků ukázat hned; zbytek po rozbalení. */
 	const VISIBLE_SESSIONS = 6;
@@ -33,8 +38,10 @@
 	const mistakes = $derived(bulletLines(exercise.mistakes));
 	const primary = $derived(exercise.muscles.primary.map((m) => MUSCLE_LABELS[m]).join(", "));
 	const secondary = $derived(exercise.muscles.secondary.map((m) => MUSCLE_LABELS[m]).join(", "));
-	const equipment = $derived((exercise.equipment ?? []).map((e) => EQUIPMENT_LABELS[e]).join(", "));
 	const topics = $derived(topicsForExercise(exercise.name, exercise.category));
+	const swaps = $derived(library ? substitutes(exercise, library) : []);
+	const equipmentText = (e: ExerciseNote) => (e.equipment ?? []).map((id) => EQUIPMENT_LABELS[id]).join(", ");
+	const equipment = $derived(equipmentText(exercise));
 </script>
 
 <article class="bf-exercise">
@@ -91,6 +98,25 @@
 		<section>
 			<h4>{t("Common mistakes")}</h4>
 			<ul>{#each mistakes as line (line)}<li>{line}</li>{/each}</ul>
+		</section>
+	{/if}
+
+	{#if swaps.length > 0}
+		<section>
+			<h4>{t("What to replace it with")}</h4>
+			<ul class="bf-exercise-swaps">
+				{#each swaps as swap (swap.exercise.name)}
+					<li>
+						<button type="button" class="bf-link-button" onclick={() => onSelect?.(swap.exercise.name)}>{swap.exercise.name}</button>
+						<span class="bf-muted">
+							{equipmentText(swap.exercise) || t("equipment not filled in")} · {swap.shared.map((m) => MUSCLE_LABELS[m]).join(", ")}
+						</span>
+					</li>
+				{/each}
+			</ul>
+			<p class="bf-muted bf-small">
+				{t("Exercises for the same main muscles, other equipment first – when a machine is taken or missing.")} <BasisTag basis={SUBSTITUTES_BASIS} />
+			</p>
 		</section>
 	{/if}
 
@@ -164,6 +190,15 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-2-2);
+		font-size: var(--font-ui-small);
+	}
+
+	.bf-exercise-swaps {
+		margin: 0;
+		padding-left: var(--size-4-5);
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-2-2);

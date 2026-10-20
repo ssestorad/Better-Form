@@ -5,6 +5,7 @@
 import { SCHEMA_VERSION, type Sport } from "../model/constants";
 import type { RunData, WorkoutNote } from "../model/types";
 import { BEST_EFFORT_KM, type BestEffortKey } from "../strava/activities";
+import { cadenceSpm } from "./running";
 import { t, tn } from "../i18n";
 
 export const RUN_FILE_EXTENSIONS = [".gpx", ".tcx", ".fit"] as const;
@@ -17,6 +18,8 @@ export interface TrackPoint {
 	/** Nadmořská výška v metrech. */
 	ele?: number;
 	hr?: number;
+	/** Kadence, jak ji zapsalo zařízení (obvykle za jednu nohu). */
+	cad?: number;
 	/** Vzdálenost od startu v metrech, jak ji zapsalo zařízení (TCX, FIT). */
 	distM?: number;
 }
@@ -76,7 +79,8 @@ function parseGpx(xml: string): ParsedRunFile {
 	for (const match of xml.matchAll(/<trkpt\b([^>]*?)(?:\/>|>([\s\S]*?)<\/trkpt>)/g)) {
 		const body = match[2] ?? "";
 		const hr = num(body.match(/<(?:[\w.-]+:)?hr>\s*(\d+(?:\.\d+)?)\s*</)?.[1]);
-		points.push(compactPoint({ timeMs: time(tag(body, "time")), lat: num(attribute(match[1]!, "lat")), lon: num(attribute(match[1]!, "lon")), ele: num(tag(body, "ele")), hr }));
+		const cad = num(body.match(/<(?:[\w.-]+:)?cad>\s*(\d+(?:\.\d+)?)\s*</)?.[1]);
+		points.push(compactPoint({ timeMs: time(tag(body, "time")), lat: num(attribute(match[1]!, "lat")), lon: num(attribute(match[1]!, "lon")), ele: num(tag(body, "ele")), hr, cad }));
 	}
 	// Název a typ jsou v hlavičce stopy, před prvním úsekem.
 	const head = track.split(/<trkseg\b/)[0] ?? "";
@@ -100,6 +104,7 @@ function parseTcx(xml: string): ParsedRunFile {
 				lon: num(tag(body, "LongitudeDegrees")),
 				ele: num(tag(body, "AltitudeMeters")),
 				hr: heart !== undefined ? num(tag(heart, "Value") ?? heart) : undefined,
+				cad: num(tag(body, "RunCadence")),
 				distM: num(tag(body, "DistanceMeters")),
 			}),
 		);
@@ -163,6 +168,8 @@ export interface RunTotals {
 	startMs?: number;
 	avgHr?: number;
 	maxHr?: number;
+	/** Průměrná kadence v krocích za minutu (body v pohybu, tj. s kadencí nad 0). */
+	cadenceSpm?: number;
 	elevationM?: number;
 	best: Partial<Record<BestEffortKey, number>>;
 }
@@ -239,6 +246,9 @@ export function runTotals(file: ParsedRunFile): RunTotals {
 		totals.maxHr = Math.max(...rates);
 	}
 
+	const cadences = points.map((p) => p.cad).filter((cad): cad is number => cad !== undefined && cad > 0);
+	if (cadences.length > 0) totals.cadenceSpm = cadenceSpm(cadences.reduce((sum, cad) => sum + cad, 0) / cadences.length);
+
 	const heights = points.map((p) => p.ele).filter((ele): ele is number => ele !== undefined);
 	if (heights.length > 1) {
 		let gain = 0;
@@ -294,6 +304,7 @@ export function runFileToWorkout(file: ParsedRunFile, offsetMin?: number, schema
 		if (totals.avgHr !== undefined) run.avg_hr = Math.round(totals.avgHr);
 		if (totals.maxHr !== undefined) run.max_hr = Math.round(totals.maxHr);
 		if (totals.elevationM !== undefined && totals.elevationM > 0) run.elevation_m = Math.round(totals.elevationM);
+		if (totals.cadenceSpm !== undefined) run.cadence_spm = totals.cadenceSpm;
 		if (Object.keys(totals.best).length > 0) run.best_s = { ...totals.best };
 		note.run = run;
 	} else if (sport === "swim" && totals.distanceM > 0) {

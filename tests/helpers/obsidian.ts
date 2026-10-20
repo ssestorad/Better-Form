@@ -65,3 +65,15 @@ export function getFrontMatterInfo(text: string): { exists: boolean; frontmatter
 	const match = text.match(FRONTMATTER);
 	return match ? { exists: true, frontmatter: match[1] ?? "", contentStart: match[0].length } : { exists: false, frontmatter: "", contentStart: 0 };
 }
+
+// Stránka nastavení (tests/settings/settingsTab.test.ts) jen sestavuje definice – prvky rozhraní se nevytvářejí.
+export class Modal {}
+export class Setting {}
+export class Notice {}
+export class PluginSettingTab {
+	constructor(
+		readonly app: unknown,
+		readonly plugin: unknown,
+	) {}
+	update(): void {}
+}

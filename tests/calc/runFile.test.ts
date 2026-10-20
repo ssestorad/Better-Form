@@ -216,3 +216,24 @@ describe("duplicity a hlášení", () => {
 		expect(describeRunImport({ created: 2, merged: 1, duplicates: 0, withoutHr: 1, failed: [] }).split("\n")[2]).toContain("Soubor neobsahuje tep (1×)");
 	});
 });
+
+describe("kadence", () => {
+	const cad = (value: number) => `<extensions><gpxtpx:TrackPointExtension><gpxtpx:cad>${value}</gpxtpx:cad></gpxtpx:TrackPointExtension></extensions>`;
+
+	it("GPX: průměr bodů s kadencí za jednu nohu × 2; stání (0) se nepočítá", () => {
+		const gpx = `<gpx><trk><trkseg>${trkpt(0, "2026-10-04T06:00:00Z", cad(0))}${trkpt(1, "2026-10-04T06:00:30Z", cad(84))}${trkpt(2, "2026-10-04T06:01:00Z", cad(86))}</trkseg></trk></gpx>`;
+		// (84 + 86) / 2 = 85 za jednu nohu → 170 kroků/min
+		expect(runFileToWorkout(parseRunFile(gpx), 0).run?.cadence_spm).toBe(170);
+	});
+
+	it("TCX: RunCadence z rozšíření Garminu", () => {
+		const point = (time: string, m: number, value: number) =>
+			`<Trackpoint><Time>${time}</Time><DistanceMeters>${m}</DistanceMeters><Extensions><ns3:TPX><ns3:RunCadence>${value}</ns3:RunCadence></ns3:TPX></Extensions></Trackpoint>`;
+		const tcx = `<TrainingCenterDatabase><Activities><Activity Sport="Running"><Lap><Track>${point("2026-10-04T06:00:00Z", 0, 88)}${point("2026-10-04T06:01:00Z", 250, 90)}</Track></Lap></Activity></Activities></TrainingCenterDatabase>`;
+		expect(runFileToWorkout(parseRunFile(tcx), 0).run?.cadence_spm).toBe(178);
+	});
+
+	it("soubor bez kadence pole nemá", () => {
+		expect(runFileToWorkout(parseRunFile(GPX), 0).run?.cadence_spm).toBeUndefined();
+	});
+});

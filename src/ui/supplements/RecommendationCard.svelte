@@ -3,6 +3,9 @@
 	// po rozkliknutí shrnutí, volbu druhu (protein, hořčík…), dávkování, rizika a srovnání studií rozdělené podle oblastí.
 	import { t } from "../../i18n";
 	import { STUDY_KIND_LABELS, getSource } from "../../evidence/sources";
+	import SourceLinks from "../components/SourceLinks.svelte";
+	import InteractionItem from "./InteractionItem.svelte";
+	import { MEDICATION_LABELS, WADA_NOTES, WADA_SOURCES, interactionsFor, type MedicationId } from "../../calc/supplementSafety";
 	import { EVIDENCE_LABELS } from "../../model/constants";
 	import {
 		AREA_LABELS,
@@ -31,8 +34,15 @@
 		open?: boolean;
 		/** Předvybraný druh (hledání našlo jeho název). */
 		variant?: string;
+		/** Skupiny léků z profilu – interakce s nimi se zvýrazní. */
+		medications?: readonly MedicationId[];
 	}
-	let { item, weightKg, owned, ownedVariants = [], onAdd, open = false, variant }: Props = $props();
+	let { item, weightKg, owned, ownedVariants = [], onAdd, open = false, variant, medications = [] }: Props = $props();
+
+	const interactions = $derived(interactionsFor(item.id));
+	const mine = (i: (typeof interactions)[number]) => i.medications.some((m) => medications.includes(m));
+	const withMyMedication = $derived(interactions.some(mine));
+	const wada = $derived(WADA_NOTES[item.id]);
 
 	/** Druh vybraný klepnutím; "" = výběr zrušený. */
 	let chosen = $state<string | undefined>(undefined);
@@ -92,6 +102,7 @@
 		</span>
 		<span class="bf-rec-side">
 			{#if owned}<span class="bf-tag">{t("you have it")}</span>{/if}
+			{#if withMyMedication}<span class="bf-tag bf-tag-warn" title={t("Interacts with medication you take (settings → Profile)")}>{t("your medication")}</span>{/if}
 			<span title={SAFETY_LABELS[item.safety]} aria-label={t("Safety: {v}", { v: SAFETY_LABELS[item.safety] })}>{SAFETY_ICONS[item.safety]}</span>
 			<span class="bf-rec-chevron" aria-hidden="true">›</span>
 		</span>
@@ -100,6 +111,7 @@
 		<div class="bf-rec-head">
 			<span class="bf-tag" class:bf-tag-warn={item.safety !== "ok"} title={SAFETY_LABELS[item.safety]}>{t("{v} safety", { v: SAFETY_ICONS[item.safety] })}</span>
 			<span class="bf-tag" title={t("Evidence level of the whole entry")}>{EVIDENCE_LABELS[item.basis.evidence]}</span>
+			{#if wada}<span class="bf-tag" title={wada}>WADA</span>{/if}
 		</div>
 		<p>{item.summary}</p>
 		{#if item.variants}
@@ -164,6 +176,31 @@
 			<dd>{item.forWhom}</dd>
 			<dt>{t("Risks and limits")}</dt>
 			<dd>{item.risks}</dd>
+			{#if interactions.length > 0}
+				<dt>{t("Medication")}</dt>
+				<dd>
+					<ul class="bf-rec-interactions">
+						{#each interactions as i, ii (ii)}
+							<InteractionItem
+								title={i.medications.map((m) => MEDICATION_LABELS[m]).join(", ")}
+								finding={i.text.finding}
+								advice={i.text.advice}
+								sources={i.sources}
+								avoid={i.avoid}
+								mine={mine(i)}
+							/>
+						{/each}
+					</ul>
+					<div class="bf-muted">{t("Interactions with medication you take are highlighted – set them in settings → Profile. If you take medication, ask a pharmacist or doctor before starting a supplement.")}</div>
+				</dd>
+			{/if}
+			{#if wada}
+				<dt>{t("Anti-doping")}</dt>
+				<dd>
+					{wada}
+					<SourceLinks ids={WADA_SOURCES} />
+				</dd>
+			{/if}
 		</dl>
 		<details class="bf-rec-more">
 			<summary>{t("Comparison of {studies_length} sources", { studies_length: item.studies.length })}</summary>
@@ -197,6 +234,14 @@
 </details>
 
 <style>
+	.bf-rec-interactions {
+		margin: 0;
+		padding-left: var(--size-4-5);
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-2);
+	}
+
 	.bf-rec {
 		font-size: var(--font-ui-small);
 	}

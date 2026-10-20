@@ -119,6 +119,8 @@ describe("activityToWorkout", () => {
 	});
 
 	it("bez tepu a převýšení tato pole chybí; bez data null", () => {
+		// Strava uvádí kadenci za jednu nohu.
+		expect(activityToWorkout({ ...ACTIVITY, average_cadence: 84.6 }, 1)?.run?.cadence_spm).toBe(169);
 		const note = activityToWorkout({ id: 2, type: "Run", start_date_local: "2026-09-01T07:00:00Z", distance: 5000, moving_time: 1500 }, 1);
 		expect(note?.run).toEqual({ distance_km: 5, moving_time_s: 1500 });
 		expect(note?.rpe).toBeUndefined();

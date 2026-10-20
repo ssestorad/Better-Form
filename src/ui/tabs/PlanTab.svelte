@@ -3,6 +3,7 @@
 	// souhrn týdne a výhled zátěže. Rozvržení řádků je pevné – nic neposkakuje.
 	import { t } from "../../i18n";
 	import { Menu, Notice } from "obsidian";
+	import { RUN_SPIKE_BASIS, runSpike } from "../../calc/running";
 	import { OUTLOOK_WEEKS, PLAN_LOAD_BASIS, PLAN_STATUS_LABELS, type PlanStatus } from "../../calc/weekPlan";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
 	import type { PlanDay, PlanEntry } from "../../data/PlanService";
@@ -38,6 +39,15 @@
 			// Poškozené značky v poznámce ohlásí až úprava plánu; při pouhém zobrazení mlčet.
 		});
 	});
+	const workouts = $derived.by(() => {
+		void $indexVersion;
+		return plugin.index.all("workout").map((w) => w.note);
+	});
+	/** Naplánovaný běh o víc než 10 % delší než nejdelší za předchozích 30 dní (Frandsen 2025). */
+	function spikeOf(entry: PlanEntry) {
+		const km = entry.status === "planned" && entry.item.sport === "run" ? entry.item.distance_km : undefined;
+		return km ? runSpike(workouts, entry.item.date, km) : null;
+	}
 	const acwrWarn = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.settings.thresholds.acwrWarn;
@@ -122,6 +132,7 @@
 		<span class="bf-muted bf-small bf-plan-weeknote">{weekNote}</span>
 	</span>
 	<button type="button" aria-label={t("Next week")} onclick={() => (week = addDays(week, 7))}>›</button>
+	<button type="button" class="bf-plan-ics" title={t("Save the week as an .ics file for Google, Outlook or Apple Calendar")} onclick={() => void plugin.exportPlanCalendar(week)}>{t("To calendar")}</button>
 </div>
 
 <section class="bf-card">
@@ -151,6 +162,13 @@
 							<span class="bf-muted bf-small bf-plan-details">
 								{planItemDetails(entry.item, entry.minutes)}{entry.program ? ` · ${entry.program.text}` : entry.item.notes ? ` · ${entry.item.notes}` : ""}
 							</span>
+							{#if spikeOf(entry)}
+								{@const spike = spikeOf(entry)!}
+								<span class="bf-small bf-plan-warning">
+									{t("{v} % longer than your longest run of the last 30 days ({v2} km) – shorten it to at most {v3} km.", { v: formatNumber(spike.pct, 0), v2: formatNumber(spike.longestKm, 1), v3: formatNumber(spike.maxKm, 1) })}
+									<BasisTag basis={RUN_SPIKE_BASIS} />
+								</span>
+							{/if}
 							{#if entry.status === "done" && entry.workout}
 								<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.workout!.file })}>{t("Workout")}</button>
 							{:else if entry.program}
@@ -244,7 +262,7 @@
 <style>
 	.bf-plan-nav {
 		display: grid;
-		grid-template-columns: auto 1fr auto;
+		grid-template-columns: auto 1fr auto auto;
 		align-items: center;
 		gap: var(--size-4-2);
 	}
@@ -332,6 +350,13 @@
 	.bf-plan-details {
 		flex: 1 0 100%;
 		order: 1;
+		overflow-wrap: anywhere;
+	}
+
+	.bf-plan-warning {
+		flex: 1 0 100%;
+		order: 2;
+		color: var(--text-warning);
 		overflow-wrap: anywhere;
 	}
 

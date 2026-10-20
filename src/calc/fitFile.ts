@@ -112,6 +112,8 @@ export function parseFit(data: ArrayBuffer): ParsedRunFile {
 			}
 			if (altitude !== undefined) point.ele = altitude / 5 - 500;
 			if (values.has(3)) point.hr = values.get(3)!;
+			// Kadence za jednu nohu (pole 4) a její zlomek v 1/128 (pole 53).
+			if (values.has(4)) point.cad = values.get(4)! + (values.get(53) ?? 0) / 128;
 			if (distance !== undefined) point.distM = distance / 100;
 			points.push(point);
 		} else if (def.message === MESSAGE_SESSION) {

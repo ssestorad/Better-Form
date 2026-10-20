@@ -2,6 +2,7 @@
 // Čisté funkce bez závislosti na Obsidianu – síť a zápis řeší StravaSync.
 
 import type { RunData, WorkoutNote } from "../model/types";
+import { cadenceSpm } from "../calc/running";
 import { t, tn } from "../i18n";
 
 /** Pole aktivity ze seznamu `GET /athlete/activities`, která plugin používá. */
@@ -20,6 +21,8 @@ export interface StravaActivity {
 	has_heartrate?: boolean;
 	average_heartrate?: number;
 	max_heartrate?: number;
+	/** Průměrná kadence za jednu nohu. */
+	average_cadence?: number;
 }
 
 /** Kolik aktivit na stránku se žádá (Strava dovolí nejvýš 200). */
@@ -84,6 +87,8 @@ export function activityToWorkout(activity: StravaActivity, schema: number): Wor
 	if (maxHr !== undefined) run.max_hr = Math.round(maxHr);
 	const elevation = positive(activity.total_elevation_gain);
 	if (elevation !== undefined) run.elevation_m = Math.round(elevation);
+	const cadence = positive(activity.average_cadence);
+	if (cadence !== undefined) run.cadence_spm = cadenceSpm(cadence);
 	const note: WorkoutNote = {
 		forma: "workout",
 		schema,

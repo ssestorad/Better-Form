@@ -1,6 +1,6 @@
 {
   "name": "better-form",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Training log, recovery, recommendations and nutrition in Obsidian.",
   "main": "main.js",
   "private": true,

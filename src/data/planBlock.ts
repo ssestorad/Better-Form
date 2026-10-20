@@ -1,11 +1,13 @@
 // Texty plánu týdne (SPEC 5.16): název a detaily položky a čitelný přehled týdne
 // do generovaného bloku poznámky. Bez závislosti na Obsidianu.
 
+import type { CalendarEvent } from "../calc/ics";
 import { weekDates } from "../calc/weekPlan";
 import { DAY_OFF_LABELS, PLAN_INTENSITY_LABELS, SPORT_LABELS } from "../model/constants";
 import type { PlanDayOff, PlanItem } from "../model/types";
 import { formatDurationMin, formatNumber, formatShortDate } from "../ui/format";
 import { t } from "../i18n";
+import type { PlanDay } from "./PlanService";
 
 /** „Běh – Tempo“, „Posilovna – Push“ (ze šablony), jinak jen sport. */
 export function planItemTitle(item: PlanItem): string {
@@ -52,4 +54,25 @@ export function planBlock(week: string, items: readonly PlanItem[], programs: re
 		lines.push(`| ${formatShortDate(date)} | ${texts.length > 0 ? texts.join("<br>") : "volno"} |`);
 	}
 	return lines.join("\n");
+}
+
+/** Stálé UID události: den a označení položky (u programu cesta k poznámce). */
+const eventUid = (date: string, id: string) => `${date}-${id.replace(/[^A-Za-z0-9.-]+/g, "-")}@better-form`;
+
+/** Položky a dny programů týdne jako celodenní události kalendáře. */
+export function planEvents(days: readonly PlanDay[]): CalendarEvent[] {
+	return days.flatMap((day) => [
+		...day.entries.map((entry) => ({
+			uid: eventUid(day.date, entry.item.id),
+			date: day.date,
+			title: entry.program ? t("Program {program_name}", { program_name: entry.program.name }) : planItemTitle(entry.item),
+			description: [planItemDetails(entry.item, entry.minutes), entry.program?.text ?? entry.item.notes].filter((part) => part).join(" · "),
+		})),
+		...day.programs.map((program) => ({
+			uid: eventUid(day.date, `program:${program.file.path}`),
+			date: day.date,
+			title: t("Program {program_name}", { program_name: program.name }),
+			description: program.text,
+		})),
+	]);
 }

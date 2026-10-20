@@ -27,6 +27,8 @@
 	import { usePlugin } from "../context";
 	import { formatCzechDate, formatDays, formatNumber } from "../format";
 	import { balanceText, formatWhole, rangeText, trendText } from "../nutrition/text";
+	import { researchTopic } from "../../seed/research";
+	import ResearchCard from "../components/ResearchCard.svelte";
 	import { Notice } from "obsidian";
 
 	const plugin = usePlugin();
@@ -85,6 +87,10 @@
 		void $indexVersion;
 		return weightTrend(weightPoints(plugin.index.all("day").map((e) => e.note)), date);
 	});
+	// Co říká výzkum: bílkoviny, hubnutí bez ztráty svalů (jen při cíli zhubnout), kroky, alkohol a pitný režim.
+	const topics = $derived(
+		["protein_intake", ...(profile.goal === "lose" ? ["fat_loss"] : []), "steps_health", "alcohol", "hydration"].map(researchTopic).filter((x) => x !== undefined),
+	);
 	const balance = $derived(plan !== null && trend.ready ? assessBalance(trend, profile.goal, plan.goalAdjust) : null);
 	// Týdenní kontrola: osobní korekce odhadu výdeje podle váhy (jen pro dnešek, ne při listování).
 	const correction = $derived.by(() => {
@@ -362,6 +368,10 @@
 		</dl>
 	</section>
 {/if}
+
+<section class="bf-card">
+	{#each topics as topic (topic.id)}<ResearchCard {topic} />{/each}
+</section>
 
 <p class="bf-muted bf-small">
 	{t("A rough estimate from equations and tables, not a meal plan from a nutrition professional. Food logging and fine-tuning by your actual weight trend will come later.")}

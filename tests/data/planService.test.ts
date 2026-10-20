@@ -4,7 +4,7 @@ import { DayService } from "../../src/data/DayService";
 import { FormaIndex } from "../../src/data/FormaIndex";
 import { NoteWriter } from "../../src/data/NoteWriter";
 import { planItemFromDraft, PlanService, type PlanDraft } from "../../src/data/PlanService";
-import { planBlock, planItemDetails, planItemTitle } from "../../src/data/planBlock";
+import { planBlock, planEvents, planItemDetails, planItemTitle } from "../../src/data/planBlock";
 import { ProgramService } from "../../src/data/ProgramService";
 import { WorkoutService } from "../../src/data/WorkoutService";
 import { parsePlan } from "../../src/model/parse";
@@ -243,6 +243,23 @@ describe("programy v plánu týdne", () => {
 		// Souhrn: 3 dny po 40 minutách; v plánu zbývají dva těžké tréninky = 2 × 40 × 8 AU.
 		expect(view.summary).toMatchObject({ planned: 3, done: 0, missed: 1, plannedMin: 120 });
 		expect(view.outlook).toMatchObject({ actual: 0, planned: 640, expected: 640 });
+	});
+
+	it("export do kalendáře: položky, dny programu i počítadlo, stálé UID", async () => {
+		await w.plans.add(run);
+		const events = planEvents(w.plans.view(WEEK, TODAY).days);
+		expect(events).toHaveLength(3 + 1 + 7);
+		expect(events.find((e) => e.date === "2026-10-08" && !e.title.startsWith("Program"))).toEqual({
+			uid: "2026-10-08-p1@better-form",
+			date: "2026-10-08",
+			title: "Běh – Tempo",
+			description: "9 km · 50 min · těžká",
+		});
+		expect(events.find((e) => e.date === TODAY && e.title === "Program Síla")).toMatchObject({
+			uid: `2026-10-07-program-Forma-Knihovna-Programy-S-la.md@better-form`,
+			description: "40 min · těžká · Kliky 3×10",
+		});
+		expect(events.filter((e) => e.title === "Program 100 kliků denně")).toHaveLength(7);
 	});
 
 	it("výživa a doporučení vidí nesplněný den programu; zapsaný trénink z programu ho splní", () => {

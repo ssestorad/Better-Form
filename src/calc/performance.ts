@@ -139,6 +139,21 @@ export function paceSecondsPerKm(distanceKm: number | undefined, seconds: number
 	return seconds / distanceKm;
 }
 
+/** Průměrné tempo běhů po dnech v s/km (víc běhů za den = celková vzdálenost a čas), od nejstaršího. */
+export function runPacePoints(workouts: readonly WorkoutNote[]): { date: string; value: number }[] {
+	const totals = new Map<string, { km: number; sec: number }>();
+	for (const workout of workouts) {
+		const km = workout.sport === "run" ? workout.run?.distance_km : undefined;
+		const sec = workout.run?.moving_time_s ?? (workout.duration_min !== undefined ? workout.duration_min * 60 : undefined);
+		if (paceSecondsPerKm(km, sec) === null) continue;
+		const day = totals.get(workout.date) ?? { km: 0, sec: 0 };
+		day.km += km!;
+		day.sec += sec!;
+		totals.set(workout.date, day);
+	}
+	return [...totals].map(([date, day]) => ({ date, value: day.sec / day.km })).sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /** 325 → „5:25 /km“. */
 export function formatPace(secondsPerKm: number): string {
 	return `${formatClockDuration(secondsPerKm)} /km`;

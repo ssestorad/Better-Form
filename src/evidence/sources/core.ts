@@ -132,6 +132,13 @@ export const CORE_SOURCES = {
 			"Watson N. F. et al. (2015) Recommended amount of sleep for a healthy adult (AASM & SRS). Sleep.",
 		evidence: "consensus",
 	},
+	sletten2023: {
+		short: "Sletten 2023 (NSF)",
+		citation:
+			"Sletten T. L. et al. (2023) The importance of sleep regularity: a consensus statement of the National Sleep Foundation sleep timing and variability panel. Sleep Health 9(6):801–820.",
+		url: "https://doi.org/10.1016/j.sleh.2023.07.016",
+		evidence: "consensus",
+	},
 	milewski2014: {
 		short: "Milewski 2014",
 		citation:

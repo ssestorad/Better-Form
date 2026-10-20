@@ -57,6 +57,7 @@ describe("souhrn tréninku", () => {
 		expect(swimLine(note({ sport: "swim", swim: { distance_m: 2400, style: "freestyle", pool_m: 25 } }))).toBe(
 			"**Plavání:** 2400 m (kraul, bazén 25 m)",
 		);
+		expect(runLine(note({ sport: "run", run: { distance_km: 5, cadence_spm: 172 } }))).toContain("kadence 172 kroků/min");
 		expect(runLine(note())).toBeNull();
 	});
 

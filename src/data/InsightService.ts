@@ -75,6 +75,15 @@ export class InsightService {
 		};
 	}
 
+	/** Nesplněné běhy s plánovanou vzdáleností od dneška do konce týdne. */
+	private plannedRuns(today: string): { id: string; date: string; label: string; km: number }[] {
+		return this.plans
+			.view(startOfWeek(today), today)
+			.days.filter((d) => d.date >= today)
+			.flatMap((d) => d.entries)
+			.flatMap(({ item, status }) => (status === "planned" && item.sport === "run" && item.distance_km ? [{ id: item.id, date: item.date, label: planItemTitle(item), km: item.distance_km }] : []));
+	}
+
 	/** Cviky ze šablon dnešních nesplněných položek plánu. */
 	private plannedTemplateExercises(pending: PlanEntry[]): string[] {
 		const key = (text: string) => text.trim().toLocaleLowerCase("cs");
@@ -119,6 +128,7 @@ export class InsightService {
 			plannedExercises: [...active.flatMap((p) => p.tasks.filter((x) => !x.done).map((x) => x.exercise)), ...this.plannedTemplateExercises(pending)],
 			plan: this.rulePlan(today, pending),
 			nutritionCheck: this.nutritionCheck(today),
+			plannedRuns: this.plannedRuns(today),
 			challenges,
 			goals: this.ruleGoals(today),
 		});

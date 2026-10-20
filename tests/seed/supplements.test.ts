@@ -336,7 +336,9 @@ describe("hodnocení po oblastech přínosu", () => {
 		for (const id of ["psyllium", "taurine", "theanine", "curcumin", "cocoa_flavanols", "sodium_citrate", "glycine", "beta_glucan", "ginger", "capsaicin", "ecdysterone", "tongkat_ali", "ketones", "cbd"]) expect(catalogSupplement(id), id).toBeDefined();
 		// Doplněno 13. 10. 2026.
 		for (const id of ["phosphatidylcholine", "potassium_bicarbonate", "thiamine"]) expect(catalogSupplement(id), id).toBeDefined();
-		expect(SUPPLEMENT_CATALOG).toHaveLength(93);
+		// Doplněno 19. 10. 2026.
+		expect(catalogSupplement("methylene_blue")).toBeDefined();
+		expect(SUPPLEMENT_CATALOG).toHaveLength(94);
 		for (const item of SUPPLEMENT_CATALOG) {
 			for (const id of item.basis.sourceIds) {
 				const source = getSource(id);

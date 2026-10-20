@@ -7,7 +7,7 @@ import { formatDurationMin, formatNumber, formatShortDate } from "../ui/format";
 import { percentChange } from "./monthlySummary";
 import { periodLabel, periodOf, periodStats, shiftPeriod, type PeriodStats, type TonnageContext } from "./overview";
 import { allRecords, newRecords, type RecordContext } from "./records";
-import { sleepDurationMin } from "./sleep";
+import { nightMin } from "./sleep";
 import { mean } from "./stats";
 import { t, tn } from "../i18n";
 
@@ -64,8 +64,8 @@ export function yearSummaryInput(
 		mean(
 			days
 				.filter((d) => d.date >= from && d.date <= to)
-				.map((d) => d.sleep.duration_min ?? sleepDurationMin(d.sleep))
-				.filter((v): v is number => v !== null && v !== undefined && v > 0),
+				.map((d) => nightMin(d.sleep))
+				.filter((v): v is number => v !== null),
 		);
 	const weights = days
 		.filter((d) => d.date >= period.from && d.date <= period.to && d.body.weight_kg !== undefined)

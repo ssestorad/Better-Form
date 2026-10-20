@@ -34,6 +34,8 @@
 		volumeLegend,
 		type BodyMode,
 	} from "../body/text";
+	import ResearchCard from "../components/ResearchCard.svelte";
+	import { researchTopic } from "../../seed/research";
 	import { usePlugin } from "../context";
 	import { formatDays, formatNumber, formatShortDate } from "../format";
 
@@ -231,6 +233,8 @@
 			</div>
 		</div>
 	{/if}
+	{#if researchTopic("recovery_methods")}<ResearchCard topic={researchTopic("recovery_methods")!} />{/if}
+	{#if researchTopic("pain_training")}<ResearchCard topic={researchTopic("pain_training")!} />{/if}
 </section>
 
 <PainCard muscle={pinned} />

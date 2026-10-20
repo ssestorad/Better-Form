@@ -2,7 +2,7 @@
 // pro kartu Dnes. Bez závislosti na Obsidianu.
 
 import { sessionLoad } from "../calc/load";
-import { sleepDurationMin } from "../calc/sleep";
+import { nightMin } from "../calc/sleep";
 import { SPORT_LABELS } from "../model/constants";
 import type { DayNote, WorkoutNote } from "../model/types";
 import { formatDurationMin, formatNumber } from "../ui/format";
@@ -28,7 +28,7 @@ function scale(label: string, value: number | undefined): string | null {
 export function daySummary(day: DayNote | undefined): DaySummary {
 	if (!day) return { sleep: null, feelings: null, hrv: null, weight: null };
 	const { sleep, check_in: feel, hrv, body } = day;
-	const duration = sleep.duration_min ?? sleepDurationMin(sleep) ?? undefined;
+	const duration = nightMin(sleep) ?? undefined;
 	const start = sleep.sleep_onset ?? sleep.bedtime;
 	const times = start && sleep.wake ? `${start} → ${sleep.wake}` : null;
 	const length =

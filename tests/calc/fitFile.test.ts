@@ -73,6 +73,17 @@ describe("soubor FIT", () => {
 		});
 	});
 
+	it("kadence z bodů trasy: pole 4 a zlomek v 1/128 (pole 53), × 2", () => {
+		const body = [
+			// Definice: record – čas, vzdálenost, kadence, zlomek kadence.
+			[0x40, 0, 0, ...u16(20), 4, 253, 4, 0x86, 5, 4, 0x86, 4, 1, 0x02, 53, 1, 0x02],
+			[0x00, ...u32(T0), ...u32(0), 85, 64], // 85,5
+			[0x00, ...u32(T0 + 300), ...u32(100000), 86, 0], // 86
+		];
+		// (85,5 + 86) / 2 = 85,75 → 171,5 → 172 kroků/min
+		expect(runFileToWorkout(parseFit(fit(body.flat())), 0).run?.cadence_spm).toBe(172);
+	});
+
 	it("useknutý nebo cizí soubor ohlásí česky", () => {
 		expect(() => parseFit(fit(messages.flat().slice(0, 40)))).toThrow("poškozený nebo neúplný");
 		expect(() => parseFit(fit([0x05, 1, 2, 3]))).toThrow("poškozený nebo neúplný"); // data bez definice

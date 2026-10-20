@@ -5,9 +5,9 @@ import { addDays, daysBetween } from "../model/dates";
 import type { DayNote, WorkoutNote } from "../model/types";
 import { fitnessSeries } from "./fitness";
 import { baselineSeries, type BaselineOptions, type Sample } from "./hrv";
-import { paceSecondsPerKm } from "./performance";
+import { runPacePoints } from "./performance";
 import type { SessionBest } from "./records";
-import { sleepDurationMin } from "./sleep";
+import { nightMin } from "./sleep";
 
 /** Všechny dny od `from` do `to` včetně. */
 export function dateRange(from: string, to: string): string[] {
@@ -40,19 +40,25 @@ export function loadChart(byDate: ReadonlyMap<string, number>, dates: readonly s
 
 /** Tempo běhu v s/km po dnech (víc běhů v jednom dni: celkový čas / celková vzdálenost). */
 export function paceChart(workouts: readonly WorkoutNote[], dates: readonly string[]): (number | null)[] {
-	const totals = new Map<string, { km: number; sec: number }>();
+	const byDate = new Map(runPacePoints(workouts).map((p) => [p.date, p.value]));
+	return dates.map((date) => byDate.get(date) ?? null);
+}
+
+/** Průměrná kadence dne (kroky/min), vážená časem běhu; null = den bez kadence. */
+export function cadenceChart(workouts: readonly WorkoutNote[], dates: readonly string[]): (number | null)[] {
+	const totals = new Map<string, { sum: number; weight: number }>();
 	for (const workout of workouts) {
-		const km = workout.sport === "run" ? workout.run?.distance_km : undefined;
-		const sec = workout.run?.moving_time_s ?? (workout.duration_min !== undefined ? workout.duration_min * 60 : undefined);
-		if (km === undefined || km <= 0 || sec === undefined || sec <= 0) continue;
-		const day = totals.get(workout.date) ?? { km: 0, sec: 0 };
-		day.km += km;
-		day.sec += sec;
+		const cadence = workout.sport === "run" ? workout.run?.cadence_spm : undefined;
+		if (cadence === undefined || cadence <= 0) continue;
+		const weight = workout.run?.moving_time_s ?? 1;
+		const day = totals.get(workout.date) ?? { sum: 0, weight: 0 };
+		day.sum += cadence * weight;
+		day.weight += weight;
 		totals.set(workout.date, day);
 	}
 	return dates.map((date) => {
 		const day = totals.get(date);
-		return day ? paceSecondsPerKm(day.km, day.sec) : null;
+		return day ? day.sum / day.weight : null;
 	});
 }
 
@@ -82,8 +88,8 @@ export function oneRmChart(series: ReadonlyMap<string, readonly SessionBest[]>, 
 export function sleepChart(days: readonly DayNote[], dates: readonly string[]): (number | null)[] {
 	const byDate = new Map<string, number>();
 	for (const day of days) {
-		const minutes = day.sleep.duration_min ?? sleepDurationMin(day.sleep);
-		if (minutes !== null && minutes !== undefined && minutes > 0) byDate.set(day.date, minutes / 60);
+		const minutes = nightMin(day.sleep);
+		if (minutes !== null) byDate.set(day.date, minutes / 60);
 	}
 	return dates.map((d) => byDate.get(d) ?? null);
 }

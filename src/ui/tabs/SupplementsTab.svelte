@@ -39,6 +39,7 @@
 	import ReferenceTables from "../supplements/ReferenceTables.svelte";
 	import ElectrolyteTable from "../supplements/ElectrolyteTable.svelte";
 	import RecommendationCard from "../supplements/RecommendationCard.svelte";
+	import SafetyWarnings from "../supplements/SafetyWarnings.svelte";
 	import SupplementForm from "../supplements/SupplementForm.svelte";
 	import TrialCard from "../supplements/TrialCard.svelte";
 	import { adherenceLabel, doseLabel } from "../supplements/text";
@@ -134,6 +135,16 @@
 		void $indexVersion;
 		return plugin.index.all("day").map((d) => d.note);
 	});
+	const workoutNotes = $derived.by(() => {
+		void $indexVersion;
+		return plugin.index.all("workout").map((w) => w.note);
+	});
+	// Kontext výkonů (váha pro cviky s vlastní vahou) – přepočet při změně poznámek i nastavení.
+	const statsContext = $derived.by(() => {
+		void $indexVersion;
+		void $settingsVersion;
+		return plugin.statsContext();
+	});
 
 	// Vegani a vegetariáni potřebují B12 – připomenout, když ho nemají v seznamu.
 	const b12Missing = $derived(diet !== "omnivore" && !active.some((e) => e.note.catalog === "vitamin_b" || /b\s?12|multivit/i.test(e.note.name)));
@@ -156,6 +167,16 @@
 		const mg = dose === undefined ? null : doseToMg(dose, unit);
 		return mg !== null && weightKg !== null && caffeineIsExcessive(mg, weightKg);
 	}
+	const medications = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.settings.profile.medications;
+	});
+	/** Látky ze všech aktivních suplementů (i ze složení přípravků podle etikety). */
+	const totals = $derived(substanceTotals(active.map((e) => ({ name: e.note.name, catalog: e.note.catalog, dose: e.note.dose, unit: e.note.unit, ingredients: e.note.ingredients }))));
+	/** Katalogová id aktivních suplementů a jejich složek a názvy v seznamu (pro upozornění). */
+	const activeCatalog = $derived([...new Set([...active.flatMap((e) => (e.note.catalog ? [e.note.catalog] : [])), ...totals.map((t) => t.catalog)])]);
+	const activeNames = (catalogId: string): string[] =>
+		totals.find((t) => t.catalog === catalogId)?.from ?? active.filter((e) => e.note.catalog === catalogId).map((e) => e.note.name);
 	const sex = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.settings.profile.sex;
@@ -314,6 +335,7 @@
 </section>
 
 {#if active.length > 0}
+	<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />
 	<DailyOverview entries={active} {weightKg} />
 {/if}
 {/if}
@@ -321,6 +343,7 @@
 {#if section === "mine"}
 <section class="bf-section">
 	<h4>{t("My supplements")}</h4>
+	<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />
 	{#each [...active, ...inactive] as entry (entry.file.path)}
 		<div class="bf-card">
 			<div class="bf-supp-head">
@@ -369,7 +392,7 @@
 	{/if}
 </section>
 
-<TrialCard supplements={active} days={dayNotes} {today} />
+<TrialCard supplements={active} days={dayNotes} workouts={workoutNotes} ctx={statsContext} {today} />
 {/if}
 
 {#if section === "library"}
@@ -443,6 +466,7 @@
 				ownedVariants={ownedVariants(item)}
 				open={shownCount === 1}
 				variant={matchingVariant(item, query)}
+				{medications}
 				onAdd={(v) => ((addVariant = v), (editing = `catalog:${item.id}`))}
 			/>
 			{#if editing === `catalog:${item.id}`}
@@ -461,7 +485,7 @@
 {/if}
 
 {#if section === "tables"}
-<ReferenceTables {sex} {bedtime} totals={substanceTotals(active.map((e) => ({ name: e.note.name, catalog: e.note.catalog, dose: e.note.dose, unit: e.note.unit, ingredients: e.note.ingredients })))} />
+<ReferenceTables {sex} {bedtime} {medications} {totals} />
 <ElectrolyteTable {weightKg} {sex} />
 <AminoAcidTable {weightKg} owned={active.map((e) => ({ name: e.note.name, catalog: e.note.catalog }))} />
 {/if}
