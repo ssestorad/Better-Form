@@ -4,6 +4,7 @@
 
 import type { EvidenceLevel } from "../model/constants";
 import type { Source } from "./sourceTypes";
+import { BOOK_SOURCES } from "./sources/books";
 import { CORE_SOURCES } from "./sources/core";
 import { RESEARCH_SOURCES } from "./sources/research";
 import { SUPPLEMENT_SOURCES } from "./sources/supplements";
@@ -15,7 +16,7 @@ import { LOCALES } from "../locales";
 export { STUDY_KIND_LABELS, type Source, type StudyKind } from "./sourceTypes";
 
 /** Části katalogu – ID se mezi nimi nesmí opakovat (hlídá test). */
-export const SOURCE_PARTS = [CORE_SOURCES, SUPPLEMENT_SOURCES, RESEARCH_SOURCES, MORE_SUPPLEMENT_SOURCES, VARIANT_SOURCES] as const;
+export const SOURCE_PARTS = [CORE_SOURCES, SUPPLEMENT_SOURCES, RESEARCH_SOURCES, MORE_SUPPLEMENT_SOURCES, VARIANT_SOURCES, BOOK_SOURCES] as const;
 
 export const SOURCES = {
 	...CORE_SOURCES,
@@ -23,6 +24,7 @@ export const SOURCES = {
 	...RESEARCH_SOURCES,
 	...MORE_SUPPLEMENT_SOURCES,
 	...VARIANT_SOURCES,
+	...BOOK_SOURCES,
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

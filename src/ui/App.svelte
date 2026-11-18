@@ -32,6 +32,13 @@
 	});
 	const visible = $derived(TABS.filter((x) => (basic ? x.id === "basic" || x.id === "settings" : x.id !== "basic")));
 	const active = $derived(visible.find((x) => x.id === $tab) ?? visible[0]!);
+
+	/** Text chyby pro hlášení: verze pluginu, zpráva a začátek výpisu volání. */
+	function errorText(error: unknown): string {
+		const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+		const stack = error instanceof Error && error.stack ? error.stack.split("\n").slice(1, 6).join("\n") : "";
+		return [`Better Form ${plugin.manifest.version} · ${active.id}`, message, stack].filter((part) => part !== "").join("\n");
+	}
 </script>
 
 <div class="bf-app">
@@ -61,35 +68,54 @@
 	</div>
 
 	<div class="bf-tab-content">
-		{#if active.id === "basic"}
-			<BasicTab />
-		{:else if active.id === "today"}
-			<TodayTab />
-		{:else if active.id === "log"}
-			<LogTab />
-		{:else if active.id === "plan"}
-			<PlanTab />
-		{:else if active.id === "overview"}
-			<OverviewTab />
-		{:else if active.id === "programs"}
-			<ProgramsTab />
-		{:else if active.id === "body"}
-			<BodyTab />
-		{:else if active.id === "skills"}
-			<SkillsTab />
-		{:else if active.id === "goals"}
-			<GoalsTab />
-		{:else if active.id === "supplements"}
-			<SupplementsTab />
-		{:else if active.id === "nutrition"}
-			<NutritionTab />
-		{:else if active.id === "settings"}
-			<SettingsTab />
-		{/if}
+		<!-- Chyba při vykreslení karty se ukáže místo prázdné plochy (na telefonu není vidět konzole). -->
+		{#key active.id}
+			<svelte:boundary onerror={(error) => console.error("Better Form:", error)}>
+				{#if active.id === "basic"}
+					<BasicTab />
+				{:else if active.id === "today"}
+					<TodayTab />
+				{:else if active.id === "log"}
+					<LogTab />
+				{:else if active.id === "plan"}
+					<PlanTab />
+				{:else if active.id === "overview"}
+					<OverviewTab />
+				{:else if active.id === "programs"}
+					<ProgramsTab />
+				{:else if active.id === "body"}
+					<BodyTab />
+				{:else if active.id === "skills"}
+					<SkillsTab />
+				{:else if active.id === "goals"}
+					<GoalsTab />
+				{:else if active.id === "supplements"}
+					<SupplementsTab />
+				{:else if active.id === "nutrition"}
+					<NutritionTab />
+				{:else if active.id === "settings"}
+					<SettingsTab />
+				{/if}
+				{#snippet failed(error, reset)}
+					<div class="bf-card bf-tab-error" role="alert">
+						<strong>{t("This tab couldn't be displayed.")}</strong>
+						<p class="bf-small">{t("Please send this text to the plugin's author:")}</p>
+						<pre class="bf-small">{errorText(error)}</pre>
+						<button type="button" onclick={reset}>{t("Try again")}</button>
+					</div>
+				{/snippet}
+			</svelte:boundary>
+		{/key}
 	</div>
 </div>
 
 <style>
+	.bf-tab-error pre {
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		user-select: text;
+	}
+
 	.bf-app {
 		display: flex;
 		flex-direction: column;

@@ -257,7 +257,8 @@ export function copyItems(items: readonly PlanItem[], fromWeek: string, toWeek: 
 	const shift = daysBetween(fromWeek, toWeek);
 	const out: PlanItem[] = [];
 	for (const item of items) {
-		out.push({ ...item, id: nextItemId([...existing, ...out]), date: addDays(item.date, shift) });
+		// Kopie položky z kalendáře je už vlastní – synchronizace ji nesmí smazat.
+		out.push({ ...item, id: nextItemId([...existing, ...out]), date: addDays(item.date, shift), source: undefined, uid: undefined });
 	}
 	return out;
 }

@@ -124,7 +124,7 @@ describe("obsah podle jazyka", () => {
 		expect(czech.description).toBe(english.description);
 		expect(czech.technique).toBe(english.technique);
 		expect(czech.mistakes).toBe("- Moje vlastní poznámka");
-		expect((czech.progression as { ladder: string }).ladder).toBe("[[Push-up – progression]]");
+		expect((czech.progression as { ladder: string }).ladder).toBe("Push-up – progression");
 		// Podruhé už není co měnit.
 		expect(translateExerciseFrontmatter(czech, "push-up", "en")).toBe(false);
 	});

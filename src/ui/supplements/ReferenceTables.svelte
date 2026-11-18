@@ -81,7 +81,7 @@
 		{/each}
 	</div>
 	<ul class="bf-muted bf-small bf-ref-list">
-		<li>{t("Reference values for adults according to EFSA; AI = adequate intake where data aren't enough for a recommended intake. Hover over a row for details.")}</li>
+		<li>{t("Reference values for adults according to EFSA; AI = adequate intake where data aren't enough for a recommended intake. Hover over or tap a row for details.")}</li>
 		{#if sex === null}<li>{t("Set your sex in your profile – where men and women differ, the table now shows both.")}</li>{/if}
 		<li>{t("The upper limit applies to everything including food; * = only to supplements (magnesium). Food usually covers part of the recommended intake – the supplement column isn't your whole intake.")}</li>
 		<li>{t("Supplements whose dose is in capsules or tablets without an ingredient list can't be added up.")}</li>
@@ -136,7 +136,7 @@
 			</div>
 		{/each}
 	</div>
-	<p class="bf-muted bf-small">{t("“At once” and “a day” = how many servings fit within the limit. Caffeine content of coffee and chocolate varies a lot.")}</p>
+	<p class="bf-muted bf-small">{t("“At once” and “a day” = how many servings fit within the limit. Caffeine content of coffee and chocolate varies a lot.")} {t("Monster Energy: 32 mg per 100 ml according to the can's label.")}</p>
 	<h5>{t("Before sleep")}</h5>
 	<ul class="bf-small bf-ref-list">
 		{#each CAFFEINE_BEFORE_BED as gap (gap.mg)}

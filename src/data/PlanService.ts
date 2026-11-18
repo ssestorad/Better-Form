@@ -23,6 +23,7 @@ import { SCHEMA_VERSION, type DayOffReason, type PlanIntensity, type Sport } fro
 import { addDays, daysBetween, isIsoDate, startOfWeek } from "../model/dates";
 import { MAX_PLAN_KM, MAX_PLAN_MINUTES, parsePlanItem, parsePlanItems, parsePlanOff } from "../model/parse";
 import { planItemToFrontmatter } from "../model/serialize";
+import type { ExternalPlanItem } from "../calc/plannedImport";
 import type { PlanDayOff, PlanItem, PlanNote, WorkoutNote } from "../model/types";
 import type { BetterFormSettings } from "../settings/settings";
 import type { FormaIndex, IndexEntry } from "./FormaIndex";
@@ -314,12 +315,14 @@ export class PlanService {
 		if (item.id.startsWith("program:")) throw new Error(t("A program day isn't edited in the plan – change the days or workout duration of the program."));
 		const from = startOfWeek(item.date);
 		const to = startOfWeek(draft.date);
+		// Položka z kalendáře zůstane jeho – další synchronizace ji aktualizuje místo zdvojení.
+		const origin = item.source && item.uid ? { source: item.source, uid: item.uid } : {};
 		if (from === to) {
-			await this.mutate(from, (items) => items.map((i) => (i.id === item.id ? planItemFromDraft(draft, i.id) : i)));
+			await this.mutate(from, (items) => items.map((i) => (i.id === item.id ? { ...planItemFromDraft(draft, i.id), ...origin } : i)));
 			return;
 		}
 		// Nejdřív zapsat na nové místo – při chybě položka zůstane aspoň na původním.
-		await this.mutate(to, (items) => [...items, planItemFromDraft(draft, nextItemId(items))]);
+		await this.mutate(to, (items) => [...items, { ...planItemFromDraft(draft, nextItemId(items)), ...origin }]);
 		await this.mutate(from, (items) => items.filter((i) => i.id !== item.id));
 	}
 
@@ -341,6 +344,41 @@ export class PlanService {
 	async remove(item: PlanItem): Promise<void> {
 		if (item.id.startsWith("program:")) throw new Error(t("A program day isn't removed from the plan – pause the program or remove its workout duration."));
 		await this.mutate(startOfWeek(item.date), (items) => items.filter((i) => i.id !== item.id));
+	}
+
+	/**
+	 * Převezme plán z kalendáře jiné aplikace: položky zdroje `source` od dneška dál
+	 * nahradí aktuálními (stejné `uid` si nechá id), minulé a vlastní položky nechá být.
+	 * Zapisuje jen týdny, kde se něco mění.
+	 */
+	async syncExternal(source: string, incoming: readonly ExternalPlanItem[], today: string): Promise<{ added: number; updated: number; removed: number }> {
+		const result = { added: 0, updated: 0, removed: 0 };
+		const isOurs = (i: PlanItem) => i.source === source && i.uid !== undefined && i.date >= today;
+		const weeks = new Set(incoming.filter((i) => i.date >= today).map((i) => startOfWeek(i.date)));
+		for (const entry of this.index.all("plan")) if (entry.note.items.some(isOurs)) weeks.add(entry.note.week);
+		for (const week of [...weeks].sort()) {
+			const fresh = incoming.filter((i) => i.date >= today && startOfWeek(i.date) === week);
+			const before = this.items(week).filter(isOurs);
+			const same = (a: PlanItem, b: ExternalPlanItem) => JSON.stringify(planItemToFrontmatter({ ...a, id: "" })) === JSON.stringify(planItemToFrontmatter({ ...b, id: "" }));
+			const unchanged = before.length === fresh.length && fresh.every((f) => before.some((b) => b.uid === f.uid && same(b, f)));
+			if (unchanged) continue;
+			await this.mutate(week, (items) => {
+				const kept = items.filter((i) => !isOurs(i));
+				const old = new Map(items.filter(isOurs).map((i) => [i.uid, i]));
+				const next = [...kept];
+				for (const f of fresh) {
+					const previous = old.get(f.uid);
+					if (previous) {
+						if (!same(previous, f)) result.updated++;
+						old.delete(f.uid);
+					} else result.added++;
+					next.push({ ...f, id: previous?.id ?? nextItemId([...next, ...items]) });
+				}
+				result.removed += old.size;
+				return next;
+			});
+		}
+		return result;
 	}
 
 	/** Zkopíruje položky z jednoho týdne do druhého (přidá k těm, které tam už jsou); vrací počet. */

@@ -20,7 +20,8 @@ export const DAILY_FIELD_LABELS: Record<DailyField, string> = translated({
 	weight_kg: "weight",
 });
 
-export type DailyRow = { date: string } & Partial<Record<DailyField, number>>;
+/** Řádek dne; časy usnutí a probuzení (HH:MM) se doplní jen spolu s délkou spánku. */
+export type DailyRow = { date: string; sleep_onset?: string; wake?: string } & Partial<Record<DailyField, number>>;
 
 export interface ParsedDaily {
 	/** Jeden řádek na den, od nejstaršího. */

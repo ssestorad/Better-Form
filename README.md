@@ -5,10 +5,10 @@
 **A training log for [Obsidian](https://obsidian.md) that shows where its advice comes from.** Log a workout in a minute and a morning check-in in half a minute. The plugin turns them into readiness for the day, recommendations, a weekly plan and a suggested daily intake – and every number comes with its source.
 
 - **Your data stays yours.** Every workout and every day is a plain Markdown note in your vault, readable without the plugin. Offline, no account, no telemetry, no ads.
-- **Advice you can check.** Every recommendation and calculation shows its source and whether it rests on research, consensus or coaching practice – 917 verified sources.
+- **Advice you can check.** Every recommendation and calculation shows its source and whether it rests on research, consensus or coaching practice – 953 verified sources, including 30 coaching and sports nutrition books.
 - **Training, recovery and nutrition in one place.** Gym, calisthenics, kettlebell, running, swimming and jump rope; readiness from sleep, HRV and training load; a suggested intake that never drops below your resting energy expenditure.
 
-> **Status:** version 0.4.0, in the community plugin directory, in development. Calculations are covered by automated tests, but only part of the features has been tried in Obsidian so far – see [Testing status](#testing-status). The interface is in English and Czech.
+> **Status:** version 0.5.0, in the community plugin directory, in development. It runs on desktop and mobile. Calculations are covered by automated tests, but only part of the features has been tried in Obsidian so far, and on a phone only a few – see [Testing status](#testing-status). The interface is in English and Czech.
 
 ## Screenshots
 
@@ -16,7 +16,7 @@ Sample data, light theme. Czech screenshots are in [README.cs.md](README.cs.md).
 
 | Today | Weekly plan |
 |---|---|
-| <img src="docs/screenshots/today.jpg" alt="Today tab: morning check-in with a radar chart of how you feel against the last 14 days, and readiness with its breakdown" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: the week day by day with item status and summary" width="400"> |
+| <img src="docs/screenshots/today.jpg" alt="Today tab: morning check-in with a radar chart of how you feel against the last 14 days, and readiness with its breakdown" width="400"> | <img src="docs/screenshots/plan.jpg" alt="Plan tab: a race card with a two-week taper, the week day by day with runs from Runna and their target paces, and the week summary" width="400"> |
 
 | Logging a workout | Body |
 |---|---|
@@ -30,9 +30,9 @@ Sample data, light theme. Czech screenshots are in [README.cs.md](README.cs.md).
 |---|---|
 | <img src="docs/screenshots/badges.jpg" alt="Badges in four groups: running, strength for your body weight, calisthenics and consistency, with dates and progress" width="400"> | <img src="docs/screenshots/supplements.jpg" alt="Supplement catalog: protein expanded with the whey isolate type selected, evidence grades per benefit area, dosing for body weight and risks" width="400"> |
 
-| Supplement safety |
-|---|
-| <img src="docs/screenshots/supplement-safety.jpg" alt="Supplements tab warning: your supplements against the medication you take and combinations that don't go together, each with what the studies found, what to do and the source" width="400"> |
+| Supplement safety | Training paces |
+|---|---|
+| <img src="docs/screenshots/supplement-safety.jpg" alt="Supplements tab warning: your supplements against the medication you take and combinations that don't go together, each with what the studies found, what to do and the source" width="400"> | <img src="docs/screenshots/paces.jpg" alt="Records with a race time prediction and training paces by Daniels: easy, marathon, threshold, interval and repetition pace, with limits on fast running based on weekly volume" width="400"> |
 
 ## Getting started
 
@@ -47,6 +47,14 @@ Reports fill up gradually; until there's enough data you'll see "collecting data
 
 **Manual install:** download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/ssestorad/Better-Form/releases/latest) (or build them, see [Development](#development)), copy them to `<vault>/.obsidian/plugins/better-form/` and turn on **Better Form** in Settings → Community plugins.
 
+### On your phone
+
+The plugin works on Obsidian for Android and iOS; on a phone the panel usually opens in the side drawer.
+
+- **Tap instead of hover:** where the desktop shows extra information when you hover over something (a record's date, a table row's details), tap it on the phone – the text appears as a notice.
+- **Strava** signs in by pasting a code instead of the local server the desktop uses; the settings walk you through it. Garmin Connect, Runna and imports from a file work the same as on desktop.
+- **If a tab can't be displayed,** you'll see a box with the error text instead of an empty tab – send it to the author ([an issue on GitHub](https://github.com/ssestorad/Better-Form/issues)), it says exactly what failed.
+
 ## What's on each tab
 
 The panel has one tab per area. The **Exercise library** button next to every tab's title opens the library from anywhere, every setting can be found through Obsidian's settings search, and the main actions are in the command palette (Ctrl+P) too.
@@ -60,22 +68,25 @@ The panel has one tab per area. The **Exercise library** button next to every ta
 
 ### Log
 
-- **Workouts** – gym, calisthenics, kettlebell, running, swimming, jump rope. Sets, holds, EMOM, AMRAP, ladders, complexes, supersets; warm-up, drop sets and sets to failure; templates and "same as last time" with a suggested progression; a plate calculator with a suggested warm-up.
-- **Runs to complete** – runs imported from a file or Strava, waiting for RPE, run type and shoes.
+- **Workouts** – gym, calisthenics, kettlebell, running, swimming, jump rope. Sets, holds, EMOM, AMRAP, ladders, complexes, supersets; warm-up, drop sets and sets to failure; templates (including stretching after a run, after strength training and a mobility routine) and "same as last time" with a suggested progression; a plate calculator with a suggested warm-up.
+- **Runs to complete** – runs imported from a file, Garmin Connect or Strava, waiting for RPE, run type and shoes.
 - **Exercise library** – 268 exercises with technique, common mistakes, muscles worked, the equipment they need (with a filter) and **substitutes** for the same muscles when a machine is taken. Every exercise has a history of your results with a chart; you can add your own.
 
 ### Plan
 
-- **The week day by day** – workouts planned ahead and ticked off automatically from what you log, including days of active programs.
+- **The week day by day** – workouts planned ahead and ticked off automatically from what you log, including days of active programs; for programs that alternate workouts the plan shows which one is due (workout A, B or C).
+- **Plan from Runna** – your Runna training plan for the next 4 weeks, loaded from its calendar link (it works with other coaching apps that offer an iCal link too).
+- **Target pace** for planned runs by Jack Daniels from your latest record – easy, threshold, interval or repetition pace by the workout's name and intensity.
+- **Race taper** – when a race time goal has a date within 3 weeks, the plan shows how to taper for the last 2 weeks: running volume gradually down by 41–60 % with the intensity and number of runs kept, and how much you have planned.
 - **Load outlook** against the last four weeks, and a warning for a planned run that's much longer than usual.
 - **Rest, illness and vacation** only postpone items and don't break streaks.
-- **To calendar** saves the week as an `.ics` file for Google, Outlook or Apple Calendar; importing it again updates the events instead of duplicating them.
+- **To calendar** saves the week as an `.ics` file for Google, Outlook or Apple Calendar; importing it again updates the events instead of duplicating them. Workouts loaded from Runna are left out – they're already in your calendar.
 
 ### Overview
 
 - **Summary** – week, month and year in numbers, a 12-month workout calendar, streaks (completed weeks in a row) and 22 badges for running, strength for your body weight, calisthenics and consistency; monthly and yearly summary notes.
 - **Charts** – load, fitness and fatigue; running pace and cadence; estimated 1RM; sleep and load with the last 7 nights (sleep debt and how regular your sleep times are – set the target under Advanced → HRV and sleep); weight; HRV.
-- **Records** and a race time prediction.
+- **Records**, a race time prediction and **training paces** by Jack Daniels (easy, marathon, threshold, interval and repetition pace from the selected record) with limits on fast running based on your weekly volume.
 - **Running** – heart-rate zones, the 80/20 intensity split, shoes and their mileage.
 
 ### Body
@@ -87,7 +98,7 @@ The panel has one tab per area. The **Exercise library** button next to every ta
 ### Skills, Programs and Goals
 
 - **Skills** – calisthenics progressions: pull-ups, push-ups, pistol squat, handstand, front lever, planche…
-- **Programs** – your own and 11 built-in ones (Basic 4, Couch to 5K, Zero to your first pull-up, 100 push-ups a day, Grease the groove, kettlebell, jump rope…), a daily counter and max tests. A program can also be created from a file or pasted text.
+- **Programs** – your own and 13 built-in ones (Basic 4, Couch to 5K, Zero to your first pull-up, 100 push-ups a day, Grease the groove, Novice strength 3×5, Kettlebell – Program Minimum, jump rope…), a daily counter and max tests. Workouts can alternate in order – A/B or A/B/C – whatever the day of the week. A program can also be created from a file or pasted text.
 - **Goals and standards** – time over a distance, strength, reps, weight or your own standards tables, with a forecast from your trend.
 
 ### Nutrition
@@ -117,18 +128,19 @@ Every recommendation and calculation shows its source and an evidence label:
 - **consensus** – position stands of professional bodies,
 - **practice** – an established coaching heuristic without its own study.
 
-A heuristic is never presented as research. The catalog has 917 sources, each checked against the original paper before it was added.
+A heuristic is never presented as research. The catalog has 953 sources, each checked against the original publication before it was added. Books are labeled practice, and each says how its content was checked – in the text of the book (search inside a library copy), by its table of contents or by the publisher's description.
 
-**What the research says** cards summarize 35 topics – what the studies found, what to take into training, and the studies themselves. You'll find them where they matter:
+**What the research says** cards summarize 34 topics – what the studies found, what to take into training, and the studies themselves – and **Coaching practice** cards summarize 8 more from coaching books. You'll find them where they matter:
 
 | Where | Topics |
 |---|---|
-| Exercise detail | volume and frequency, technique and tempo, rest between sets, the exercise itself (squat, deadlift, push, pull, glutes, kettlebell, core, range of motion); for mobility exercises warm-up and stretching, flexibility |
+| Exercise detail | volume and frequency, technique and tempo, rest between sets, the exercise itself (squat, deadlift, push, pull, glutes, kettlebell, core, range of motion); for mobility exercises warm-up and stretching, flexibility. Practice: set techniques (drop sets, supersets, pre-exhaustion…) and three ways to build strength for gym exercises, bodyweight progressions for calisthenics, compensation exercises for mobility exercises, plank, side plank and bird dog |
 | Programs | e.g. Couch to 5K: starting to run, strength training for runners, running injuries |
-| Overview → Charts | training load and injury risk, strength training and health, sleep and training, morning or evening training, HRV-guided training |
+| Overview → Charts | training load and injury risk, strength training and health, sleep and training, morning or evening training, HRV-guided training; practice: load, recovery and supercompensation |
 | Overview → Running | 80/20 running, strength training for runners, strength and endurance together, HIIT versus steady cardio, running injuries |
 | Today | the menstrual cycle (when the profile is set to female) |
-| Nutrition | protein, losing fat without losing muscle (with the goal "Lose weight"), steps and health, alcohol, hydration |
+| Nutrition | protein, losing fat without losing muscle (with the goal "Lose weight"), steps and health, alcohol, hydration; practice: energy availability |
+| Supplements → Library | practice: food first, evidence and contaminated supplements (from sports nutrition textbooks) |
 | Body | recovery methods, training with pain |
 
 ## Importing and exporting
@@ -143,9 +155,23 @@ The **From file** button on the Today or Log tab, or the "Import run from file (
 
 The plugin reads the date and time, distance, moving time, heart rate and cadence (if the file has them), elevation gain and fastest splits from 1 km to the marathon. The same file twice is skipped, and a run you logged by hand on the same day with the same distance just gets the measured data added. Distances come from GPS positions and can differ from the app by a few percent.
 
+### Garmin Connect
+
+Garmin lets you create a free personal key for reading your own data (Garmin Connect on the web → Personal API Key); the plugin settings under Import data → Garmin Connect walk you through it. **Sync Garmin** on the Today or Log tab then brings in:
+
+- **daily data** – steps, sleep duration and the times you fell asleep and woke up, resting heart rate and weight; only what's missing in the journal is filled in,
+- **runs** – downloaded as FIT files, with heart rate, cadence and fastest splits; a run already in the journal (from Strava or logged by hand) isn't duplicated,
+- **HRV** only if you turn it on – the watch measures an overnight average, which is a different measurement from a morning reading (Elonga, a chest strap), and mixing them would spoil your personal normal range.
+
+Access is read-only, sync only runs when you start it, it works on mobile too, and the key stays in the plugin's `data.json` in your vault. A key is valid for up to a year; when it expires, create a new one.
+
+### Runna
+
+Runna has no public API, but it shares your plan as a private calendar link (Runna → Profile → Connected Apps & Devices → Calendars → Other Calendar). Paste it into the plugin settings under Import data → Runna; **Runna** on the Plan tab then loads the next 4 weeks into your week plan. Planned workouts from Runna are updated on every sync, past days and your own items stay as they are, and completed runs come from Garmin or Strava as usual – so they tick off the plan, count towards the load outlook and trigger the warning for a much longer run. Distance and duration are read from the workout name. The link stays in the plugin's `data.json` in your vault; anyone who has it can see your plan.
+
 ### Strava sync
 
-Since June 2026 Strava only lets accounts with a **paid subscription** create an API application. If you have one, the settings walk you through creating it and connecting your account. Sync only runs when you start it, and the credentials stay in the plugin's `data.json` in your vault.
+Since June 2026 Strava only lets accounts with a **paid subscription** create an API application. If you have one, the settings walk you through creating it and connecting your account. Sync only runs when you start it, and the credentials stay in the plugin's `data.json` in your vault. Sync has been tried against a real account, including on a phone.
 
 ### Other data
 
@@ -169,7 +195,7 @@ Better Form/
 - Folder names can be changed in the settings. Vaults created by version 0.2 or older keep their Czech `Forma/` folders.
 - The plugin **never rewrites your own text** – generated content goes only between `<!-- forma:start -->` and `<!-- forma:end -->`. It changes only its own notes, and in them only the frontmatter and the generated block.
 - Deleting from the interface moves notes to the trash according to Obsidian's settings, never permanently.
-- **Network:** the plugin works offline and sends nothing. The only connection is the optional Strava sync (`www.strava.com`), which runs only when you start it; on desktop it briefly starts a local server on `127.0.0.1` during sign-in, on mobile you paste the code by hand.
+- **Network:** the plugin works offline and sends nothing. The only connections are the optional Garmin Connect sync (`personal.connectapi.garmin.com`, read-only), the Runna calendar (the link you paste, read-only) and Strava sync (`www.strava.com`), and all run only when you start them. During Strava sign-in on desktop the plugin briefly starts a local server on `127.0.0.1`; on mobile you paste the code by hand.
 - Nothing is read or written outside the vault – you pick imported files yourself, and exports and backups are saved into the vault. The clipboard is used only when you click **Export** on a program card or **Paste from clipboard** in program import.
 
 ## Language
@@ -186,9 +212,11 @@ The interface is in English and Czech. On first run it follows Obsidian's langua
 
 **Tried in Obsidian on desktop:** workout logging (including templates), the body figure, check-in and the daily note, the weekly plan, Overview, deleting; the Supplements tab including types, medication interactions, combinations, the section for athletes and the personal test with performance; the exercise library button, equipment filter and substitutes; the check-in radar chart, badges, sleep debt and regularity; the settings page rebuilt for Obsidian 1.13; GPX import from Strava; the warning for a much longer run, the cadence chart and the calendar export; the English interface and "Translate notes" on an existing Czech vault.
 
-**Only automated tests and a preview:** the Nutrition tab, monthly and yearly summaries; TCX, FIT and heart rate or cadence from a file, daily data from CSV and history from Strong and Hevy (on hand-built files only).
+**Tried on a phone (iPhone):** Strava sync against the real API, the first-run guide and the Nutrition tab. On the phone some tabs (Today, Plan, Supplements) showed up empty – version 0.5.0 shows the error text in that case, so the cause can be found and fixed.
 
-**Not tried yet:** Strava sync against the real API, use on mobile.
+**Only automated tests and a preview:** the Nutrition tab, monthly and yearly summaries; TCX, FIT and heart rate or cadence from a file, daily data from CSV and history from Strong and Hevy (on hand-built files only); training paces, alternating workouts A/B/C, the new programs Novice strength 3×5 and Kettlebell – Program Minimum, and the Coaching practice cards (only automated tests); the plan from a calendar link, target paces in the plan and the race taper (automated tests and a preview).
+
+**Not tried yet:** Garmin Connect sync against the real API, the plan from a real Runna calendar, the other tabs on a phone.
 
 ## Development
 
@@ -200,6 +228,7 @@ npm run dev        # rebuilds on every change; with VAULT_PATH in .env.local it 
 npm run build      # type check + production build
 npm test           # tests (Vitest)
 npm run deploy     # build + copy main.js, manifest.json, styles.css to <vault>/.obsidian/plugins/better-form/
+npm run preview    # browser preview of selected screens with sample data (tools/preview)
 ```
 
 To deploy, copy `.env.local.example` to `.env.local` and fill in `VAULT_PATH`. `.env.local` is never committed.
@@ -214,7 +243,8 @@ To deploy, copy `.env.local.example` to `.env.local` and fill in `VAULT_PATH`. `
 | `src/locales/` | one folder per language (key = English text or built-in content id) and the language registry |
 | `src/seed/` | exercise library, programs, templates, supplement catalog, research – English source with stable ids |
 | `src/ui/` | interface (Svelte 5) |
-| `tests/` | tests, including the data layer over an in-memory vault |
+| `tests/` | tests, including the data layer over an in-memory vault and syncs against a fake server |
+| `tools/preview/` | browser preview of selected screens with sample data, for checking the layout and making screenshots |
 
 Every push to `main` runs tests, the type check and the build on GitHub Actions.
 

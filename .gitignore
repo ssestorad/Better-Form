@@ -21,3 +21,6 @@ SPEC.md
 
 # Graf projektu (graphify) – jen lokálně
 graphify-out/
+
+# Náhled obrazovek – sestavení a snímky
+tools/preview/dist/

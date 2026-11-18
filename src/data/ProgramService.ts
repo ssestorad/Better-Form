@@ -13,7 +13,7 @@ import {
 	tasksForDate,
 	type ProgramTask,
 } from "../calc/programTasks";
-import { planForDate, programWeek } from "../calc/programs";
+import { planForDate, programWeek, workoutSlotForDate } from "../calc/programs";
 import { describeTarget } from "../calc/programText";
 import { SCHEMA_VERSION, type PlanIntensity, type Sport } from "../model/constants";
 import { MAX_PLAN_MINUTES, parseProgram } from "../model/parse";
@@ -97,6 +97,12 @@ const FRESH_MS = 5000;
 /** Název tréninku režimu Základ (data jsou anglicky); páruje se i s názvem v jiném jazyce ze starších vaultů. */
 export const BASIC_TITLE = "Basic";
 const BASIC_TITLES = new Set(LANGUAGES.map((language) => tIn(language, BASIC_TITLE)));
+
+/** Text dne programu; u střídajících se tréninků s označením, např. „Trénink A: Dřep 3×5, …“. */
+function workoutText(program: ProgramNote, date: string, tasks: string): string {
+	const slot = workoutSlotForDate(program, date);
+	return slot ? t("Workout {v}: {v2}", { v: slot.toUpperCase(), v2: tasks }) : tasks;
+}
 
 export class ProgramService {
 	private readonly fresh = new Map<string, FreshCounter>();
@@ -190,7 +196,7 @@ export class ProgramService {
 					file: entry.file,
 					sport: this.sportFor(first.exercise),
 					done: loggable.length > 0 ? session !== undefined || loggable.every((x) => x.done) : tasks.every((x) => x.done),
-					text: tasks.map((x) => `${x.exercise} ${describeTarget(x.target)}`).join(", "),
+					text: workoutText(entry.note, date, tasks.map((x) => `${x.exercise} ${describeTarget(x.target)}`).join(", ")),
 					loggable: loggable.length > 0,
 				};
 				if (loggable.length > 0 && entry.note.session_min !== undefined) day.sessionMin = entry.note.session_min;

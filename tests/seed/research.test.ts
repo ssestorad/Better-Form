@@ -43,13 +43,13 @@ describe("výzkum u cviků a programů", () => {
 	});
 
 	it("témata ke cviku: konkrétní a u silových i obecné principy", () => {
-		expect(topicsForExercise("bench press", "strength").map((t) => t.id)).toEqual(["push", "training", "technique", "rest_intervals"]);
-		expect(topicsForExercise("Leg curl", "strength").map((t) => t.id)).toEqual(["range_of_motion", "training", "technique", "rest_intervals"]);
-		expect(topicsForExercise("Plank", "calisthenics").map((t) => t.id)).toEqual(["core", "training", "technique", "rest_intervals"]);
+		expect(topicsForExercise("bench press", "strength").map((t) => t.id)).toEqual(["push", "training", "technique", "rest_intervals", "set_techniques", "strength_methods"]);
+		expect(topicsForExercise("Leg curl", "strength").map((t) => t.id)).toEqual(["range_of_motion", "training", "technique", "rest_intervals", "set_techniques", "strength_methods"]);
+		expect(topicsForExercise("Plank", "calisthenics").map((t) => t.id)).toEqual(["core", "compensation_exercise", "training", "technique", "rest_intervals", "bodyweight_basics"]);
 		expect(topicsForExercise("Běh", "cardio")).toEqual([]);
-		expect(topicsForExercise("Hamstring stretch", "mobility").map((t) => t.id)).toEqual(["warmup_stretching", "flexibility"]);
+		expect(topicsForExercise("Hamstring stretch", "mobility").map((t) => t.id)).toEqual(["warmup_stretching", "flexibility", "compensation_exercise"]);
 		expect(topicsForProgram("Od gauče k 5 km").map((t) => t.id)).toEqual(["novice_running", "runners_strength", "running_injuries"]);
-		expect(topicsForProgram("Deload week").map((t) => t.id)).toEqual(["deload", "maintaining"]);
+		expect(topicsForProgram("Deload week").map((t) => t.id)).toEqual(["deload", "maintaining", "training_theory", "compensation_exercise"]);
 		expect(topicsForProgram("Vlastní program")).toEqual([]);
 	});
 

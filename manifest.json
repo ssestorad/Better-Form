@@ -1,7 +1,7 @@
 {
 	"id": "better-form",
 	"name": "Better Form",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"minAppVersion": "1.13.0",
 	"description": "Log workouts, track recovery and get daily training and nutrition recommendations. Your data stays in plain Markdown notes.",
 	"author": "ssestorad",

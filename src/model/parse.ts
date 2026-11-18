@@ -668,6 +668,7 @@ function parseProgramItem(value: unknown): ProgramItem | null {
 		exercise,
 		target,
 		days: days.length > 0 ? days : undefined,
+		alternate: raw.alternate === "a" || raw.alternate === "b" || raw.alternate === "c" ? raw.alternate : undefined,
 		schedule: schedule.length > 0 ? schedule : undefined,
 		max_from: maxFrom.length > 0 ? maxFrom : undefined,
 	});
@@ -910,6 +911,8 @@ export function parsePlanItem(value: unknown, week: string, index: number): Plan
 		intensity: asOneOf(raw.intensity, PLAN_INTENSITIES) ?? "mid",
 		distance_km: sport === "run" && distance !== undefined && distance > 0 && distance <= MAX_PLAN_KM ? distance : undefined,
 		notes: asNonEmptyString(raw.notes),
+		source: asNonEmptyString(raw.source),
+		uid: asNonEmptyString(raw.uid),
 	});
 }
 

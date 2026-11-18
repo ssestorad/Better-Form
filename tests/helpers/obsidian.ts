@@ -77,3 +77,49 @@ export class PluginSettingTab {
 	) {}
 	update(): void {}
 }
+
+// ---------- Síť: podvržený requestUrl ----------
+
+export interface FakeRequest {
+	url: string;
+	method?: string;
+	headers?: Record<string, string>;
+	body?: string | ArrayBuffer;
+	throw?: boolean;
+}
+
+export interface FakeResponse {
+	status: number;
+	text?: string;
+	json?: unknown;
+	arrayBuffer?: ArrayBuffer;
+}
+
+let requestHandler: ((request: FakeRequest) => FakeResponse | Promise<FakeResponse>) | null = null;
+/** Všechny požadavky od posledního `setRequestHandler`. */
+export const requestLog: FakeRequest[] = [];
+
+/** Nastaví odpovědi „serveru“; handler může vyhodit chybu (výpadek sítě). */
+export function setRequestHandler(handler: ((request: FakeRequest) => FakeResponse | Promise<FakeResponse>) | null): void {
+	requestHandler = handler;
+	requestLog.length = 0;
+}
+
+export async function requestUrl(request: FakeRequest) {
+	requestLog.push(request);
+	if (!requestHandler) throw new Error("requestUrl: v testu není nastavený handler");
+	const response = await requestHandler(request);
+	const text = response.text ?? (response.json !== undefined ? JSON.stringify(response.json) : "");
+	return {
+		status: response.status,
+		text,
+		// Jako v Obsidianu: JSON se čte až při přístupu (text nemusí být JSON).
+		get json(): unknown {
+			return response.json ?? (JSON.parse(text) as unknown);
+		},
+		arrayBuffer: response.arrayBuffer ?? new TextEncoder().encode(text).buffer,
+		headers: {},
+	};
+}
+
+export const Platform = { isDesktop: true, isDesktopApp: true, isMobile: false };

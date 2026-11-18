@@ -245,6 +245,12 @@ describe("programy v plánu týdne", () => {
 		expect(view.outlook).toMatchObject({ actual: 0, planned: 640, expected: 640 });
 	});
 
+	it("střídání tréninků A/B: plán ukáže, který trénink na den připadá", () => {
+		w.vault.write(PROGRAM, program("Síla", { days: ["mon", "wed", "fri"], items: [{ exercise: "[[Kliky]]", target: { sets: 3, reps: 5 } }, { exercise: "[[Shyby]]", alternate: "b", target: { sets: 3, reps: 5 } }], session_min: 40 }));
+		const texts = w.plans.view(WEEK, TODAY).days.flatMap((d) => d.entries.filter((e) => e.program?.name === "Síla").map((e) => e.program!.text));
+		expect(texts).toEqual(["Trénink A: Kliky 3×5", "Trénink B: Kliky 3×5, Shyby 3×5", "Trénink A: Kliky 3×5"]);
+	});
+
 	it("export do kalendáře: položky, dny programu i počítadlo, stálé UID", async () => {
 		await w.plans.add(run);
 		const events = planEvents(w.plans.view(WEEK, TODAY).days);
@@ -416,5 +422,47 @@ describe("volné dny v plánu týdne", () => {
 			[TODAY, "strength"],
 		]);
 		expect(await w.plans.movePending("2026-10-06", TODAY, TODAY)).toBe(0);
+	});
+});
+
+describe("plán z kalendáře jiné aplikace", () => {
+	const ext = (uid: string, date: string, km: number) => ({ uid, source: "Runna", date, sport: "run" as const, title: `Run ${km} km`, intensity: "mid" as const, distance_km: km });
+
+	it("přidá, aktualizuje a smaže jen budoucí položky zdroje; vlastní a minulé nechá", async () => {
+		await w.plans.add({ date: "2026-10-05", sport: "run", intensity: "low", distanceKm: 5 });
+		await w.plans.add(gym);
+		expect(await w.plans.syncExternal("Runna", [ext("r1", "2026-10-06", 5), ext("r2", TODAY, 6), ext("r3", "2026-10-09", 8), ext("r4", "2026-10-13", 10)], TODAY)).toEqual({ added: 3, updated: 0, removed: 0 });
+		// r1 je před dneškem – nepřevezme se.
+		expect(w.plans.items(WEEK).map((i) => i.uid ?? i.id)).toEqual(["p1", "p2", "r2", "r3"]);
+		expect(w.plans.items("2026-10-12")).toMatchObject([{ uid: "r4", source: "Runna", distance_km: 10 }]);
+		const r3 = w.plans.items(WEEK).find((i) => i.uid === "r3")!.id;
+
+		expect(await w.plans.syncExternal("Runna", [ext("r3", "2026-10-09", 12)], TODAY)).toEqual({ added: 0, updated: 1, removed: 2 });
+		expect(w.plans.items(WEEK).map((i) => i.uid ?? i.id)).toEqual(["p1", "p2", "r3"]);
+		expect(w.plans.items(WEEK).find((i) => i.uid === "r3")).toMatchObject({ id: r3, distance_km: 12 });
+		expect(w.plans.items("2026-10-12")).toEqual([]);
+		expect(planItemTitle(w.plans.items(WEEK)[2]!)).toBe("Běh – Run 12 km (Runna)");
+
+		const changes = w.changes();
+		expect(await w.plans.syncExternal("Runna", [ext("r3", "2026-10-09", 12)], TODAY)).toEqual({ added: 0, updated: 0, removed: 0 });
+		expect(w.changes()).toBe(changes);
+	});
+
+	it("úprava položku zdroji nechá, kopie týdne už ne", async () => {
+		await w.plans.syncExternal("Runna", [ext("r1", "2026-10-09", 8)], TODAY);
+		const item = w.plans.items(WEEK)[0]!;
+		await w.plans.update(item, { date: "2026-10-10", sport: "run", intensity: "low", distanceKm: 7 });
+		expect(w.plans.items(WEEK)[0]).toMatchObject({ uid: "r1", source: "Runna", date: "2026-10-10" });
+		await w.plans.copyWeek(WEEK, "2026-10-12");
+		expect(w.plans.items("2026-10-12")[0]!.source).toBeUndefined();
+	});
+});
+
+describe("export plánu do kalendáře", () => {
+	it("položky z Runny se neexportují – v kalendáři už jsou", async () => {
+		await w.plans.add(run);
+		await w.plans.syncExternal("Runna", [{ uid: "r1", source: "Runna", date: "2026-10-09", sport: "run", title: "Easy Run", intensity: "low", distance_km: 6 }], TODAY);
+		const titles = planEvents(w.plans.view(WEEK, TODAY).days).map((e) => e.title);
+		expect(titles).toEqual(["Běh – Tempo"]);
 	});
 });

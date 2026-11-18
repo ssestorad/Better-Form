@@ -7,7 +7,7 @@ import type { WorkoutNote } from "../model/types";
 import { t } from "../i18n";
 
 /** Kritérium postupu (3×8 opakování / 3×10 s) je trenérská zvyklost. */
-export const SKILL_BASIS: Basis = { sourceIds: ["practice"], evidence: "practice" };
+export const SKILL_BASIS: Basis = { sourceIds: ["low2016", "practice"], evidence: "practice" };
 
 export interface SkillExercise {
 	name: string;

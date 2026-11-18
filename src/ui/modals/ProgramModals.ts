@@ -86,7 +86,7 @@ export class ProgramImportModal extends Modal {
 					try {
 						area.value = await navigator.clipboard.readText();
 					} catch {
-						new Notice(t("Can't read the clipboard – paste the text manually (Ctrl+V)."));
+						new Notice(t("Can't read the clipboard – paste the text into the field yourself."));
 					}
 				}),
 			)

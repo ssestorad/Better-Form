@@ -133,6 +133,27 @@ export interface StravaSettings {
 	activityTypes: string[];
 }
 
+export interface GarminSettings {
+	/** Osobní klíč z Garmin Connect (Personal API); jen v data.json. */
+	apiKey: string;
+	/** Kroky, spánek, klidový tep a váha. */
+	syncDaily: boolean;
+	/** HRV přes noc – jiné měření než ranní HRV (Elonga, hrudní pás), proto vypnuté. */
+	syncHrv: boolean;
+	syncRuns: boolean;
+	/** Kolik dnů zpět stáhnout při první synchronizaci. */
+	initialDays: number;
+	/** Den poslední úspěšné synchronizace (YYYY-MM-DD), prázdné = ještě ne. */
+	lastSync: string;
+}
+
+export interface RunnaSettings {
+	/** Soukromý odkaz na kalendář (iCal) z Runny nebo jiné trenérské aplikace; jen v data.json. */
+	url: string;
+	/** Den poslední úspěšné synchronizace (YYYY-MM-DD), prázdné = ještě ne. */
+	lastSync: string;
+}
+
 export interface BetterFormSettings {
 	settingsVersion: number;
 	/** Složky už byly při prvním spuštění vytvořeny. */
@@ -171,6 +192,8 @@ export interface BetterFormSettings {
 	/** Složka záloh (zip) – relativně k vaultu, mimo kořenovou složku, aby se zálohy nezálohovaly. */
 	backupFolder: string;
 	strava: StravaSettings;
+	garmin: GarminSettings;
+	runna: RunnaSettings;
 }
 
 /** Verze nastavení; při změně výchozích hodnot přidat krok do migrateSettings. */
@@ -315,6 +338,15 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 		initialDays: 90,
 		activityTypes: ["Run", "TrailRun", "VirtualRun"],
 	},
+	garmin: {
+		apiKey: "",
+		syncDaily: true,
+		syncHrv: false,
+		syncRuns: true,
+		initialDays: 30,
+		lastSync: "",
+	},
+	runna: { url: "", lastSync: "" },
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

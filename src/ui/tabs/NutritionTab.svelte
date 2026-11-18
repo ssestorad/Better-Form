@@ -87,9 +87,9 @@
 		void $indexVersion;
 		return weightTrend(weightPoints(plugin.index.all("day").map((e) => e.note)), date);
 	});
-	// Co říká výzkum: bílkoviny, hubnutí bez ztráty svalů (jen při cíli zhubnout), kroky, alkohol a pitný režim.
+	// Co říká výzkum: bílkoviny, hubnutí bez ztráty svalů (jen při cíli zhubnout), kroky, alkohol, pitný režim; trenérská praxe: energetická dostupnost.
 	const topics = $derived(
-		["protein_intake", ...(profile.goal === "lose" ? ["fat_loss"] : []), "steps_health", "alcohol", "hydration"].map(researchTopic).filter((x) => x !== undefined),
+		["protein_intake", ...(profile.goal === "lose" ? ["fat_loss"] : []), "steps_health", "alcohol", "hydration", "energy_availability"].map(researchTopic).filter((x) => x !== undefined),
 	);
 	const balance = $derived(plan !== null && trend.ready ? assessBalance(trend, profile.goal, plan.goalAdjust) : null);
 	// Týdenní kontrola: osobní korekce odhadu výdeje podle váhy (jen pro dnešek, ne při listování).
@@ -421,7 +421,7 @@
 
 	.bf-nutri-macros {
 		display: grid;
-		grid-template-columns: auto auto auto 1fr;
+		grid-template-columns: auto auto auto minmax(0, 1fr);
 		gap: var(--size-4-1) var(--size-4-3);
 		align-items: center;
 		font-size: var(--font-ui-small);
@@ -434,7 +434,8 @@
 
 	.bf-nutri-steps {
 		display: grid;
-		grid-template-columns: minmax(7em, auto) 1fr;
+		/* minmax(0, …): na úzkém panelu (postranní panel na telefonu) se text zalomí, karta nepřeteče. */
+		grid-template-columns: minmax(5em, max-content) minmax(0, 1fr);
 		gap: var(--size-4-2) var(--size-4-3);
 		margin: 0;
 		font-size: var(--font-ui-small);
@@ -446,6 +447,8 @@
 
 	.bf-nutri-steps dd {
 		margin: 0;
+		min-width: 0;
+		overflow-wrap: anywhere;
 	}
 
 	.bf-nutri-list {
@@ -455,6 +458,7 @@
 
 	.bf-nutri-stepsfield {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--size-4-2);
 		margin: var(--size-4-1) 0;

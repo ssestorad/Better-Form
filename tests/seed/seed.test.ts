@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MUSCLES } from "../../src/model/constants";
 import { parseExercise, parseProgram, parseTemplate } from "../../src/model/parse";
 import { exerciseToFrontmatter, programToFrontmatter, templateToFrontmatter } from "../../src/model/serialize";
-import { seedTemplates } from "../../src/seed/templates";
+import { seedTemplates, templateNoteBody } from "../../src/seed/templates";
 import { sanitizeFileName } from "../../src/data/paths";
 import { seedExercises } from "../../src/seed/exercises";
 import { EXERCISE_ROWS } from "../../src/seed/exerciseData";
@@ -154,6 +154,8 @@ describe("předpřipravené programy", () => {
 			"100 kliků denně",
 			"Grease the groove",
 			"Kettlebell denně",
+			"Síla od nuly 3×5",
+			"Kettlebell – Program Minimum",
 			"Odlehčovací týden",
 			"Švihadlo od nuly – 4 týdny",
 			"Švihadlo – kondice 6 týdnů",
@@ -252,11 +254,19 @@ describe("předpřipravené programy", () => {
 });
 
 describe("předpřipravené šablony tréninků", () => {
-	it("push a pull pro posilovnu i vlastní váhu; cviky jsou v knihovně a zápis jde načíst zpět", () => {
-		expect(SEED_TEMPLATES.map((t) => t.name)).toEqual(["Push – posilovna", "Pull – posilovna", "Push – vlastní váha", "Pull – vlastní váha"]);
+	it("push a pull pro posilovnu i vlastní váhu a protažení; cviky jsou v knihovně a zápis jde načíst zpět", () => {
+		expect(SEED_TEMPLATES.map((t) => t.name)).toEqual(["Push – posilovna", "Pull – posilovna", "Push – vlastní váha", "Pull – vlastní váha", "Protažení po běhu", "Protažení po posilování", "Mobilita"]);
 		for (const template of SEED_TEMPLATES) {
 			for (const block of template.blocks) expect(exerciseKeys.has(lower(String(block.exercise))), `${template.name}: ${block.exercise}`).toBe(true);
 			expect(parseTemplate(templateToFrontmatter(template)), template.name).toEqual(template);
 		}
+	});
+});
+
+describe("text šablon protažení", () => {
+	it("šablony protažení mají vlastní text, ostatní obecný", () => {
+		expect(templateNoteBody("cs", "stretch-after-run")).toContain("30 sekund");
+		expect(templateNoteBody("cs", "push-gym")).toBe(templateNoteBody("cs"));
+		expect(templateNoteBody("en", "mobility-routine")).toContain("Konrad 2024");
 	});
 });

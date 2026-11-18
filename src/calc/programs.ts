@@ -33,6 +33,35 @@ export function sessionIndexInWeek(program: ProgramNote, item: ProgramItem, date
 }
 
 /**
+ * Pořadí tréninku od začátku programu (0 = první) podle kalendáře – vynechaný
+ * trénink pořadí neposune, střídání A/B tak zůstane předvídatelné.
+ */
+export function programSessionNumber(program: ProgramNote, date: string): number | null {
+	const week = programWeek(program, date);
+	const days = WEEKDAYS.filter((d) => program.days.includes(d));
+	const index = days.indexOf(weekdayOf(date));
+	return week === null || index < 0 ? null : week * days.length + index;
+}
+
+/** Kolik tréninků se v programu střídá: 3 (A/B/C), 2 (A/B), nebo 0 = nestřídá. */
+export function alternationCycle(program: ProgramNote): number {
+	const letters = program.items.map((i) => i.alternate).filter((x) => x !== undefined);
+	return letters.includes("c") ? 3 : letters.length > 0 ? 2 : 0;
+}
+
+/** Který ze střídajících se tréninků připadá na pořadí `session` („a“, „b“, „c“); null = program nestřídá. */
+export function workoutSlot(program: ProgramNote, session: number): "a" | "b" | "c" | null {
+	const cycle = alternationCycle(program);
+	return cycle === 0 ? null : (["a", "b", "c"] as const)[session % cycle]!;
+}
+
+/** Trénink programu na daný den („a“, „b“, „c“); null = program nestřídá nebo se ten den necvičí. */
+export function workoutSlotForDate(program: ProgramNote, date: string): "a" | "b" | "c" | null {
+	const number = programSessionNumber(program, date);
+	return number === null ? null : workoutSlot(program, number);
+}
+
+/**
  * Cíl položky pro daný den: z týdenního plánu (`schedule`) – nejdřív cíl
  * konkrétního tréninku v týdnu, pak cíl týdne – jinak výchozí `target`.
  * Když se ten den položka necvičí, vrátí null.
@@ -41,6 +70,7 @@ export function targetForDate(program: ProgramNote, item: ProgramItem, date: str
 	const week = programWeek(program, date);
 	const session = sessionIndexInWeek(program, item, date);
 	if (week === null || session === null) return null;
+	if (item.alternate && workoutSlotForDate(program, date) !== item.alternate) return null;
 	const entry = item.schedule?.find((s) => s.week === week + 1);
 	return entry?.sessions?.[session] ?? entry?.target ?? item.target;
 }

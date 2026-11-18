@@ -47,7 +47,8 @@ export function exerciseToFrontmatter(note: ExerciseNote): Frontmatter {
 		bodyweight_fraction_source: note.bodyweight_fraction_source,
 		progression: note.progression
 			? withoutEmpty({
-					ladder: note.progression.ladder ? toLink(note.progression.ladder) : undefined,
+					// Žebříček není poznámka – jako prostý text, ne odkaz (Obsidian by po kliknutí založil prázdnou poznámku v kořeni).
+					ladder: note.progression.ladder,
 					level: note.progression.level,
 				})
 			: undefined,
@@ -179,6 +180,7 @@ function itemToFrontmatter(item: ProgramItem): Frontmatter {
 		exercise: toLink(item.exercise),
 		target: targetToFrontmatter(item.target),
 		days: item.days,
+		alternate: item.alternate,
 		max_from: item.max_from?.map(toLink),
 		schedule: item.schedule?.map(weekToFrontmatter),
 	});
@@ -210,6 +212,8 @@ export function planItemToFrontmatter(item: PlanItem): Frontmatter {
 		intensity: item.intensity,
 		distance_km: item.distance_km,
 		notes: item.notes,
+		source: item.source,
+		uid: item.uid,
 	});
 }
 
@@ -251,7 +255,7 @@ export function goalToFrontmatter(note: GoalNote): Frontmatter {
 		target: note.target,
 		exercise: note.exercise ? toLink(note.exercise) : undefined,
 		distance_km: note.distance_km,
-		ladder: note.ladder ? toLink(note.ladder) : undefined,
+		ladder: note.ladder,
 		norm: note.norm ? toLink(note.norm) : undefined,
 		created: note.created,
 		deadline: note.deadline,

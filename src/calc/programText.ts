@@ -3,7 +3,7 @@
 import { WEEKDAY_LABELS, WEEKDAYS, type Weekday } from "../model/constants";
 import type { IntervalStep, ProgramNote, ProgramTarget } from "../model/types";
 import { formatNumber, formatSeconds } from "../ui/format";
-import { resolveTarget, type ResolvedTarget } from "./programs";
+import { resolveTarget, workoutSlot, type ResolvedTarget } from "./programs";
 import { t, tn } from "../i18n";
 
 function intervalStepText(step: IntervalStep): string {
@@ -88,7 +88,9 @@ export interface WeekOverview {
  */
 export function programOverview(program: ProgramNote): WeekOverview[] {
 	const hasSchedule = program.items.some((i) => i.schedule !== undefined);
-	const changes = hasSchedule || program.progression.rule === "weekly_add";
+	// Střídání A/B mění rozpis mezi týdny, když má program lichý počet dní.
+	const changes = hasSchedule || program.progression.rule === "weekly_add" || program.items.some((i) => i.alternate !== undefined);
+	const programDays = WEEKDAYS.filter((d) => program.days.includes(d));
 	const weeks = program.duration_weeks ?? (changes ? 4 : 1);
 	const result: WeekOverview[] = [];
 	for (let week = 0; week < weeks; week++) {
@@ -100,6 +102,7 @@ export function programOverview(program: ProgramNote): WeekOverview[] {
 				const itemDays = WEEKDAYS.filter((d) => program.days.includes(d) && (item.days === undefined || item.days.includes(d)));
 				const session = itemDays.indexOf(day);
 				if (session < 0) continue;
+				if (item.alternate && workoutSlot(program, week * programDays.length + programDays.indexOf(day)) !== item.alternate) continue;
 				const entry = item.schedule?.find((s) => s.week === week + 1);
 				const target = entry?.sessions?.[session] ?? entry?.target ?? item.target;
 				parts.push(`${entry?.exercise ?? item.exercise} – ${describePlannedTarget(target, week, program.progression)}`);
@@ -116,7 +119,7 @@ export function programOverview(program: ProgramNote): WeekOverview[] {
 			if (same) same.days.push(day);
 			else merged.push({ days: [day], text });
 		}
-		const weekLines = merged.map((m) => `${m.days.length === 7 ? "every day" : m.days.join(", ")}: ${m.text}`);
+		const weekLines = merged.map((m) => `${m.days.length === 7 ? t("every day") : m.days.join(", ")}: ${m.text}`);
 		const previous = result[result.length - 1];
 		if (previous && previous.lines.join("\n") === weekLines.join("\n")) previous.to = week + 1;
 		else result.push({ from: week + 1, to: week + 1, lines: weekLines });

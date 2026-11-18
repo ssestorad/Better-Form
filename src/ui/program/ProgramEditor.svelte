@@ -120,6 +120,22 @@
 							{#each EDITABLE_TARGETS as kind (kind)}<option value={kind}>{TARGET_LABELS[kind]}</option>{/each}
 						</select>
 					{/if}
+					<select
+						class="dropdown"
+						aria-label={t("In which workouts")}
+						title={t("Workouts alternate in order from the start of the program: A, B (A, B, A…), with C three of them (A, B, C, A…) – whatever the day of the week.")}
+						value={item.alternate ?? ""}
+						onchange={(e) => {
+							const value = e.currentTarget.value;
+							if (value === "a" || value === "b" || value === "c") item.alternate = value;
+							else delete item.alternate;
+						}}
+					>
+						<option value="">{t("every workout")}</option>
+						<option value="a">{t("workout A")}</option>
+						<option value="b">{t("workout B")}</option>
+						<option value="c">{t("workout C")}</option>
+					</select>
 					<button type="button" class="clickable-icon" aria-label={t("Remove item")} onclick={() => program.items.splice(i, 1)}>✕</button>
 				</div>
 				<div class="bf-editor-fields">

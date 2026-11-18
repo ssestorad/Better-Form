@@ -120,6 +120,7 @@
 		<BasisTag basis={FITNESS_BASIS} named /> {t("It's a trend model, not an exact performance prediction.")}
 	</p>
 	{#if researchTopic("training_load")}<ResearchCard topic={researchTopic("training_load")!} />{/if}
+	{#if researchTopic("training_theory")}<ResearchCard topic={researchTopic("training_theory")!} />{/if}
 </section>
 
 <section class="bf-card">

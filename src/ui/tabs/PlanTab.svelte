@@ -3,7 +3,10 @@
 	// souhrn týdne a výhled zátěže. Rozvržení řádků je pevné – nic neposkakuje.
 	import { t } from "../../i18n";
 	import { Menu, Notice } from "obsidian";
-	import { RUN_SPIKE_BASIS, runSpike } from "../../calc/running";
+	import { RUN_SPIKE_BASIS, runRecords, runSpike } from "../../calc/running";
+	import { formatClockDuration, formatPace } from "../../calc/performance";
+	import { PACES_BASIS, paceRange, planPaceKind, trainingPaces } from "../../calc/runningPaces";
+	import { TAPER_BASIS, TAPER_DAYS, taperPlan } from "../../calc/taper";
 	import { OUTLOOK_WEEKS, PLAN_LOAD_BASIS, PLAN_STATUS_LABELS, type PlanStatus } from "../../calc/weekPlan";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
 	import type { PlanDay, PlanEntry } from "../../data/PlanService";
@@ -11,12 +14,17 @@
 	import { addDays, startOfWeek, toIsoDate, weekdayOf } from "../../model/dates";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { usePlugin } from "../context";
-	import { formatCzechDate, formatDateRange, formatDayMonth, formatDurationMin, formatNumber } from "../format";
+	import { formatCzechDate, formatDateRange, formatDayMonth, formatDurationMin, formatNumber, formatShortDate } from "../format";
 	import { formatWhole } from "../nutrition/text";
 
 	const plugin = usePlugin();
+	const runnaBusy = plugin.runnaBusy;
 	const indexVersion = plugin.indexVersion;
 	const settingsVersion = plugin.settingsVersion;
+	const runna = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.settings.runna.url.trim() !== "";
+	});
 
 	const today = $derived.by(() => {
 		void $indexVersion;
@@ -43,6 +51,41 @@
 		void $indexVersion;
 		return plugin.index.all("workout").map((w) => w.note);
 	});
+	// Cílové tempo běhu podle Danielse z nejnovějšího rekordu (jako v Přehledu → Rekordy).
+	const paceBase = $derived([...runRecords(workouts)].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null);
+	const paces = $derived(paceBase ? trainingPaces(paceBase.distance.km, paceBase.seconds) : null);
+	function paceOf(entry: PlanEntry): string | null {
+		if (!paces || entry.program || entry.status !== "planned" || entry.item.sport !== "run") return null;
+		const kind = planPaceKind(entry.item.title ?? "", entry.item.intensity);
+		const r = paceRange(paces, kind);
+		const text = r.slow === r.fast ? formatPace(r.fast) : `${formatClockDuration(r.slow)} – ${formatPace(r.fast)}`;
+		return t("Pace {v}: {v2}", { v: kind, v2: text });
+	}
+
+	// Ladění formy: nejbližší závod z aktivního cíle „čas na trati“ s termínem do 3 týdnů.
+	const taper = $derived.by(() => {
+		void $indexVersion;
+		const goal = plugin.index
+			.all("goal")
+			.map((g) => g.note)
+			.filter((g) => g.type === "run_time" && g.status === "active" && g.deadline !== undefined && g.deadline >= today)
+			.sort((a, b) => a.deadline!.localeCompare(b.deadline!))[0];
+		if (!goal) return null;
+		// Obvyklý objem: 4 týdny před laděním (nebo před dneškem, když už běží).
+		const end = [today, addDays(goal.deadline!, -TAPER_DAYS)].sort()[0]!;
+		const from = addDays(end, -28);
+		const weeklyKm = workouts.filter((w) => w.sport === "run" && w.date >= from && w.date < end).reduce((sum, w) => sum + (w.run?.distance_km ?? 0), 0) / 4;
+		const plan = taperPlan(goal.deadline!, today, weeklyKm);
+		if (!plan) return null;
+		const planned = (from: string, to: string) =>
+			[startOfWeek(from), startOfWeek(to)]
+				.filter((w, i, all) => all.indexOf(w) === i)
+				.flatMap((w) => plugin.plans.items(w))
+				.filter((i) => i.sport === "run" && i.date >= from && i.date <= to)
+				.reduce((sum, i) => sum + (i.distance_km ?? 0), 0);
+		return { name: goal.name, plan, planned: plan.weeks.map((w) => planned(w.from, w.to)) };
+	});
+
 	/** Naplánovaný běh o víc než 10 % delší než nejdelší za předchozích 30 dní (Frandsen 2025). */
 	function spikeOf(entry: PlanEntry) {
 		const km = entry.status === "planned" && entry.item.sport === "run" ? entry.item.distance_km : undefined;
@@ -133,7 +176,34 @@
 	</span>
 	<button type="button" aria-label={t("Next week")} onclick={() => (week = addDays(week, 7))}>›</button>
 	<button type="button" class="bf-plan-ics" title={t("Save the week as an .ics file for Google, Outlook or Apple Calendar")} onclick={() => void plugin.exportPlanCalendar(week)}>{t("To calendar")}</button>
+	{#if runna}
+		<button type="button" class="bf-plan-ics" title={t("Load the next 4 weeks of your Runna plan")} disabled={$runnaBusy} onclick={() => void plugin.syncRunnaPlan()}>{$runnaBusy ? t("Syncing…") : "Runna"}</button>
+	{/if}
 </div>
+
+{#if taper}
+	<section class="bf-card bf-plan-taper">
+		<h4>{t("Race: {v} – {v3}, days left: {v2}", { v: taper.name, v2: taper.plan.daysLeft, v3: formatShortDate(taper.plan.race) })}</h4>
+		<p class="bf-small">
+			{t("Taper for about 2 weeks: reduce running volume gradually by 41–60 % but keep the intensity – keep the fast workouts, just shorter – and the number of runs (at most 1 in 5 fewer).")}
+			<BasisTag basis={TAPER_BASIS} />
+		</p>
+		<ul class="bf-small">
+			{#each taper.plan.weeks as w, i (w.from)}
+				<li class:bf-plan-warning={taper.planned[i]! > w.maxKm}>
+					{t("{v}: {v2}–{v3} km ({v4} % of your usual {v5} km a week), planned {v6} km", {
+						v: formatDateRange(w.from, w.to),
+						v2: formatNumber(w.minKm, 1),
+						v3: formatNumber(w.maxKm, 1),
+						v4: i === 0 ? "60–70" : "40–50",
+						v5: formatNumber(taper.plan.weeklyKm, 1),
+						v6: formatNumber(taper.planned[i]!, 1),
+					})}
+				</li>
+			{/each}
+		</ul>
+	</section>
+{/if}
 
 <section class="bf-card">
 	<ul class="bf-plan-days">
@@ -148,6 +218,8 @@
 						<div><span class="bf-tag bf-plan-off" title={day.off === "rest" ? t("Planned rest") : t("Excused day – doesn't count as missed and doesn't break the day streak")}>{DAY_OFF_LABELS[day.off]}</span></div>
 					{/if}
 					{#each day.entries as entry (entry.item.id)}
+						{@const pace = paceOf(entry)}
+						{@const spike = spikeOf(entry)}
 						<div class="bf-plan-item">
 							{#if entry.program}
 								<button type="button" class="bf-link-button bf-plan-title" title={t("Active program day – change the days and workout duration on the Programs tab")} onclick={() => plugin.showTab("programs")}>
@@ -162,8 +234,12 @@
 							<span class="bf-muted bf-small bf-plan-details">
 								{planItemDetails(entry.item, entry.minutes)}{entry.program ? ` · ${entry.program.text}` : entry.item.notes ? ` · ${entry.item.notes}` : ""}
 							</span>
-							{#if spikeOf(entry)}
-								{@const spike = spikeOf(entry)!}
+							{#if pace}
+								<span class="bf-muted bf-small bf-plan-details" title={t("Training pace by Daniels from your latest record ({v}, {v2}).", { v: paceBase!.distance.label, v2: formatShortDate(paceBase!.date) })}>
+									{pace} <BasisTag basis={PACES_BASIS} />
+								</span>
+							{/if}
+							{#if spike}
 								<span class="bf-small bf-plan-warning">
 									{t("{v} % longer than your longest run of the last 30 days ({v2} km) – shorten it to at most {v3} km.", { v: formatNumber(spike.pct, 0), v2: formatNumber(spike.longestKm, 1), v3: formatNumber(spike.maxKm, 1) })}
 									<BasisTag basis={RUN_SPIKE_BASIS} />
@@ -261,13 +337,15 @@
 
 <style>
 	.bf-plan-nav {
-		display: grid;
-		grid-template-columns: auto 1fr auto auto;
+		/* Šipka, týden, šipka a tlačítka (Do kalendáře, Runna); na úzkém displeji se tlačítka zalomí. */
+		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--size-4-2);
 	}
 
 	.bf-plan-week {
+		flex: 1 1 8em;
 		display: flex;
 		flex-direction: column;
 		align-items: center;

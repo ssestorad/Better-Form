@@ -525,6 +525,101 @@ export const RESEARCH_TOPICS: ResearchTopic[] = [
 		],
 		evidence: "research",
 	},
+	{
+		id: "set_techniques",
+		title: "Set techniques: drop sets, supersets and more",
+		summary: "Bodybuilding books describe techniques that make a set harder or shorter: pyramid sets (the weight goes up set by set), drop sets (after failure you take weight off and carry on), supersets and giant sets (two or more exercises in a row without rest), pre-exhaustion (an isolation exercise before a compound one), rest-pause, negatives and forced reps. Studies show that drop sets and supersets save time but don't build more muscle than ordinary sets.",
+		practical: "Use them occasionally to save time or for variety, mostly in the last set of an exercise – not instead of the basics. Forced reps and negatives aren't necessary and are very tiring.",
+		studies: [
+			{ source: "thorne2000", finding: "Encyclopedia: describes pyramid sets, stripping (drop sets), negative and rest-pause reps, pre-exhaust sets, supersets, trisets and giant sets; it says forced reps and negatives aren't an essential part of building muscle." },
+			{ source: "schwarzenegger1998", finding: "Encyclopedia: lists intensity techniques – forced reps, the stripping method, forced negatives, supersets, giant sets, partial reps and rest-pause – and the pre-exhaust principle (e.g. flyes before the bench press)." },
+			{ source: "sodal2023", finding: "Meta-analysis of 6 studies: drop sets built similar muscle to traditional sets in less time." },
+			{ source: "iversen2021", finding: "Review: supersets, drop sets and rest-pause roughly halve training time at the same volume; they probably suit muscle growth better than maximal strength." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "strength_methods",
+		title: "Three ways to build strength",
+		summary: "Strength-training textbooks distinguish the maximal effort method (lifting near-maximal weights), the repeated effort method (a submaximal weight for many reps, to or near failure) and the dynamic effort method (a submaximal weight lifted as fast as possible). Each trains strength a little differently, so programs combine them.",
+		practical: "Combine heavy sets with few reps, sets with more reps closer to failure, and fast reps with a lighter weight. Going all the way to failure isn't necessary.",
+		studies: [
+			{ source: "zatsiorsky1995", finding: "Describes three methods: lifting a maximal resistance (maximal effort), a submaximal load to failure (repeated effort) and a submaximal load at the highest possible speed (dynamic effort)." },
+			{ source: "haff2016", finding: "NSCA textbook: builds a resistance training program step by step – choice of exercises, load relative to the 1RM, volume and rest periods." },
+			{ source: "lehnert2010", finding: "Czech textbook: distinguishes maximal, explosive and reactive strength and strength endurance, with training methods for each." },
+			{ source: "peric2010", finding: "Czech textbook: types of strength abilities, methods of developing them and strategies for strength development." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "training_theory",
+		title: "Load, recovery and supercompensation",
+		summary: "Training textbooks describe training as adaptation: a load tires the body, during recovery it adapts, and with the right timing performance ends up higher than before (supercompensation). Load is made up of volume and intensity; training is planned in cycles – microcycles (usually a week), mesocycles (several weeks) and the annual cycle – with easier periods and peaking before a competition.",
+		practical: "Increase load gradually, alternate harder and easier days and weeks, and after a few weeks of hard training plan an easier week. Before an important race, ease off.",
+		studies: [
+			{ source: "lehnert2010", finding: "Covers adaptation, training load, supercompensation and the periodization of training." },
+			{ source: "dovalil2009", finding: "Covers load (intensity, volume, magnitude and frequency of stimuli), recovery, training state and overtraining, and training cycles from the training session to the annual cycle." },
+			{ source: "peric2010", finding: "Covers the volume and intensity of exercise, recovery, the annual cycle and its periodization, mesocycles and microcycles." },
+			{ source: "bompa2019", finding: "Covers planning of the training session, cycles and the annual plan, and peaking for competition; supercompensation as the adaptation cycle." },
+			{ source: "rippetoe2014", finding: "A beginner adds weight every workout until a lift stalls; then a reset and back-off periods, and later weekly programming for intermediates." },
+			{ source: "mujika2009", finding: "Tapering before a competition: training volume is reduced progressively while intensity is kept; also the difference between overreaching and overtraining." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "compensation_exercise",
+		title: "Compensation exercises and warm-up",
+		summary: "Czech textbooks put compensation exercises next to training: relaxation, stretching and strengthening exercises that balance one-sided load and shortened muscles (e.g. the hip flexors or the back of the thigh), together with a warm-up before training and breathing exercises.",
+		practical: "Warm up dynamically before training; after it or on rest days stretch muscles that tend to get short and strengthen weaker ones (glutes, abdominals, deep back muscles – for example McGill's big three: curl-up, side bridge, bird dog). Have pain or limited movement that doesn't improve checked by a physiotherapist.",
+		studies: [
+			{ source: "bursova2005", finding: "Relaxation, stretching and strengthening compensation exercises, simple tests of shortened muscles (hip flexors, glutes, abdominals, back of the thigh) and breathing exercises." },
+			{ source: "kristofic2007", finding: "Warm-up, compensation, core training and circuit training with medicine balls and resistance bands." },
+			{ source: "peric2010", finding: "Flexibility: active and passive dynamic exercises, active and passive stretching, compensation exercises." },
+			{ source: "lehnert2010", finding: "Flexibility training with relaxation, stretching and strengthening exercises and methodological recommendations." },
+			{ source: "jebavy2014", finding: "A warm-up starts with warming up, continues mostly with dynamic stretching (static holds before it at most a few seconds) and usually takes 20–30 minutes; also a warm-up before strength training and stretching after training, including a foam roller and stretch band." },
+			{ source: "mcgill2007", finding: "The \"big three\" for a stable back – curl-up, side bridge and bird dog – with progressions from beginner to advanced." },
+			{ source: "mcgill2015", finding: "A self-help guide for back pain: finding what triggers the pain and a step-by-step exercise progression." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "bodyweight_basics",
+		title: "Bodyweight training: progressions and the core",
+		summary: "Bodyweight training books build on progressions from easier to harder variations of an exercise and on a stable trunk (the deep stabilizing system, breathing during exercise). Overcoming Gravity arranges exercises into levels and says that moving on is more than just adding reps.",
+		practical: "Move to a harder variation only once the easier one is clean for the whole set; mind your trunk position and breathing.",
+		studies: [
+			{ source: "low2016", finding: "Progression charts by level (based on gymnastics skill values) and methods of progression; progress is more than adding reps." },
+			{ source: "jarkovska2016", finding: "Bodyweight exercises by body part, muscle imbalance, the deep stabilizing system of the spine and breathing during abdominal exercises." },
+			{ source: "kristofic2007", finding: "Core training and circuit strength training." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "supplement_basics",
+		title: "Supplements: food first, then evidence and safety",
+		summary: "Sports nutrition textbooks agree that supplements come after food: most people who eat well don't need extra vitamins, and a supplement makes sense for a specific need. Evidence for individual substances varies a lot – the Australian Institute of Sport sorts them into groups, from those with good support for use in specific situations to those without it. Supplements can also be contaminated with prohibited substances, which is a risk for anyone who competes.",
+		practical: "Sort out food, sleep and training first. Before buying, look up the substance's evidence grades in the library and choose the simplest well-studied form (e.g. creatine monohydrate). If you compete, buy only products tested for prohibited substances.",
+		studies: [
+			{ source: "burke2015", finding: "The AIS Sports Supplement Framework: Group A supplements have scientific support for use in specific situations; a whole section on how contaminated supplements lead to inadvertent doping." },
+			{ source: "clark2014", finding: "\"Food first\"; questions the belief that active people need extra vitamins; creatine loading of about 0.3 g/kg a day in four doses." },
+			{ source: "kleiner2014", finding: "Nutrition for strength training with chapters on creatine, beta-alanine, caffeine and protein supplements and a table rating herbal supplements." },
+			{ source: "bean2006", finding: "Fact files on sports supplements: creatine monohydrate as the recommended form, caffeine, and a warning about contaminated products." },
+			{ source: "greenwood2008", finding: "An academic overview of ergogenic aids – creatine, caffeine, beta-alanine – and the studies behind them." },
+		],
+		evidence: "practice",
+	},
+	{
+		id: "energy_availability",
+		title: "Energy availability: enough food for training",
+		summary: "When the body gets too little energy for the amount of training, it saves energy at the expense of health – hormones, bones, immunity and performance suffer (relative energy deficiency in sport, REDs). In women this used to be described as the female athlete triad.",
+		practical: "Don't combine hard training with a big calorie deficit for long. Warning signs are missed periods, frequent illness or injuries, persistent fatigue and falling performance – then eat more and see a doctor.",
+		studies: [
+			{ source: "mountjoy2023", finding: "IOC consensus statement: low energy availability leads to relative energy deficiency in sport (REDs), which harms health and performance." },
+			{ source: "jeukendrup2019", finding: "Sport nutrition textbook: a chapter on eating disorders and low energy availability in athletes." },
+			{ source: "lehnert2010", finding: "Training of women: the female athlete triad, anaemia and specifics of nutrition." },
+		],
+		evidence: "practice",
+	},
 ];
 
 /** Téma → id cviků z knihovny (src/seed/exerciseData.ts), u kterých se zobrazí. */
@@ -537,18 +632,22 @@ export const EXERCISE_TOPICS: Record<string, string[]> = {
 	kettlebell: ["kettlebell-swing", "one-arm-kettlebell-swing", "kettlebell-clean", "kettlebell-snatch", "turkish-get-up"],
 	range_of_motion: ["overhead-triceps-extension", "triceps-pushdown", "skull-crusher", "leg-curl", "leg-extension", "calf-raise", "seated-calf-raise", "single-leg-calf-raise", "leg-press-calf-raise", "biceps-curl", "incline-dumbbell-curl", "preacher-curl", "lat-pulldown"],
 	core: ["sit-up", "crunch", "plank", "side-plank", "hollow-hold", "v-up", "hanging-leg-raise", "hanging-knee-raise"],
+	// McGillova velká trojka: plank a boční vzpor jako vzpory, bird dog.
+	compensation_exercise: ["plank", "side-plank", "bird-dog"],
 };
 
 /** Id předpřipravených programů (src/seed/programData.ts) a jejich témata. */
 export const PROGRAM_TOPICS: Record<string, string[]> = {
 	"basic-4": ["frequency_programs", "training", "strength_health"],
-	"push-ups-and-pull-ups-6-weeks": ["frequency_programs", "push", "pull"],
-	"zero-to-your-first-pull-up": ["pull", "frequency_programs"],
+	"push-ups-and-pull-ups-6-weeks": ["frequency_programs", "push", "pull", "bodyweight_basics"],
+	"zero-to-your-first-pull-up": ["pull", "frequency_programs", "bodyweight_basics"],
 	"couch-to-5k": ["novice_running", "runners_strength", "running_injuries"],
 	"100-push-ups-a-day": ["frequency_programs", "push"],
 	"grease-the-groove": ["frequency_programs"],
 	"daily-kettlebell": ["kettlebell"],
-	"deload-week": ["deload", "maintaining"],
+	"kettlebell-program-minimum": ["kettlebell"],
+	"novice-strength-3x5": ["squat", "deadlift", "push", "training", "strength_methods"],
+	"deload-week": ["deload", "maintaining", "training_theory", "compensation_exercise"],
 };
 
 /** Téma v jazyce rozhraní (studie ve stejném pořadí). */
@@ -571,7 +670,9 @@ export function topicsForExercise(name: string, category: string): ResearchTopic
 		.map(([topic]) => topic);
 	if (category === "strength" || category === "calisthenics" || category === "kettlebell") ids.push("training");
 	if (category === "strength" || category === "calisthenics") ids.push("technique", "rest_intervals");
-	if (category === "mobility") ids.push("warmup_stretching", "flexibility");
+	if (category === "strength") ids.push("set_techniques", "strength_methods");
+	if (category === "calisthenics") ids.push("bodyweight_basics");
+	if (category === "mobility") ids.push("warmup_stretching", "flexibility", "compensation_exercise");
 	return [...new Set(ids)].map(researchTopic).filter((t): t is ResearchTopic => t !== undefined);
 }
 

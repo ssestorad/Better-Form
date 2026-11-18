@@ -42,6 +42,8 @@
 	import SafetyWarnings from "../supplements/SafetyWarnings.svelte";
 	import SupplementForm from "../supplements/SupplementForm.svelte";
 	import TrialCard from "../supplements/TrialCard.svelte";
+	import ResearchCard from "../components/ResearchCard.svelte";
+	import { researchTopic } from "../../seed/research";
 	import { adherenceLabel, doseLabel } from "../supplements/text";
 
 	const plugin = usePlugin();
@@ -482,6 +484,8 @@
 		<p class="bf-muted bf-small">{t("Weight-based doses (caffeine, protein, beta-alanine) are calculated once you log your weight in the check-in or profile.")}</p>
 	{/if}
 </section>
+<!-- Trenérská praxe z učebnic sportovní výživy: nejdřív jídlo, důkazy, kontaminace. -->
+{#if researchTopic("supplement_basics")}<ResearchCard topic={researchTopic("supplement_basics")!} />{/if}
 {/if}
 
 {#if section === "tables"}

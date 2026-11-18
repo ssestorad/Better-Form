@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Import běhů: ze souboru GPX / TCX, ruční synchronizace se Stravou a seznam
+	// Import běhů: ze souboru GPX / TCX / FIT, ruční synchronizace s Garmin Connect a se Stravou a seznam
 	// importovaných běhů k doplnění (SPEC 5.3, 6.1, 6.3).
 	import { t } from "../../i18n";
 	import { formatClockDuration, formatPace, paceSecondsPerKm } from "../../calc/performance";
@@ -12,6 +12,7 @@
 	const indexVersion = plugin.indexVersion;
 	const settingsVersion = plugin.settingsVersion;
 	const stravaBusy = plugin.stravaBusy;
+	const garminBusy = plugin.garminBusy;
 
 	/** Kolik běhů k doplnění ukázat najednou. */
 	const VISIBLE = 5;
@@ -20,6 +21,10 @@
 	const connected = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.strava.isConnected;
+	});
+	const garmin = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.garminSync.isConfigured;
 	});
 	const lastSync = $derived.by(() => {
 		void $settingsVersion;
@@ -52,12 +57,17 @@
 	}
 </script>
 
-{#if runner || connected || pending.length > 0}
+{#if runner || connected || garmin || pending.length > 0}
 	<section class="bf-card">
 		<header class="bf-strava-head">
 			<h4>{t("Run import")}</h4>
 			<span class="bf-strava-buttons">
 				<button type="button" title={t("A GPX file from Strava, TCX from MapMyRun or FIT from a watch; you can pick several files at once")} onclick={() => plugin.pickRunFiles()}>{t("From file")}</button>
+				{#if garmin}
+					<button type="button" disabled={$garminBusy} onclick={() => void plugin.syncGarmin()}>
+						{$garminBusy ? t("Syncing…") : t("Sync Garmin")}
+					</button>
+				{/if}
 				{#if connected}
 					<button type="button" disabled={$stravaBusy} onclick={() => void plugin.syncStrava()}>
 						{$stravaBusy ? t("Syncing…") : t("Sync Strava")}

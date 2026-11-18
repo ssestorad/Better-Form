@@ -121,7 +121,7 @@
 			<span class="bf-field-label">{t("Sports")}</span>
 			<div class="bf-onb-sports">
 				{#each SPORTS as sport (sport)}
-					<label><input type="checkbox" bind:checked={values.sports[sport]} /> {SPORT_LABELS[sport]}</label>
+					<label class="bf-onb-sport" class:is-active={values.sports[sport]}><input type="checkbox" bind:checked={values.sports[sport]} /> {SPORT_LABELS[sport]}</label>
 				{/each}
 			</div>
 			{#if errors.sports}<span class="bf-error">{errors.sports}</span>{/if}
@@ -195,16 +195,33 @@
 		border-color: var(--interactive-accent);
 	}
 
+	/* Dlaždice místo malých políček – na telefonu se ťuká na celou plochu (aspoň 44 px na výšku). */
 	.bf-onb-sports {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--size-4-1) var(--size-4-4);
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
+		gap: var(--size-4-2);
 	}
 
-	.bf-onb-sports label {
-		display: inline-flex;
+	.bf-onb-sport {
+		display: flex;
 		align-items: center;
-		gap: var(--size-4-1);
+		gap: var(--size-4-2);
+		min-height: 44px;
+		padding: var(--size-4-1) var(--size-4-2);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: var(--radius-m);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	/* Výběr jen barvou okraje – bez změny rozměrů. */
+	.bf-onb-sport.is-active {
+		border-color: var(--interactive-accent);
+	}
+
+	.bf-onb-sport input {
+		margin: 0;
+		flex: none;
 	}
 
 	.bf-onb-buttons {

@@ -3,6 +3,7 @@
 	import { t, tn } from "../../i18n";
 	import { HISTORY_BEST_LABELS, HISTORY_METRIC_LABELS, type ExerciseHistory } from "../../calc/exerciseHistory";
 	import { SUBSTITUTES_BASIS, substitutes } from "../../calc/substitutes";
+	import type { Basis } from "../../evidence/sources";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { EQUIPMENT_LABELS, MUSCLE_LABELS } from "../../model/constants";
 	import type { ExerciseNote } from "../../model/types";
@@ -36,6 +37,8 @@
 
 	const how = $derived(bulletLines(exercise.technique));
 	const mistakes = $derived(bulletLines(exercise.mistakes));
+	/** Kde najít ilustrace zapojených svalů (praxe, ne zdroj dat cviku). */
+	const ANATOMY_BASIS: Basis = { sourceIds: ["delavier2010"], evidence: "practice" };
 	const primary = $derived(exercise.muscles.primary.map((m) => MUSCLE_LABELS[m]).join(", "));
 	const secondary = $derived(exercise.muscles.secondary.map((m) => MUSCLE_LABELS[m]).join(", "));
 	const topics = $derived(topicsForExercise(exercise.name, exercise.category));
@@ -76,6 +79,9 @@
 					<dd>{equipment}</dd>
 				{/if}
 			</dl>
+			{#if primary || secondary}
+				<p class="bf-muted bf-small">{t("Illustrations of the muscles worked in each exercise:")} <BasisTag basis={ANATOMY_BASIS} /></p>
+			{/if}
 			{#if exercise.bodyweight_fraction !== undefined}
 				<p class="bf-muted bf-small">
 					{t("You lift roughly {v} % of your body weight", { v: formatNumber(exercise.bodyweight_fraction * 100, 0) })}

@@ -1,8 +1,10 @@
-// Nastavení – skupina Import dat: běh ze souboru, denní data z CSV, historie ze Strong a Hevy, Strava.
+// Nastavení – skupina Import dat: běh ze souboru, denní data z CSV, historie ze Strong a Hevy, Garmin Connect, Strava.
 
 import { Notice, type SettingDefinitionGroup, type SettingGroupItem } from "obsidian";
 import type { WeightUnit } from "../calc/historyImport";
 import { intlCode, t } from "../i18n";
+import { formatCzechDate } from "../ui/format";
+import { GARMIN_KEY_URL } from "../garmin/garminData";
 import { LOCAL_AUTH_PORT } from "../strava/oauth";
 import { StravaCodeModal } from "../ui/modals/StravaCodeModal";
 import { DEFAULT_SETTINGS, parseTextList } from "./settings";
@@ -12,7 +14,7 @@ export function importGroup(host: SettingsHost): SettingDefinitionGroup {
 	return {
 		type: "group",
 		heading: t("Import data"),
-		items: [note(t("Files are read only on this device and aren't sent anywhere.")), ...runImport(host), ...dailyImport(host), ...historyImport(host), strava(host)],
+		items: [note(t("Files are read only on this device and aren't sent anywhere.")), ...runImport(host), ...dailyImport(host), ...historyImport(host), garmin(host), runna(host), strava(host)],
 	};
 }
 
@@ -84,6 +86,141 @@ function historyImport(host: SettingsHost): SettingGroupItem[] {
 			},
 		]),
 	];
+}
+
+/** Garmin Connect: osobní klíč (Personal API) – bez předplatného, jen čtení vlastních dat. */
+function garmin(host: SettingsHost): SettingGroupItem {
+	const { plugin, settings } = host;
+	const garmin = settings.garmin;
+	const configured = () => garmin.apiKey.trim() !== "";
+	const first = createFragment((f) => {
+		f.appendText(t("Sign in to Garmin Connect on the web and open "));
+		f.createEl("a", { text: "connect.garmin.com → Personal API Key", href: GARMIN_KEY_URL });
+		f.appendText(".");
+	});
+	const last = garmin.lastSync ? formatCzechDate(garmin.lastSync, false) : t("not yet");
+
+	return {
+		type: "page",
+		name: "Garmin Connect",
+		desc: t("Daily data and runs from Garmin Connect with your own personal key – no subscription needed, read-only."),
+		displayValue: () => (configured() ? t("Key filled in") : ""),
+		items: [
+			{
+				type: "group",
+				items: [
+					guidePage(t("Guide: how to create a Garmin Connect key"), [
+						{ name: "1", desc: first },
+						{ name: "2", desc: t("Click Create Key, accept the terms and choose how long the key stays valid (up to a year).") },
+						{ name: "3", desc: t("Copy the key – Garmin shows it only once – and paste it into the field below.") },
+						{ desc: t("The key gives read-only access to your own Garmin data. Never share it. When it expires, create a new one the same way.") },
+					]),
+					{
+						name: t("Key"),
+						desc: t("Stored only in this plugin's data.json file."),
+						render: (s) =>
+							void s.addText((text) => {
+								text.inputEl.type = "password";
+								text.inputEl.autocomplete = "off";
+								text.setValue(garmin.apiKey).onChange((v) => {
+									garmin.apiKey = v.trim();
+									plugin.garminSync.forgetToken();
+									host.save();
+								});
+							}),
+					},
+					{
+						name: t("Daily data"),
+						desc: t("Steps, sleep duration and times, resting heart rate and weight. Fills in only what's missing in the journal."),
+						control: { type: "toggle", key: "garmin.syncDaily" },
+					},
+					{
+						name: t("HRV from the watch"),
+						desc: t("The watch's overnight average – a different measurement from a morning reading (Elonga, chest strap). Don't mix them: your personal HRV normal range would stop making sense."),
+						control: { type: "toggle", key: "garmin.syncHrv" },
+					},
+					{
+						name: t("Runs"),
+						desc: t("Downloaded as FIT files – with heart rate, cadence and fastest splits. A run already in the journal (e.g. from Strava) is skipped."),
+						control: { type: "toggle", key: "garmin.syncRuns" },
+					},
+					{
+						name: t("First sync"),
+						desc: t("How many days back to download on the first sync."),
+						control: { type: "number", key: "garmin.initialDays", min: 1, max: 365, step: 1, defaultValue: DEFAULT_SETTINGS.garmin.initialDays },
+					},
+					{
+						name: t("Sync"),
+						desc: t("Only runs when you start it. Last: {last}.", { last }),
+						visible: configured,
+						render: (s) =>
+							void s.addButton((b) =>
+								b.setButtonText(t("Sync now")).onClick(async () => {
+									b.setDisabled(true);
+									plugin.requestSaveSettings.run();
+									await plugin.syncGarmin();
+									host.update();
+								}),
+							),
+					},
+				],
+			},
+		],
+	};
+}
+
+/** Runna: plán přes soukromý odkaz na kalendář (iCal) – funguje i s jinou aplikací, která odkaz nabízí. */
+function runna(host: SettingsHost): SettingGroupItem {
+	const { plugin, settings } = host;
+	const runna = settings.runna;
+	const configured = () => runna.url.trim() !== "";
+	const last = runna.lastSync ? formatCzechDate(runna.lastSync, false) : t("not yet");
+	return {
+		type: "page",
+		name: "Runna",
+		desc: t("Planned workouts from Runna (or another coaching app with a calendar link) in your week plan."),
+		displayValue: () => (configured() ? t("Link filled in") : ""),
+		items: [
+			{
+				type: "group",
+				items: [
+					guidePage(t("Guide: how to get the Runna calendar link"), [
+						{ name: "1", desc: t("In the Runna app open Profile → Connected Apps & Devices → Calendars → Other Calendar.") },
+						{ name: "2", desc: t("Copy the calendar link shown at the top of the screen and paste it into the field below.") },
+						{ name: "3", desc: t("In the Runna calendar settings, set completed activities to None – completed runs come from Strava or Garmin.") },
+						{ desc: t("The link is private: anyone with it can see your plan. Never share it. Runna updates the calendar within a few hours of a change.") },
+					]),
+					{
+						name: t("Calendar link"),
+						desc: t("Stored only in this plugin's data.json file."),
+						render: (s) =>
+							void s.addText((text) => {
+								text.inputEl.type = "password";
+								text.inputEl.autocomplete = "off";
+								text.setValue(runna.url).onChange((v) => {
+									runna.url = v.trim();
+									host.save();
+								});
+							}),
+					},
+					{
+						name: t("Sync"),
+						desc: t("Loads the next 4 weeks into the week plan. Planned workouts from Runna are updated on every sync; past days and your own items don't change. Distance and duration are read from the workout name. Last: {last}.", { last }),
+						visible: configured,
+						render: (s) =>
+							void s.addButton((b) =>
+								b.setButtonText(t("Sync now")).onClick(async () => {
+									b.setDisabled(true);
+									plugin.requestSaveSettings.run();
+									await plugin.syncRunnaPlan();
+									host.update();
+								}),
+							),
+					},
+				],
+			},
+		],
+	};
 }
 
 /** Strava potřebuje vlastní API aplikaci a předplatné – na vlastní stránce, ať nepřekáží importu ze souboru. */

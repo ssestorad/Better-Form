@@ -444,13 +444,13 @@ Label: **practice** – the percentages of max and set counts are coaching pract
 			duration_weeks: 6,
 			days: ["mon", "wed", "fri"],
 			items: [
-				{ exercise: "Push-up", days: ["mon"], target: { kind: "emom", pct_of_max: 40, minutes: 10 } },
-				{ exercise: "Pull-up", days: ["mon"], target: { kind: "emom", pct_of_max: 40, minutes: 10 } },
-				{ exercise: "Push-up", days: ["wed"], target: { kind: "pct_of_max", sets: 5, pct_of_max: 60 } },
-				{ exercise: "Pull-up", days: ["wed"], target: { kind: "pct_of_max", sets: 5, pct_of_max: 60 } },
+				{ exercise: "Push-up", alternate: "a", target: { kind: "emom", pct_of_max: 40, minutes: 10 } },
+				{ exercise: "Pull-up", alternate: "a", target: { kind: "emom", pct_of_max: 40, minutes: 10 } },
+				{ exercise: "Push-up", alternate: "b", target: { kind: "pct_of_max", sets: 5, pct_of_max: 60 } },
+				{ exercise: "Pull-up", alternate: "b", target: { kind: "pct_of_max", sets: 5, pct_of_max: 60 } },
 				{
 					exercise: "Push-up",
-					days: ["fri"],
+					alternate: "c",
 					target: { kind: "pct_of_max", sets: 4, pct_of_max: 50 },
 					max_from: ["Push-up"],
 					schedule: [
@@ -464,7 +464,7 @@ Label: **practice** – the percentages of max and set counts are coaching pract
 				},
 				{
 					exercise: "Pull-up",
-					days: ["fri"],
+					alternate: "c",
 					target: { kind: "pct_of_max", sets: 4, pct_of_max: 50 },
 					max_from: ["Pull-up"],
 					schedule: [
@@ -492,12 +492,13 @@ Before you start, test your max push-ups and pull-ups (Programs → Max test). A
 
 | Day | Focus | What to do |
 |---|---|---|
-| **Monday – density** | many reps in a short time | EMOM 10 minutes: 40 % of max at the start of every minute, rest for the rest of the minute |
-| **Wednesday – volume** | quality sets | 5 sets of 60 % of max, rest about 90 s |
-| **Friday – harder variation** | strength in weaker angles | 4 sets of a harder variation at 50 % of max; the variations rotate by week |
+| **Workout A (Monday) – density** | many reps in a short time | EMOM 10 minutes: 40 % of max at the start of every minute, rest for the rest of the minute |
+| **Workout B (Wednesday) – volume** | quality sets | 5 sets of 60 % of max, rest about 90 s |
+| **Workout C (Friday) – harder variation** | strength in weaker angles | 4 sets of a harder variation at 50 % of max; the variations rotate by week |
 
 - Do push-ups and pull-ups on the same day – alternate them so one muscle group rests while the other works.
-- **In weeks 3 and 6 Friday is a test:** after warming up, one set to max. The result is logged as a new max and the targets are recalculated.
+- The workouts follow in order A → B → C; if you train on other days, the order stays.
+- **In weeks 3 and 6 workout C is a test:** after warming up, one set to max. The result is logged as a new max and the targets are recalculated.
 
 Example: a max of 30 push-ups and 9 pull-ups → Monday 12 push-ups and 4 pull-ups every minute, Wednesday 5×18 and 5×5, Friday 4×15 and 4×5 (harder variation).
 
@@ -837,7 +838,7 @@ Label: **practice**.`,
 		note: program({
 			name: "Grease the groove",
 			evidence: "practice",
-			sources: ["practice"],
+			sources: ["tsatsouline1999", "practice"],
 			days: ["mon", "tue", "wed", "thu", "fri"],
 			items: [
 				{ exercise: "Pull-up", target: { kind: "pct_of_max", sets: 5, pct_of_max: 50 } },
@@ -872,6 +873,7 @@ Example: a max of 8 pull-ups → 4 pull-ups five times a day.
 
 ## Recommendations
 
+- **Origin:** the method comes from Pavel Tsatsouline's book *Power to the People!* *(Tsatsouline 1999 – practice)*
 - **Reserve:** end your sets 1–3 reps short of failure – the same effect with less fatigue. *(Helms 2016 – research / practice)*
 - **Sleep:** at least 7 hours a day; after a short night choose an easier day. *(Watson 2015 – consensus)*
 - **Check-in:** when fatigue, muscle soreness or sleep get worse several days in a row, reduce volume or take a day off. *(Saw 2016 – research; the specific approach is practice)*
@@ -884,7 +886,7 @@ Label: **practice**.`,
 		note: program({
 			name: "Daily kettlebell",
 			evidence: "practice",
-			sources: ["lake2012", "farrar2010", "practice"],
+			sources: ["lake2012", "farrar2010", "tsatsouline2006", "tsatsouline2019", "practice"],
 			days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
 			items: [
 				{ exercise: "Kettlebell swing", target: { kind: "sets_reps", sets: 10, reps: 10 } },
@@ -925,6 +927,107 @@ It's not about speed. When your technique slips in a set, end the set.
 - **Pain:** if an exercise hurts, reduce it or skip it. If the pain is 4/10 or more or lasts longer than a week, see a physiotherapist or doctor.
 
 Label: **practice** – the layout is coaching practice. That swing training improves maximal and explosive strength and is demanding for conditioning is supported by research (Lake 2012, Farrar 2010).`,
+	},
+	{
+		id: "novice-strength-3x5",
+		note: program({
+			name: "Novice strength 3×5",
+			evidence: "practice",
+			sources: ["rippetoe2011", "rippetoe2014", "helms2016", "practice"],
+			days: ["mon", "wed", "fri"],
+			items: [
+				{ exercise: "Back squat", target: { kind: "sets_reps", sets: 3, reps: 5 } },
+				{ exercise: "Bench press", alternate: "a", target: { kind: "sets_reps", sets: 3, reps: 5 } },
+				{ exercise: "Overhead press", alternate: "b", target: { kind: "sets_reps", sets: 3, reps: 5 } },
+				{ exercise: "Deadlift", target: { kind: "sets_reps", sets: 1, reps: 5 } },
+			],
+			progression: { rule: "none" },
+		}),
+		description: `A simple barbell program for beginners: three workouts a week, a few basic lifts and a little more weight every workout. Based on Mark Rippetoe's novice program from the book *Starting Strength*.
+
+## Who it's for
+
+For anyone starting with a barbell, or returning after a long break, who can do the squat, bench press, overhead press and deadlift with good technique. Learn the technique first with an empty bar – see the exercise library.
+
+## How it works
+
+Three workouts a week (Monday, Wednesday, Friday); workouts A and B alternate in order, so the next week starts with B.
+
+| Workout | Exercises |
+|---|---|
+| **A** | squat 3×5, bench press 3×5, deadlift 1×5 |
+| **B** | squat 3×5, overhead press 3×5, deadlift 1×5 |
+
+- Before the work sets, do a few warm-up sets with increasing weight.
+- 3×5 means three sets of five with the same weight; for the deadlift one work set after warming up is enough.
+
+## How to progress
+
+- **Every workout a little more weight** – as long as you completed all the reps last time. Small jumps work longest (for the presses often just 1–2 kg).
+- Choose the starting weights well below your limit so there's room to add for weeks.
+- When a lift stalls (you miss reps at the same weight), the follow-up book *Practical Programming* recommends a reset: lower the weight and build back up in small steps.
+- When resets stop helping even with good sleep and food, the novice phase is over – move on to weekly programming with slower progression (the same book describes, for example, the Texas Method).
+
+## When to back off
+
+- Technique gets worse with the weight → stay at the same weight until the reps are clean again.
+- Pain in a joint or the lower back → reduce the weight or skip the exercise. If the pain is 4/10 or more or lasts longer than a week, see a physiotherapist or doctor.
+
+## Recommendations
+
+- **Reserve:** the last rep can be hard, but never with broken technique. *(Helms 2016 – research / practice)*
+- **Sleep:** at least 7 hours a day; after a short night choose an easier day. *(Watson 2015 – consensus)*
+- **Protein:** roughly 1.6–2.2 g per kg of body weight a day supports gains in strength and muscle. *(Morton 2018 – research)*
+
+Label: **practice** – the program comes from Rippetoe's books (Rippetoe 2011, Rippetoe & Baker 2014), not from a study.`,
+	},
+	{
+		id: "kettlebell-program-minimum",
+		note: program({
+			name: "Kettlebell – Program Minimum",
+			evidence: "practice",
+			sources: ["tsatsouline2006", "tsatsouline2019", "lake2012", "farrar2010", "practice"],
+			days: ["mon", "tue", "wed", "thu", "fri", "sat"],
+			items: [
+				{ exercise: "Kettlebell swing", alternate: "a", target: { kind: "emom", reps: 10, minutes: 12 } },
+				{ exercise: "Turkish get-up", alternate: "b", target: { kind: "emom", reps: 1, minutes: 5 } },
+			],
+			progression: { rule: "none" },
+		}),
+		description: `Two exercises with one kettlebell, alternating by day: swings and the Turkish get-up. Based on Pavel Tsatsouline's Program Minimum from the book *Enter the Kettlebell!*.
+
+## Who it's for
+
+For anyone with one kettlebell who has learned the swing and the get-up (see the exercise library) and wants a short routine for strength, conditioning and stable shoulders.
+
+## How it works
+
+Workouts A and B alternate in order, whatever the day:
+
+| Workout | What to do |
+|---|---|
+| **A – swings** | 12 minutes of swings: a set, then active rest (walking, light jogging) until your breathing settles, and again |
+| **B – get-ups** | 5 minutes of get-ups: one rep, change sides, keep alternating |
+
+- In the plugin the swings are laid out as 10 every minute and the get-ups as 1 every minute – change it to suit you. The book stresses there's nothing magical about 5 or 12 minutes.
+- The default days are Monday to Saturday; set your own days on the Programs tab.
+
+## How to progress
+
+- More swings in the 12 minutes, later a heavier kettlebell – first for a few sets, then for all.
+- Get-ups: a heavier kettlebell only once the movement is smooth and controlled all the way.
+- **Next step:** the follow-up book *Simple & Sinister* sets a standard – 100 one-arm swings in 5 minutes (10 every 30 seconds), a minute's rest, then 10 get-ups in 10 minutes (one a minute). The "Simple" standard is 32 kg for men; for women 24 kg for swings and 16 kg for get-ups.
+
+## When to back off
+
+- Your lower back or shoulders hurt → stop and check your technique with a light kettlebell. If the pain is 4/10 or more or lasts longer than a week, see a physiotherapist or doctor.
+- When fatigue builds up, take a day off – swings with sloppy technique won't make you any stronger.
+
+## Recommendations
+
+- **Sleep:** at least 7 hours a day; after a short night choose an easier day. *(Watson 2015 – consensus)*
+
+Label: **practice** – the program comes from Tsatsouline's books (Tsatsouline 2006, 2019); that swing training improves strength and conditioning is supported by research (Lake 2012, Farrar 2010).`,
 	},
 	{
 		id: "deload-week",
@@ -1384,4 +1487,44 @@ export const TEMPLATE_DATA: TemplateData[] = [
 			{ type: "hold", exercise: "Dead hang", sets: 3, sec: 30 },
 		],
 	}) },
+	// Protažení: výdrže 2× 30 s (jednostranné cviky na každou stranu) – praxe; Konrad 2024: na délce a intenzitě
+	// protahování moc nezáleží, víc na pravidelnosti.
+	{ id: "stretch-after-run", note: template({
+		name: "Stretching after a run",
+		sport: "other",
+		blocks: [
+			{ type: "hold", exercise: "Calf stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Hamstring stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Hip flexor stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Figure-four stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Child's pose", sets: 2, sec: 30 },
+		],
+	}) },
+	{ id: "stretch-after-strength", note: template({
+		name: "Stretching after strength training",
+		sport: "other",
+		blocks: [
+			{ type: "hold", exercise: "Chest stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Lat stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Cross-body shoulder stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Triceps stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Hip flexor stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Hamstring stretch", sets: 2, sec: 30 },
+		],
+	}) },
+	{ id: "mobility-routine", note: template({
+		name: "Mobility routine",
+		sport: "other",
+		blocks: [
+			{ type: "timed", exercise: "Cat-cow", sec: 60 },
+			{ type: "sets", exercise: "Thoracic rotation", sets: 2, reps: 8 },
+			{ type: "sets", exercise: "World's greatest stretch", sets: 2, reps: 5 },
+			{ type: "hold", exercise: "90-90 hip stretch", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Deep squat hold", sets: 2, sec: 30 },
+			{ type: "hold", exercise: "Downward dog", sets: 2, sec: 30 },
+		],
+	}) },
 ];
+
+/** Šablony protažení a mobility – mají vlastní text v poznámce. */
+export const STRETCH_TEMPLATE_IDS: readonly string[] = ["stretch-after-run", "stretch-after-strength", "mobility-routine"];

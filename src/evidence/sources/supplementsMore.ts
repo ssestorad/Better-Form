@@ -1744,4 +1744,25 @@ export const MORE_SUPPLEMENT_SOURCES = {
 		kind: "position",
 		url: "https://www.wada-ama.org/en/prohibited-list",
 	},
+	chiu1998: {
+		short: "Chiu 1998",
+		citation: "Chiu A. C., Sherman S. I. (1998) Effects of pharmacological fiber supplements on levothyroxine absorption. Thyroid 8(8):667–671.",
+		evidence: "research",
+		kind: "study",
+		url: "https://doi.org/10.1089/thy.1998.8.667",
+	},
+	marx2015ginger: {
+		short: "Marx 2015",
+		citation: "Marx W. et al. (2015) The effect of ginger (Zingiber officinale) on platelet aggregation: a systematic literature review. PLoS One 10(10):e0141119.",
+		evidence: "research",
+		kind: "review",
+		url: "https://doi.org/10.1371/journal.pone.0141119",
+	},
+	bonnmiller2017: {
+		short: "Bonn-Miller 2017",
+		citation: "Bonn-Miller M. O. et al. (2017) Labeling accuracy of cannabidiol extracts sold online. JAMA 318(17):1708–1709.",
+		evidence: "research",
+		kind: "study",
+		url: "https://doi.org/10.1001/jama.2017.11909",
+	},
 } as const satisfies Record<string, Source>;

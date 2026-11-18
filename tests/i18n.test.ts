@@ -22,10 +22,11 @@ function files(dir: string): string[] {
 
 const ALL = files(join(ROOT, "src")).filter((f) => !f.includes(join("src", "locales")));
 
+/** Odstraní blokové komentáře, ale ne text v uvozovkách – řetězec "*\/*" komentář nezačíná ani nekončí. */
+const stripBlockComments = (text: string) => text.replace(/("(?:[^"\\\n]|\\.)*")|\/\*[\s\S]*?\*\//g, (_match, string: string | undefined) => string ?? "");
+
 const source = (file: string) =>
-	readFileSync(file, "utf8")
-		.replace(/<style[\s\S]*?<\/style>/g, "")
-		.replace(/\/\*[\s\S]*?\*\//g, "")
+	stripBlockComments(readFileSync(file, "utf8").replace(/<style[\s\S]*?<\/style>/g, ""))
 		.split("\n")
 		.filter((line) => !line.includes("i18n-ignore"))
 		.map((line) => line.replace(/^\s*\/\/.*$/, "").replace(/\s\/\/ .*$/, ""))
@@ -220,5 +221,16 @@ describe("zdrojový jazyk", () => {
 		// Neznámý text zůstane anglicky; značky se doplní v obou jazycích.
 		setLanguage("cs");
 		expect(t("Unknown text {x}", { x: 5 })).toBe("Unknown text 5");
+	});
+});
+
+describe("kontrola zdrojů – odstranění komentářů", () => {
+	it("text v uvozovkách s */* komentář neukončí ani nezačne", () => {
+		const code = 'const a = { Accept: "*/*" };\n/* komentář */\nt("Hello");\n/** víc\n řádků */ t("World");';
+		const stripped = stripBlockComments(code);
+		expect(stripped).toContain('"*/*"');
+		expect(stripped).toContain('t("Hello")');
+		expect(stripped).toContain('t("World")');
+		expect(stripped).not.toContain("komentář");
 	});
 });

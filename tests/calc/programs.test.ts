@@ -3,6 +3,8 @@ import {
 	counterProgress,
 	intervalTotalSeconds,
 	intervalWorkSeconds,
+	programSessionNumber,
+	workoutSlotForDate,
 	programWeek,
 	resolveTarget,
 	retestDue,
@@ -27,6 +29,38 @@ function program(overrides: Partial<ProgramNote> = {}): ProgramNote {
 		...overrides,
 	};
 }
+
+describe("střídání tréninků A/B", () => {
+	const sets: ProgramTarget = { kind: "sets_reps", sets: 3, reps: 5 };
+	const bench: ProgramItem = { exercise: "Bench press", target: sets, alternate: "a" };
+	const press: ProgramItem = { exercise: "Overhead press", target: sets, alternate: "b" };
+
+	it("pořadí tréninku od začátku programu podle kalendáře", () => {
+		// Po–St–Pá od 28. 9.: po 0, st 1, pá 2, další po 3.
+		expect(["2026-09-28", "2026-09-30", "2026-10-02", "2026-10-05"].map((d) => programSessionNumber(program(), d))).toEqual([0, 1, 2, 3]);
+		expect(programSessionNumber(program(), "2026-09-29")).toBeNull(); // úterý se necvičí
+	});
+
+	it("A v 1., 3. … tréninku, B ve 2., 4. …; druhý týden začíná B", () => {
+		const ab = program({ items: [bench, press] });
+		const week1 = ["2026-09-28", "2026-09-30", "2026-10-02"];
+		expect(week1.map((d) => targetForDate(ab, bench, d) !== null)).toEqual([true, false, true]);
+		expect(week1.map((d) => targetForDate(ab, press, d) !== null)).toEqual([false, true, false]);
+		expect(targetForDate(ab, press, "2026-10-05")).toEqual(sets);
+		expect(targetForDate(ab, bench, "2026-10-05")).toBeNull();
+		expect(week1.map((d) => workoutSlotForDate(ab, d))).toEqual(["a", "b", "a"]);
+		expect(workoutSlotForDate(program(), "2026-09-28")).toBeNull(); // program bez střídání
+	});
+
+	it("A/B/C: tři tréninky po sobě bez ohledu na den – i při čtyřech dnech v týdnu", () => {
+		const c: ProgramItem = { exercise: "Push-up", target: sets, alternate: "c" };
+		const abc = program({ days: ["mon", "tue", "thu", "fri"], items: [bench, press, c] });
+		const dates = ["2026-09-28", "2026-09-29", "2026-10-01", "2026-10-02", "2026-10-05"];
+		expect(dates.map((d) => workoutSlotForDate(abc, d))).toEqual(["a", "b", "c", "a", "b"]);
+		expect(targetForDate(abc, c, "2026-10-01")).toEqual(sets);
+		expect(targetForDate(abc, c, "2026-10-02")).toBeNull();
+	});
+});
 
 describe("týden a dny programu", () => {
 	it("týden od začátku programu", () => {

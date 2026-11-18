@@ -5,10 +5,10 @@
 **Tréninkový deník pro [Obsidian](https://obsidian.md), který ukazuje, odkud jeho rady jsou.** Trénink zapíšeš za minutu a ranní check-in za půl minuty. Plugin z nich spočítá připravenost na den, doporučení, plán týdne a doporučený denní příjem – a u každého čísla uvidíš, odkud je.
 
 - **Data zůstávají tvoje.** Každý trénink i den je běžná Markdown poznámka ve tvém vaultu, čitelná i bez pluginu. Offline, bez účtu, telemetrie a reklam.
-- **Rady, které si můžeš ověřit.** Každé doporučení a výpočet ukazuje zdroj a jestli stojí na výzkumu, konsenzu, nebo trenérské praxi – 917 ověřených zdrojů.
+- **Rady, které si můžeš ověřit.** Každé doporučení a výpočet ukazuje zdroj a jestli stojí na výzkumu, konsenzu, nebo trenérské praxi – 953 ověřených zdrojů, z toho 30 knih o tréninku a sportovní výživě.
 - **Trénink, regenerace a výživa na jednom místě.** Posilovna, kalistenika, kettlebell, běh, plavání a švihadlo; připravenost ze spánku, HRV a tréninkové zátěže; doporučený příjem, který nikdy neklesne pod klidový výdej.
 
-> **Stav:** verze 0.4.0, v katalogu komunitních pluginů, ve vývoji. Výpočty kryjí automatické testy, v Obsidianu je ale zatím vyzkoušená jen část funkcí – viz [Stav ověření](#stav-ověření). Rozhraní je anglicky a česky.
+> **Stav:** verze 0.5.0, v katalogu komunitních pluginů, ve vývoji. Běží na počítači i na telefonu. Výpočty kryjí automatické testy, v Obsidianu je ale zatím vyzkoušená jen část funkcí a na telefonu jen několik – viz [Stav ověření](#stav-ověření). Rozhraní je anglicky a česky.
 
 ## Ukázky
 
@@ -16,7 +16,7 @@ Vzorová data, světlý vzhled, české rozhraní.
 
 | Dnes | Plán týdne |
 |---|---|
-| <img src="docs/screenshots/cs/dnes.jpg" alt="Karta Dnes: ranní check-in s paprskovým grafem pocitů proti posledním 14 dnům a připravenost s rozpadem" width="400"> | <img src="docs/screenshots/cs/plan.jpg" alt="Karta Plán: týden po dnech se stavem položek a souhrnem" width="400"> |
+| <img src="docs/screenshots/cs/dnes.jpg" alt="Karta Dnes: ranní check-in s paprskovým grafem pocitů proti posledním 14 dnům a připravenost s rozpadem" width="400"> | <img src="docs/screenshots/cs/plan.jpg" alt="Karta Plán: karta závodu s dvoutýdenním laděním formy, týden po dnech s běhy z Runny a jejich cílovým tempem a souhrn týdne" width="400"> |
 
 | Zápis tréninku | Tělo |
 |---|---|
@@ -30,9 +30,9 @@ Vzorová data, světlý vzhled, české rozhraní.
 |---|---|
 | <img src="docs/screenshots/cs/odznaky.jpg" alt="Odznaky ve čtyřech skupinách: běh, síla vůči vlastní váze, kalistenika a pravidelnost, s daty a průběhem" width="400"> | <img src="docs/screenshots/cs/suplementy.jpg" alt="Katalog suplementů: rozbalený protein se zvoleným druhem syrovátkový izolát, hodnocení důkazů po oblastech přínosu, dávkování podle hmotnosti a rizika" width="400"> |
 
-| Bezpečnost suplementů |
-|---|
-| <img src="docs/screenshots/cs/bezpecnost-suplementu.jpg" alt="Upozornění na kartě Suplementy: tvoje suplementy proti lékům, které bereš, a kombinace, které se k sobě nehodí, u každé co zjistily studie, co dělat a zdroj" width="400"> |
+| Bezpečnost suplementů | Tréninková tempa |
+|---|---|
+| <img src="docs/screenshots/cs/bezpecnost-suplementu.jpg" alt="Upozornění na kartě Suplementy: tvoje suplementy proti lékům, které bereš, a kombinace, které se k sobě nehodí, u každé co zjistily studie, co dělat a zdroj" width="400"> | <img src="docs/screenshots/cs/tempa.jpg" alt="Rekordy s odhadem závodního času a tréninková tempa podle Danielse: lehké, maratonské, prahové, intervalové a tempo úseků, s limity rychlého běhu podle týdenního objemu" width="400"> |
 
 ## Jak začít
 
@@ -47,6 +47,14 @@ Přehledy se plní postupně; dokud není dost dat, uvidíš „sbírám data (X
 
 **Ruční instalace:** stáhni `main.js`, `manifest.json` a `styles.css` z [posledního vydání](https://github.com/ssestorad/Better-Form/releases/latest) (nebo je sestav, viz [Vývoj](#vývoj)), zkopíruj je do `<vault>/.obsidian/plugins/better-form/` a zapni **Better Form** v Nastavení → Komunitní pluginy.
 
+### Na telefonu
+
+Plugin funguje v Obsidianu pro Android i iOS; na telefonu se panel obvykle otevře v postranní liště.
+
+- **Klepnutí místo najetí myší:** kde počítač ukáže doplňující informaci po najetí myší (datum rekordu, podrobnosti řádku tabulky), na telefonu na ni klepni – text se ukáže jako hláška.
+- **Strava** se přihlašuje vložením kódu místo místního serveru, který používá počítač; nastavení tě tím provede. Garmin Connect, Runna i importy ze souboru fungují stejně jako na počítači.
+- **Když se karta nedá zobrazit,** uvidíš místo prázdné plochy rámeček s textem chyby – pošli ho autorovi ([issue na GitHubu](https://github.com/ssestorad/Better-Form/issues)), přesně z něj pozná, co selhalo.
+
 ## Co najdeš na kartách
 
 Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle nadpisu každé karty otevře knihovnu odkudkoli, každé nastavení najde hledání v nastavení Obsidianu a hlavní akce jsou i v paletě příkazů (Ctrl+P).
@@ -60,22 +68,25 @@ Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle n
 
 ### Zapsat
 
-- **Tréninky** – posilovna, kalistenika, kettlebell, běh, plavání, švihadlo. Série, výdrže, EMOM, AMRAP, žebříky, komplexy, supersety; rozcvičovací a drop série a série do selhání; šablony a „z minula“ s návrhem navýšení; kalkulačka kotoučů s návrhem rozcvičení.
-- **Běhy k doplnění** – běhy importované ze souboru nebo ze Stravy, které čekají na RPE, typ běhu a boty.
+- **Tréninky** – posilovna, kalistenika, kettlebell, běh, plavání, švihadlo. Série, výdrže, EMOM, AMRAP, žebříky, komplexy, supersety; rozcvičovací a drop série a série do selhání; šablony (i protažení po běhu, po posilování a mobilita) a „z minula“ s návrhem navýšení; kalkulačka kotoučů s návrhem rozcvičení.
+- **Běhy k doplnění** – běhy importované ze souboru, z Garmin Connect nebo ze Stravy, které čekají na RPE, typ běhu a boty.
 - **Knihovna cviků** – 268 cviků s provedením, častými chybami, zapojenými partiemi, potřebným vybavením (s filtrem) a **náhradami** na stejné svaly, když je stroj obsazený. U každého cviku je historie tvých výkonů s grafem; vlastní cviky jdou přidat.
 
 ### Plán
 
-- **Týden po dnech** – tréninky naplánované dopředu, které se samy odškrtnou podle zapsaných tréninků, včetně dnů aktivních programů.
+- **Týden po dnech** – tréninky naplánované dopředu, které se samy odškrtnou podle zapsaných tréninků, včetně dnů aktivních programů; u programů se střídajícími se tréninky plán ukáže, který je na řadě (trénink A, B nebo C).
+- **Plán z Runny** – tvůj tréninkový plán z Runny na příští 4 týdny, načtený z odkazu na její kalendář (funguje i s jinými trenérskými aplikacemi, které nabízejí odkaz iCal).
+- **Cílové tempo** u naplánovaných běhů podle Jacka Danielse z tvého nejnovějšího rekordu – lehké, prahové, intervalové nebo tempo úseků podle názvu a intenzity tréninku.
+- **Ladění formy před závodem** – když má cíl „čas na trati“ termín do 3 týdnů, plán ukáže, jak ladit poslední 2 týdny: objem běhu postupně o 41–60 % dolů, intenzita a počet běhů zůstanou, a kolik máš naplánováno.
 - **Výhled zátěže** proti posledním čtyřem týdnům a upozornění na naplánovaný běh, který je mnohem delší než obvykle.
 - **Volno, nemoc a dovolená** položky jen odloží a série nepřeruší.
-- **Do kalendáře** uloží týden jako soubor `.ics` pro kalendář Google, Outlook nebo Apple; opakovaný import události aktualizuje, nezdvojí.
+- **Do kalendáře** uloží týden jako soubor `.ics` pro kalendář Google, Outlook nebo Apple; opakovaný import události aktualizuje, nezdvojí. Tréninky načtené z Runny se vynechají – v kalendáři už jsou.
 
 ### Přehled
 
 - **Souhrn** – týden, měsíc a rok v číslech, kalendář tréninků za 12 měsíců, série (splněné týdny v řadě) a 22 odznaků za běh, sílu vůči vlastní váze, kalisteniku a pravidelnost; poznámky s měsíčním a ročním souhrnem.
 - **Grafy** – zátěž, kondice a únava; tempo a kadence běhu; odhad 1RM; spánek a zátěž s posledními 7 nocemi (spánkový dluh a pravidelnost spánku – cíl nastavíš v Pokročilé → HRV a spánek); váha; HRV.
-- **Rekordy** a odhad závodního času.
+- **Rekordy**, odhad závodního času a **tréninková tempa** podle Jacka Danielse (lehké, maratonské, prahové, intervalové a tempo úseků z vybraného rekordu) s limity rychlého běhu podle tvého týdenního objemu.
 - **Běh** – tepové zóny, rozložení intenzit 80/20, boty a jejich nájezd.
 
 ### Tělo
@@ -87,7 +98,7 @@ Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle n
 ### Dovednosti, Programy a Cíle
 
 - **Dovednosti** – žebříčky kalisteniky: shyby, kliky, dřep na jedné noze, stojka, front lever, planche…
-- **Programy** – vlastní i 11 předpřipravených (Základ 4, Od gauče k 5 km, První shyb, 100 kliků denně, Grease the groove, kettlebell, švihadlo…), denní počítadlo a testy maxim. Program jde vytvořit i ze souboru nebo z vloženého textu.
+- **Programy** – vlastní i 13 předpřipravených (Základ 4, Od gauče k 5 km, První shyb, 100 kliků denně, Grease the groove, Síla od nuly 3×5, Kettlebell – Program Minimum, švihadlo…), denní počítadlo a testy maxim. Tréninky se můžou střídat v pořadí – A/B nebo A/B/C – bez ohledu na den v týdnu. Program jde vytvořit i ze souboru nebo z vloženého textu.
 - **Cíle a normy** – čas na trati, síla, opakování, váha nebo vlastní tabulky norem, s předpovědí podle trendu.
 
 ### Výživa
@@ -117,18 +128,19 @@ Každé doporučení a výpočet ukazuje zdroj a štítek důkazů:
 - **konsenzus** – stanoviska odborných společností,
 - **praxe** – zavedená trenérská heuristika bez vlastní studie.
 
-Heuristika se nikdy nevydává za výzkum. Katalog má 917 zdrojů, každý před přidáním ověřený podle původní práce.
+Heuristika se nikdy nevydává za výzkum. Katalog má 953 zdrojů, každý před přidáním ověřený podle původní práce. Knihy mají štítek praxe a u každé je napsané, jak byl obsah ověřen – v textu knihy (hledání v knihovním výtisku), podle obsahu nebo podle popisu vydavatele.
 
-Karty **Co říká výzkum** shrnují 35 témat – co studie zjistily, co si z toho vzít do tréninku a samotné studie. Najdeš je tam, kde se hodí:
+Karty **Co říká výzkum** shrnují 34 témat – co studie zjistily, co si z toho vzít do tréninku a samotné studie – a karty **Trenérská praxe** dalších 8 z trenérských knih. Najdeš je tam, kde se hodí:
 
 | Kde | Témata |
 |---|---|
-| Detail cviku | objem a frekvence, technika a tempo, pauzy mezi sériemi, samotný cvik (dřep, mrtvý tah, tlaky, přítahy, hýždě, kettlebell, střed těla, rozsah pohybu); u cviků mobility rozcvička a strečink, pohyblivost |
+| Detail cviku | objem a frekvence, technika a tempo, pauzy mezi sériemi, samotný cvik (dřep, mrtvý tah, tlaky, přítahy, hýždě, kettlebell, střed těla, rozsah pohybu); u cviků mobility rozcvička a strečink, pohyblivost. Praxe: techniky sérií (drop série, supersety, předvyčerpání…) a tři cesty k síle u cviků v posilovně, progrese s vlastní vahou u kalisteniky, kompenzační cvičení u cviků mobility, planku, bočního vzporu a bird dogu |
 | Programy | např. Od gauče k 5 km: začátky s během, silový trénink pro běžce, běžecká zranění |
-| Přehled → Grafy | zátěž a riziko zranění, posilování a zdraví, spánek a trénink, trénink ráno, nebo večer, trénink řízený podle HRV |
+| Přehled → Grafy | zátěž a riziko zranění, posilování a zdraví, spánek a trénink, trénink ráno, nebo večer, trénink řízený podle HRV; praxe: zatížení, zotavení a superkompenzace |
 | Přehled → Běh | běh 80/20, silový trénink pro běžce, posilování a vytrvalost dohromady, HIIT proti klidnému kardiu, běžecká zranění |
 | Dnes | menstruační cyklus (při ženském pohlaví v profilu) |
-| Výživa | bílkoviny, hubnutí bez ztráty svalů (při cíli „Hubnutí“), kroky a zdraví, alkohol, pitný režim |
+| Výživa | bílkoviny, hubnutí bez ztráty svalů (při cíli „Hubnutí“), kroky a zdraví, alkohol, pitný režim; praxe: energetická dostupnost |
+| Suplementy → Knihovna | praxe: nejdřív jídlo, důkazy a kontaminované suplementy (z učebnic sportovní výživy) |
 | Tělo | regenerační metody, trénink při bolesti |
 
 ## Import a export
@@ -143,9 +155,23 @@ Tlačítko **Ze souboru** na kartě Dnes nebo Zapsat, případně příkaz „Im
 
 Plugin načte datum a čas, vzdálenost, čas v pohybu, tep a kadenci (pokud v souboru jsou), převýšení a nejrychlejší úseky od 1 km po maraton. Tentýž soubor podruhé se přeskočí a ručně zapsaný běh ze stejného dne se stejnou vzdáleností se jen doplní o měřené údaje. Vzdálenost se počítá z poloh GPS, takže se od aplikace může o pár procent lišit.
 
+### Garmin Connect
+
+Garmin umožňuje vytvořit si zdarma osobní klíč ke čtení vlastních dat (Garmin Connect na webu → Personal API Key); nastavení pluginu v Import dat → Garmin Connect tě tím provede. Tlačítko **Synchronizovat Garmin** na kartě Dnes nebo Zapsat pak přinese:
+
+- **denní data** – kroky, délku spánku a časy usnutí a probuzení, klidový tep a váhu; doplní se jen to, co v deníku chybí,
+- **běhy** – stažené jako soubory FIT, s tepem, kadencí a nejrychlejšími úseky; běh, který už v deníku je (ze Stravy nebo zapsaný ručně), se nezdvojí,
+- **HRV** jen když ho zapneš – hodinky měří průměr přes noc, což je jiné měření než ranní (Elonga, hrudní pás), a smíchání by pokazilo tvoji osobní normu.
+
+Přístup je jen ke čtení, synchronizace běží jen, když ji spustíš, funguje i na mobilu a klíč zůstává v souboru `data.json` pluginu ve tvém vaultu. Klíč platí nejvýš rok; až vyprší, vytvoř nový.
+
+### Runna
+
+Runna nemá veřejné API, ale plán sdílí jako soukromý odkaz na kalendář (Runna → Profil → Connected Apps & Devices → Calendars → Other Calendar). Vlož ho do nastavení pluginu v Import dat → Runna; tlačítko **Runna** na kartě Plán pak načte do plánu týdne příští 4 týdny. Naplánované tréninky z Runny se při každé synchronizaci aktualizují, minulé dny a tvoje vlastní položky zůstanou, jak jsou, a dokončené běhy přijdou jako obvykle z Garminu nebo ze Stravy – odškrtnou plán, započítají se do výhledu zátěže a hlídá je upozornění na mnohem delší běh. Vzdálenost a délka se čtou z názvu tréninku. Odkaz zůstává v souboru `data.json` pluginu ve tvém vaultu; kdo ho má, vidí tvůj plán.
+
 ### Synchronizace se Stravou
 
-Od června 2026 Strava dovolí vytvořit API aplikaci jen účtům s **placeným předplatným**. Pokud ho máš, nastavení tě provede jejím založením i připojením účtu. Synchronizace běží jen, když ji spustíš, a přihlašovací údaje zůstávají v souboru `data.json` pluginu ve tvém vaultu.
+Od června 2026 Strava dovolí vytvořit API aplikaci jen účtům s **placeným předplatným**. Pokud ho máš, nastavení tě provede jejím založením i připojením účtu. Synchronizace běží jen, když ji spustíš, a přihlašovací údaje zůstávají v souboru `data.json` pluginu ve tvém vaultu. Vyzkoušená je proti skutečnému účtu, i na telefonu.
 
 ### Další data
 
@@ -169,7 +195,7 @@ Better Form/
 - Názvy složek jdou změnit v nastavení. Vaulty založené verzí 0.2 nebo starší si nechají české složky `Forma/`.
 - Plugin **nikdy nepřepisuje tvůj text** – generovaný obsah patří jen mezi `<!-- forma:start -->` a `<!-- forma:end -->`. Mění jen svoje poznámky a v nich jen frontmatter a generovaný blok.
 - Mazání z rozhraní přesune poznámku do koše podle nastavení Obsidianu, nikdy ji nesmaže natrvalo.
-- **Síť:** plugin funguje offline a nic neodesílá. Jediné spojení je nepovinná synchronizace se Stravou (`www.strava.com`), která běží jen, když ji spustíš; na počítači při přihlášení krátce spustí místní server na `127.0.0.1`, na mobilu kód vložíš ručně.
+- **Síť:** plugin funguje offline a nic neodesílá. Jediná spojení jsou nepovinné synchronizace s Garmin Connect (`personal.connectapi.garmin.com`, jen čtení), kalendář Runny (odkaz, který vložíš, jen čtení) a se Stravou (`www.strava.com`) a všechny běží jen, když je spustíš. Při přihlášení ke Stravě plugin na počítači krátce spustí místní server na `127.0.0.1`, na mobilu kód vložíš ručně.
 - Mimo vault nic nečte ani nezapisuje – importované soubory vybíráš sám a exporty i zálohy se ukládají do vaultu. Schránku použije jen po kliknutí na **Export** u karty programu nebo **Vložit ze schránky** v importu programu.
 
 ## Jazyk
@@ -186,9 +212,11 @@ Rozhraní je anglicky a česky. Při prvním spuštění se řídí jazykem Obsi
 
 **Vyzkoušené v Obsidianu na počítači:** zápis tréninku (i ze šablon), panáček, check-in a denní poznámka, plán týdne, Přehled, mazání; karta Suplementy včetně druhů, interakcí s léky, kombinací, části pro závodníky a osobního testu s výkonem; tlačítko knihovny cviků, filtr vybavení a náhrady cviků; paprskový graf check-inu, odznaky, spánkový dluh a pravidelnost; stránka nastavení přestavěná pro Obsidian 1.13; import GPX ze Stravy; upozornění na mnohem delší běh, graf kadence a export do kalendáře; anglické rozhraní a „Přeložit poznámky“ na existujícím českém vaultu.
 
-**Jen automatickými testy a v náhledu:** karta Výživa, měsíční a roční souhrn; TCX, FIT a tep či kadence ze souboru, denní data z CSV a historie ze Strong a Hevy (jen na ručně sestavených souborech).
+**Vyzkoušené na telefonu (iPhone):** synchronizace se Stravou proti skutečnému API, úvodní průvodce a karta Výživa. Některé karty (Dnes, Plán, Suplementy) se na telefonu zobrazily prázdné – verze 0.5.0 v takovém případě ukáže text chyby, aby šla příčina najít a opravit.
 
-**Zatím nevyzkoušené:** synchronizace se Stravou proti skutečnému API, provoz na telefonu.
+**Jen automatickými testy a v náhledu:** karta Výživa, měsíční a roční souhrn; TCX, FIT a tep či kadence ze souboru, denní data z CSV a historie ze Strong a Hevy (jen na ručně sestavených souborech); tréninková tempa, střídání tréninků A/B/C, nové programy Síla od nuly 3×5 a Kettlebell – Program Minimum a karty Trenérská praxe (jen automatické testy); plán z odkazu na kalendář, cílová tempa v plánu a ladění formy před závodem (automatické testy a náhled).
+
+**Zatím nevyzkoušené:** synchronizace s Garmin Connect proti skutečnému API, plán ze skutečného kalendáře Runny, ostatní karty na telefonu.
 
 ## Vývoj
 
@@ -200,6 +228,7 @@ npm run dev        # sestavuje při každé změně; s VAULT_PATH v .env.local k
 npm run build      # kontrola typů + produkční sestavení
 npm test           # testy (Vitest)
 npm run deploy     # sestavení + kopie main.js, manifest.json, styles.css do <vault>/.obsidian/plugins/better-form/
+npm run preview    # náhled vybraných obrazovek v prohlížeči s ukázkovými daty (tools/preview)
 ```
 
 Pro nasazení zkopíruj `.env.local.example` do `.env.local` a vyplň `VAULT_PATH`. `.env.local` se nikdy necommituje.
@@ -214,7 +243,8 @@ Pro nasazení zkopíruj `.env.local.example` do `.env.local` a vyplň `VAULT_PAT
 | `src/locales/` | složka pro každý jazyk (klíč = anglický text nebo id vestavěného obsahu) a registr jazyků |
 | `src/seed/` | knihovna cviků, programy, šablony, katalog suplementů, výzkum – anglický zdroj se stálými id |
 | `src/ui/` | rozhraní (Svelte 5) |
-| `tests/` | testy včetně datové vrstvy nad vaultem v paměti |
+| `tests/` | testy včetně datové vrstvy nad vaultem v paměti a synchronizací proti podvrženému serveru |
+| `tools/preview/` | náhled vybraných obrazovek v prohlížeči s ukázkovými daty – kontrola rozvržení a snímky |
 
 Každý push do `main` spustí na GitHub Actions testy, kontrolu typů a sestavení.
 

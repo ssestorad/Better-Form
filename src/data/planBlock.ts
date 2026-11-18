@@ -13,7 +13,8 @@ import type { PlanDay } from "./PlanService";
 export function planItemTitle(item: PlanItem): string {
 	const sport = SPORT_LABELS[item.sport];
 	const name = item.title ?? item.template;
-	return name ? `${sport} – ${name}` : sport;
+	const title = name ? `${sport} – ${name}` : sport;
+	return item.source ? `${title} (${item.source})` : title;
 }
 
 /**
@@ -62,7 +63,8 @@ const eventUid = (date: string, id: string) => `${date}-${id.replace(/[^A-Za-z0-
 /** Položky a dny programů týdne jako celodenní události kalendáře. */
 export function planEvents(days: readonly PlanDay[]): CalendarEvent[] {
 	return days.flatMap((day) => [
-		...day.entries.map((entry) => ({
+		// Položky převzaté z kalendáře jiné aplikace (Runna) už v kalendáři jsou – nezdvojovat.
+		...day.entries.filter((entry) => !entry.item.source).map((entry) => ({
 			uid: eventUid(day.date, entry.item.id),
 			date: day.date,
 			title: entry.program ? t("Program {program_name}", { program_name: entry.program.name }) : planItemTitle(entry.item),

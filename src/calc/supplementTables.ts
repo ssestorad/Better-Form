@@ -22,6 +22,8 @@ export const CAFFEINE_SOURCES: CaffeineSource[] = translated([
 	{ id: "filter", name: "Filter coffee", amount: "200 ml", mg: 90 },
 	{ id: "tea", name: "Tea", amount: "220 ml", mg: 50 },
 	{ id: "energy", name: "Energy drink", amount: "250 ml", mg: 80 },
+	// Údaj z etikety (32 mg/100 ml), ne z EFSA – plechovka 500 ml.
+	{ id: "monster", name: "Monster Energy", amount: "500 ml", mg: 160 },
 	{ id: "cola", name: "Cola", amount: "355 ml", mg: 40 },
 	{ id: "dark", name: "Plain chocolate", amount: "50 g", mg: 25 },
 	{ id: "milk", name: "Milk chocolate", amount: "50 g", mg: 10 },

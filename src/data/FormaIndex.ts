@@ -56,6 +56,9 @@ export class FormaIndex extends Events {
 	private readonly entries = new Map<string, IndexEntry>();
 	private readonly issues = new Map<string, string>();
 	private exerciseLookup: Map<string, IndexEntry<ExerciseNote> | undefined> | null = null;
+	/** Poznámky po typech a denní poznámky podle data – sestaví se při prvním dotazu, smažou při změně. */
+	private byType: Map<string, IndexEntry[]> | null = null;
+	private dayByDate: Map<string, IndexEntry<DayNote>> | null = null;
 	private ready = false;
 
 	private readonly notifyUpdated = debounce(() => this.trigger("updated"), 150, true);
@@ -101,6 +104,7 @@ export class FormaIndex extends Events {
 	rebuild(): void {
 		this.entries.clear();
 		this.issues.clear();
+		this.invalidate();
 		for (const file of this.app.vault.getMarkdownFiles()) this.indexFile(file);
 		this.ready = true;
 		this.changed();
@@ -112,19 +116,29 @@ export class FormaIndex extends Events {
 
 	// ---------- Dotazy ----------
 
+	/** Poznámky daného typu – vždy nové pole, volající ho smí třídit. */
 	all<K extends IndexedType>(type: K): IndexEntry<NoteByType[K]>[] {
-		const result: IndexEntry<NoteByType[K]>[] = [];
-		for (const entry of this.entries.values()) {
-			if (entry.note.forma === type) result.push(entry as IndexEntry<NoteByType[K]>);
+		if (!this.byType) {
+			this.byType = new Map();
+			for (const entry of this.entries.values()) {
+				const bucket = this.byType.get(entry.note.forma);
+				if (bucket) bucket.push(entry);
+				else this.byType.set(entry.note.forma, [entry]);
+			}
 		}
-		return result;
+		return [...((this.byType.get(type) ?? []) as IndexEntry<NoteByType[K]>[])];
 	}
 
 	/** Denní poznámka pro datum (při duplicitách ta s abecedně první cestou). */
 	day(date: string): IndexEntry<DayNote> | undefined {
-		return this.all("day")
-			.filter((e) => e.note.date === date)
-			.sort((a, b) => a.file.path.localeCompare(b.file.path))[0];
+		if (!this.dayByDate) {
+			this.dayByDate = new Map();
+			for (const entry of this.all("day")) {
+				const current = this.dayByDate.get(entry.note.date);
+				if (!current || entry.file.path.localeCompare(current.file.path) < 0) this.dayByDate.set(entry.note.date, entry);
+			}
+		}
+		return this.dayByDate.get(date);
 	}
 
 	/** Tréninky od nejnovějšího. */
@@ -169,8 +183,15 @@ export class FormaIndex extends Events {
 	// ---------- Vnitřní ----------
 
 	private changed(): void {
-		this.exerciseLookup = null;
+		this.invalidate();
 		if (this.ready) this.notifyUpdated();
+	}
+
+	/** Zahodí odvozené mapy – po každé změně položek. */
+	private invalidate(): void {
+		this.exerciseLookup = null;
+		this.byType = null;
+		this.dayByDate = null;
 	}
 
 	/** Vrátí true, pokud se index změnil. */
@@ -190,18 +211,22 @@ export class FormaIndex extends Events {
 		}
 		this.issues.delete(file.path);
 		this.entries.set(file.path, { file, note, schemaStatus: migration.status });
+		this.invalidate();
 		return true;
 	}
 
 	private setIssue(path: string, reason: string): boolean {
 		this.entries.delete(path);
+		this.invalidate();
 		this.issues.set(path, reason);
 		return true;
 	}
 
 	private remove(path: string): boolean {
 		const hadIssue = this.issues.delete(path);
-		return this.entries.delete(path) || hadIssue;
+		const removed = this.entries.delete(path);
+		if (removed) this.invalidate();
+		return removed || hadIssue;
 	}
 }
 

@@ -8,7 +8,7 @@
 
 import { getLanguage, LANGUAGES, type Language } from "../i18n";
 import { SCHEMA_VERSION, type ExerciseCategory, type ExerciseKind, type ExerciseMeasure, type MuscleId } from "../model/constants";
-import { parseLink, toLink } from "../model/links";
+import { parseLink } from "../model/links";
 import type { ExerciseNote } from "../model/types";
 import { EXERCISE_ROWS } from "./exerciseData";
 import { EXERCISE_EQUIPMENT } from "./exerciseEquipment";
@@ -103,7 +103,8 @@ export function translateExerciseFrontmatter(fm: Record<string, unknown>, id: st
 		const ladderId = builtinId("ladder", parseLink(progression.ladder));
 		if (ladderId) {
 			const name = builtinName("ladder", ladderId, language);
-			set("progression", { ...progression, ladder: /^\s*\[\[/.test(progression.ladder) ? toLink(name) : name });
+			// Vždy prostý text – starší odkaz [[…]] vedl na neexistující poznámku.
+			set("progression", { ...progression, ladder: name });
 		}
 	}
 	return changed;

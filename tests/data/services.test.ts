@@ -117,6 +117,15 @@ describe("DayService", () => {
 		expect(await w.days.fillMissing([{ date: "2026-10-04", steps: 1, duration_min: 1 }])).toEqual({ days: 0, values: 0 });
 	});
 
+	it("časy spánku (Garmin) se doplní jen spolu s délkou; naměřená délka má přednost před časy", async () => {
+		await w.days.fillMissing([{ date: "2026-10-06", duration_min: 418, sleep_onset: "22:47", wake: "06:15" }]);
+		expect(w.vault.frontmatter("Forma/Deník/2026/2026-10-06.md")).toMatchObject({ sleep: { sleep_onset: "22:47", wake: "06:15", duration_min: 418 } });
+		// Den s ručně zapsaným spánkem zůstane beze změny.
+		await w.days.saveCheckIn({ date: "2026-10-07", duration_min: 400 });
+		expect(await w.days.fillMissing([{ date: "2026-10-07", duration_min: 418, sleep_onset: "22:47", wake: "06:15" }])).toEqual({ days: 0, values: 0 });
+		expect(w.vault.frontmatter("Forma/Deník/2026/2026-10-07.md").sleep).toEqual({ duration_min: 400 });
+	});
+
 	it("úprava check-inu nepřepíše text, který si uživatel dopsal, ani cizí klíče ve frontmatteru", async () => {
 		const file = await w.days.saveCheckIn({ date: "2026-10-03", quality: 3 });
 		w.vault.write(file.path, `${w.vault.text(file.path)}\nDnes jsem měl těžký den.\n`.replace('"forma": "day"', '"forma": "day",\n "tags": ["deník"]'));
@@ -291,5 +300,24 @@ describe("ProgramService – program ze souboru", () => {
 		const report = await w.programs.importFile("", json);
 		expect(report).toMatchObject({ name: "Z JSONu", format: "json", items: 1, dropped: 1, unknownExercises: [] });
 		expect((await w.programs.importText("- Běh: 3 km")).basename).toBe("Importovaný program");
+	});
+});
+
+describe("index poznámek – mezipaměť po typech a dnech", () => {
+	it("po ruční změně, duplicitě a smazání vrací aktuální stav", () => {
+		const w = createWorld();
+		const day = (weight: number) => `---\n${JSON.stringify({ forma: "day", schema: 1, date: "2026-10-05", body: { weight_kg: weight } })}\n---\n`;
+		w.vault.write("Forma/Deník/b.md", day(70));
+		expect(w.index.day("2026-10-05")?.note.body.weight_kg).toBe(70);
+		// Duplicita se stejným datem: vyhraje abecedně první cesta.
+		w.vault.write("Forma/Deník/a.md", day(71));
+		expect(w.index.day("2026-10-05")?.file.path).toBe("Forma/Deník/a.md");
+		w.vault.write("Forma/Deník/a.md", day(72));
+		expect(w.index.day("2026-10-05")?.note.body.weight_kg).toBe(72);
+		// Vrácené pole je kopie – setřídění ho nesmí změnit v indexu.
+		w.index.all("day").reverse();
+		expect(w.index.all("day").map((e) => e.file.path).sort()).toEqual(["Forma/Deník/a.md", "Forma/Deník/b.md"]);
+		w.vault.write("Forma/Deník/a.md", "bez frontmatteru");
+		expect(w.index.day("2026-10-05")?.file.path).toBe("Forma/Deník/b.md");
 	});
 });

@@ -70,7 +70,7 @@ export async function seedLibrary(
 	}
 	for (const [i, note] of seedTemplates(language).entries()) {
 		if (allNames("template", TEMPLATE_DATA[i]!.id).some((name) => lookup.hasTemplate(name))) continue;
-		const file = await writer.createNoteIfMissing(namedNotePath(folders, "templates", note.name), templateToFrontmatter(note), templateNoteBody(language));
+		const file = await writer.createNoteIfMissing(namedNotePath(folders, "templates", note.name), templateToFrontmatter(note), templateNoteBody(language, TEMPLATE_DATA[i]!.id));
 		if (file) result.templates++;
 	}
 	return result;

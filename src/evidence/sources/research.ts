@@ -1138,4 +1138,25 @@ export const RESEARCH_SOURCES = {
 		kind: "review",
 		url: "https://doi.org/10.1136/bjsports-2022-105553",
 	},
+	bosquet2007: {
+		short: "Bosquet 2007",
+		citation: "Bosquet L., Montpetit J., Arvisais D., Mujika I. (2007) Effects of tapering on performance: a meta-analysis. Med Sci Sports Exerc 39(8):1358–1365.",
+		evidence: "research",
+		kind: "meta",
+		url: "https://doi.org/10.1249/mss.0b013e31806010e0",
+	},
+	mujika2003: {
+		short: "Mujika 2003",
+		citation: "Mujika I., Padilla S. (2003) Scientific bases for precompetition tapering strategies. Med Sci Sports Exerc 35(7):1182–1187.",
+		evidence: "research",
+		kind: "review",
+		url: "https://doi.org/10.1249/01.MSS.0000074448.73931.11",
+	},
+	wang2023taper: {
+		short: "Wang Z. 2023",
+		citation: "Wang Z., Wang Y. T., Gao W., Zhong Y. (2023) Effects of tapering on performance in endurance athletes: a systematic review and meta-analysis. PLoS One 18(5):e0282838.",
+		evidence: "research",
+		kind: "meta",
+		url: "https://doi.org/10.1371/journal.pone.0282838",
+	},
 } as const satisfies Record<string, Source>;

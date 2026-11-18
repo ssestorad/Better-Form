@@ -93,8 +93,10 @@ export class DayService {
 			onProgress?.(++done);
 			const entry = this.index.day(row.date);
 			if (entry?.schemaStatus === "newer") continue;
-			const { steps, ...checkIn } = missingValues(row, entry?.note);
-			const count = Object.keys(checkIn).length + (steps !== undefined ? 1 : 0);
+			const { steps, ...missing } = missingValues(row, entry?.note);
+			// Časy spánku jen s délkou – když poznámka nemá ani jedno.
+			const checkIn = missing.duration_min !== undefined && row.sleep_onset && row.wake ? { ...missing, sleep_onset: row.sleep_onset, wake: row.wake } : missing;
+			const count = Object.keys(missing).length + (steps !== undefined ? 1 : 0);
 			if (count === 0) continue;
 			if (Object.keys(checkIn).length > 0) await this.saveCheckIn({ ...(entry ? checkInFromDay(entry.note) : { date: row.date }), ...checkIn });
 			if (steps !== undefined) await this.setSteps(row.date, steps);

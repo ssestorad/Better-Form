@@ -5,6 +5,8 @@
 	import { REP_MAX_COUNTS, exerciseRecords, swimRecords, type ExerciseRecords, type RecordContext } from "../../calc/records";
 	import { RECORD_DISTANCES, RIEGEL_BASIS, longestRun, riegelTime, runRecords } from "../../calc/running";
 	import { EPLEY_BASIS } from "../../calc/oneRm";
+	import { PACES_BASIS, qualityLimits, trainingPaces, type PaceRange } from "../../calc/runningPaces";
+	import { addDays, toIsoDate } from "../../model/dates";
 	import type { TestNote, WorkoutNote } from "../../model/types";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { formatNumber, formatSeconds, formatShortDate } from "../format";
@@ -38,6 +40,16 @@
 				})
 			: [],
 	);
+
+	// Tréninková tempa podle Danielse ze stejného rekordu a limity z průměrného týdenního objemu za 4 týdny.
+	const paces = $derived(base ? trainingPaces(base.distance.km, base.seconds) : null);
+	const weeklyKm = $derived.by(() => {
+		const from = addDays(toIsoDate(new Date()), -27);
+		return workouts.filter((w) => w.sport === "run" && w.date >= from).reduce((sum, w) => sum + (w.run?.distance_km ?? 0), 0) / 4;
+	});
+	const limits = $derived(qualityLimits(weeklyKm));
+	const range = (r: PaceRange) => `${formatPace(r.slow)} – ${formatPace(r.fast)}`;
+	const km = (v: number) => `${formatNumber(v, 1)} km`;
 
 	const kgText = (v: number) => `${formatNumber(v, 1)} kg`;
 
@@ -111,13 +123,30 @@
 					<span role="cell">{row.distance.label}</span>
 					<span role="cell" class="bf-rec-num">{row.seconds === null ? "—" : formatClockDuration(row.seconds)}</span>
 					<span role="cell" class="bf-muted bf-rec-num">{row.seconds === null ? "" : formatPace(row.seconds / row.distance.km)}</span>
-					<span role="cell" class="bf-muted">{row.actual ? t("actual time") : "odhad"}</span>
+					<span role="cell" class="bf-muted">{row.actual ? t("actual time") : t("estimate")}</span>
 				</div>
 			{/each}
 		</div>
 		<p class="bf-muted bf-rec-small">
 			{t("Riegel: T2 = T1 × (D2 / D1)^1.06")} <BasisTag basis={RIEGEL_BASIS} named />{t(". It assumes you've trained for the longer distance; for a half marathon or marathon predicted from a short run it tends to be too optimistic.")}
 		</p>
+		{#if paces}
+			<h5>{t("Training paces")}</h5>
+			<div class="bf-rec-table" role="table">
+				<div class="bf-rec-run" role="row"><span role="cell">{t("E – easy and long runs")}</span><span role="cell" class="bf-rec-num">{range(paces.easy)}</span></div>
+				<div class="bf-rec-run" role="row"><span role="cell">{t("M – marathon pace")}</span><span role="cell" class="bf-rec-num">{formatPace(paces.marathon)}</span></div>
+				<div class="bf-rec-run" role="row"><span role="cell">{t("T – threshold, comfortably hard")}</span><span role="cell" class="bf-rec-num">{range(paces.threshold)}</span></div>
+				<div class="bf-rec-run" role="row"><span role="cell">{t("I – intervals of 3–5 minutes")}</span><span role="cell" class="bf-rec-num">{range(paces.interval)}</span></div>
+				<div class="bf-rec-run" role="row"><span role="cell">{t("R – fast repetitions")}</span><span role="cell" class="bf-rec-num">{formatPace(paces.repetition)}</span></div>
+			</div>
+			<p class="bf-muted bf-rec-small">
+				{t("VDOT {v} from the selected record. E is 59–74 % of VO2max, T 86–88 %, R your current race pace for a mile and I 6–8 s per 400 m slower.", { v: formatNumber(paces.vdot, 1) })}
+				{#if limits}
+					{t("With your average of {v} a week (last 4 weeks), keep a session at T pace to at most {v2}, at I pace to {v3}, at R pace to {v4}, and a long run to about {v5}.", { v: km(weeklyKm), v2: km(limits.thresholdKm), v3: km(limits.intervalKm), v4: km(limits.repetitionKm), v5: km(limits.longRunKm) })}
+				{/if}
+				<BasisTag basis={PACES_BASIS} named />
+			</p>
+		{/if}
 	</section>
 {/if}
 
@@ -144,7 +173,7 @@
 			</button>
 		{/if}
 		<p class="bf-muted bf-rec-small">
-			{t("1RM is estimated with the Epley formula from a set of up to 10 reps")} <BasisTag basis={EPLEY_BASIS} />{t("; not calculated for ballistic exercises. “5× 80 kg” = the heaviest set with at least 5 reps. Hover to see the record's date.")}
+			{t("1RM is estimated with the Epley formula from a set of up to 10 reps")} <BasisTag basis={EPLEY_BASIS} />{t("; not calculated for ballistic exercises. “5× 80 kg” = the heaviest set with at least 5 reps. Hover over or tap a record to see its date.")}
 		</p>
 	{/if}
 </section>

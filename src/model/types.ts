@@ -378,6 +378,11 @@ export interface ProgramItem {
 	target: ProgramTarget;
 	/** Dny, kdy se položka dělá; prázdné = všechny dny programu. */
 	days?: Weekday[];
+	/**
+	 * Jen v jednom ze střídajících se tréninků podle pořadí od začátku programu:
+	 * A/B (1., 3. … / 2., 4. …), s C se střídají tři (A, B, C, A…); chybí = v každém.
+	 */
+	alternate?: "a" | "b" | "c";
 	/** Plán po týdnech (např. Couch to 5K, rotace variant cviku). */
 	schedule?: WeekSchedule[];
 	/**
@@ -570,6 +575,10 @@ export interface PlanItem {
 	/** Plánovaná vzdálenost běhu. */
 	distance_km?: number;
 	notes?: string;
+	/** Položka převzatá z kalendáře jiné aplikace (např. „Runna“) – další synchronizace ji aktualizuje. */
+	source?: string;
+	/** Označení události v tom kalendáři. */
+	uid?: string;
 }
 
 /** Plán jednoho týdne (SPEC 4.8, 5.16); `week` je pondělí týdne. */

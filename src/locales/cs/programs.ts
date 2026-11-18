@@ -54,12 +54,13 @@ Před začátkem otestuj maximum kliků a shybů (Programy → Test maxima). Z n
 
 | Den | Zaměření | Co dělat |
 |---|---|---|
-| **Pondělí – hustota** | hodně opakování v krátkém čase | EMOM 10 minut: každou celou minutu 40 % maxima, zbytek minuty pauza |
-| **Středa – objem** | kvalitní série | 5 sérií po 60 % maxima, pauza asi 90 s |
-| **Pátek – těžší varianta** | síla ve slabších úhlech | 4 série těžší varianty po 50 % maxima; varianty se střídají po týdnech |
+| **Trénink A (pondělí) – hustota** | hodně opakování v krátkém čase | EMOM 10 minut: každou celou minutu 40 % maxima, zbytek minuty pauza |
+| **Trénink B (středa) – objem** | kvalitní série | 5 sérií po 60 % maxima, pauza asi 90 s |
+| **Trénink C (pátek) – těžší varianta** | síla ve slabších úhlech | 4 série těžší varianty po 50 % maxima; varianty se střídají po týdnech |
 
 - Kliky a shyby cvič ve stejný den – střídej je, ať jedna partie odpočívá, když druhá pracuje.
-- **Ve 3. a 6. týdnu je v pátek test:** po rozcvičení jedna série na maximum. Výsledek se sám zapíše jako nové maximum a cíle se přepočítají.
+- Tréninky jdou po sobě v pořadí A → B → C; když cvičíš v jiné dny, pořadí zůstane.
+- **Ve 3. a 6. týdnu je trénink C test:** po rozcvičení jedna série na maximum. Výsledek se sám zapíše jako nové maximum a cíle se přepočítají.
 
 Příklad: maximum 30 kliků a 9 shybů → pondělí 12 kliků a 4 shyby každou minutu, středa 5×18 a 5×5, pátek 4×15 a 4×5 (těžší varianta).
 
@@ -229,6 +230,7 @@ Příklad: maximum 8 shybů → pětkrát denně 4 shyby.
 
 ## Doporučení
 
+- **Původ:** metoda pochází z knihy Pavla Tsatsoulina *Power to the People!* *(Tsatsouline 1999 – praxe)*
 - **Rezerva:** série ukončuj 1–3 opakování před selháním – stejný efekt s menší únavou. *(Helms 2016 – výzkum / praxe)*
 - **Spánek:** aspoň 7 hodin denně; po kratší noci zvol lehčí den. *(Watson 2015 – konsenzus)*
 - **Check-in:** když se několik dní po sobě zhoršuje únava, bolest svalů nebo spánek, uber objem nebo si dej den volna. *(Saw 2016 – výzkum; konkrétní postup praxe)*
@@ -271,6 +273,83 @@ Nejde o rychlost. Když technika v sérii povolí, sérii ukonči.
 - **Bolest:** když cvik bolí, uber nebo ho vynech. Při bolesti 4/10 a víc nebo trvající déle než týden se poraď s fyzioterapeutem nebo lékařem.
 
 Štítek: **praxe** – rozvržení je trenérská praxe. Že trénink swingů zlepšuje maximální a výbušnou sílu a je kondičně náročný, podporuje výzkum (Lake 2012, Farrar 2010).`,
+	},
+	"novice-strength-3x5": {
+		name: "Síla od nuly 3×5",
+		description: `Jednoduchý program s činkou pro začátečníky: tři tréninky týdně, pár základních cviků a každý trénink o kousek víc. Podle programu pro začátečníky Marka Rippetoa z knihy *Starting Strength*.
+
+## Pro koho
+
+Pro toho, kdo s činkou začíná nebo se vrací po dlouhé pauze a zvládne dřep, bench, tlak nad hlavu a mrtvý tah v dobré technice. Techniku se nejdřív nauč s prázdnou osou – viz knihovna cviků.
+
+## Jak to funguje
+
+Tři tréninky týdně (pondělí, středa, pátek); tréninky A a B se střídají po sobě, takže další týden začíná B.
+
+| Trénink | Cviky |
+|---|---|
+| **A** | dřep 3×5, bench 3×5, mrtvý tah 1×5 |
+| **B** | dřep 3×5, tlak nad hlavu 3×5, mrtvý tah 1×5 |
+
+- Před pracovními sériemi udělej pár rozcvičovacích sérií se stoupající vahou.
+- 3×5 znamená tři série po pěti se stejnou vahou; u mrtvého tahu stačí po rozcvičení jedna pracovní série.
+
+## Jak přidávat
+
+- **Každý trénink o kousek víc** – dokud jsi minule odcvičil všechna opakování. Nejdéle vydrží malé skoky (u tlaků často jen 1–2 kg).
+- Začni s vahami hodně pod svým maximem, ať je kam přidávat celé týdny.
+- Když se cvik zasekne (na stejné váze nedáš všechna opakování), navazující kniha *Practical Programming* radí restart: váhu snížit a znovu po malých krocích přidávat.
+- Když už restarty nepomáhají ani při dobrém spánku a jídle, fáze začátečníka skončila – přejdi na týdenní plánování s pomalejším přidáváním (stejná kniha popisuje třeba Texas Method).
+
+## Kdy ubrat
+
+- Technika se s vahou zhoršuje → zůstaň u stejné váhy, dokud nebudou opakování zase čistá.
+- Bolest v kloubu nebo v kříži → uber váhu nebo cvik vynech. Při bolesti od 4/10 nebo trvající přes týden zajdi za fyzioterapeutem nebo lékařem.
+
+## Doporučení
+
+- **Rezerva:** poslední opakování může být těžké, ale nikdy s rozpadlou technikou. *(Helms 2016 – výzkum / praxe)*
+- **Spánek:** aspoň 7 hodin denně; po krátké noci zvol lehčí den. *(Watson 2015 – konsenzus)*
+- **Bílkoviny:** zhruba 1,6–2,2 g na kg tělesné hmotnosti denně podporují nárůst síly a svalů. *(Morton 2018 – výzkum)*
+
+Štítek: **praxe** – program pochází z Rippetoeových knih (Rippetoe 2011, Rippetoe & Baker 2014), ne ze studie.`,
+	},
+	"kettlebell-program-minimum": {
+		name: "Kettlebell – Program Minimum",
+		description: `Dva cviky s jedním kettlebellem, střídavě po dnech: swingy a turecký vztyk. Podle Programu Minimum Pavla Tsatsoulina z knihy *Enter the Kettlebell!*.
+
+## Pro koho
+
+Pro toho, kdo má jeden kettlebell, naučil se swing a turecký vztyk (viz knihovna cviků) a chce krátký režim pro sílu, kondici a stabilní ramena.
+
+## Jak to funguje
+
+Tréninky A a B se střídají po sobě, bez ohledu na den:
+
+| Trénink | Co dělat |
+|---|---|
+| **A – swingy** | 12 minut swingů: série, pak aktivní odpočinek (chůze, lehký poklus), dokud se nezklidní dech, a znovu |
+| **B – vztyky** | 5 minut tureckých vztyků: jedno opakování, výměna strany a dál střídavě |
+
+- V pluginu jsou swingy rozvržené po 10 každou minutu a vztyky po 1 každou minutu – uprav si to. Kniha zdůrazňuje, že na 5 a 12 minutách není nic magického.
+- Výchozí dny jsou pondělí až sobota; vlastní dny nastavíš na kartě Programy.
+
+## Jak přidávat
+
+- Víc swingů za 12 minut, později těžší kettlebell – nejdřív na pár sérií, pak na všechny.
+- Vztyky: těžší kettlebell, až když je pohyb celou dobu plynulý a pod kontrolou.
+- **Další krok:** navazující kniha *Simple & Sinister* dává cíl – 100 swingů jednou rukou za 5 minut (10 každých 30 sekund), minuta pauza a pak 10 vztyků za 10 minut (jeden za minutu). Standard „Simple“ je pro muže 32 kg, pro ženy 24 kg na swingy a 16 kg na vztyky.
+
+## Kdy ubrat
+
+- Bolí kříž nebo ramena → přestaň a zkontroluj techniku s lehkým kettlebellem. Při bolesti od 4/10 nebo trvající přes týden zajdi za fyzioterapeutem nebo lékařem.
+- Když se hromadí únava, dej si den volna – swingy s odbytou technikou tě silnějším neudělají.
+
+## Doporučení
+
+- **Spánek:** aspoň 7 hodin denně; po krátké noci zvol lehčí den. *(Watson 2015 – konsenzus)*
+
+Štítek: **praxe** – program pochází z Tsatsoulinových knih (Tsatsouline 2006, 2019); že trénink swingů zlepšuje sílu a kondici, podporuje výzkum (Lake 2012, Farrar 2010).`,
 	},
 	"deload-week": {
 		name: "Odlehčovací týden",
@@ -430,6 +509,9 @@ export const TEMPLATES: Record<string, string> = {
 	"pull-gym": "Pull – posilovna",
 	"push-bodyweight": "Push – vlastní váha",
 	"pull-bodyweight": "Pull – vlastní váha",
+	"stretch-after-run": "Protažení po běhu",
+	"stretch-after-strength": "Protažení po posilování",
+	"mobility-routine": "Mobilita",
 };
 
 export const LADDERS: Record<string, string> = {

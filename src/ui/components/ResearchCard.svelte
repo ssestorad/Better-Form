@@ -1,5 +1,5 @@
 <script lang="ts">
-	// „Co říká výzkum“: shrnutí, praktické doporučení a studie s typem (rozbalovací).
+	// „Co říká výzkum“ (u štítku praxe „Trenérská praxe“ – poznatky z knih): shrnutí, praktické doporučení a zdroje s typem (rozbalovací).
 	import { t } from "../../i18n";
 	import { STUDY_KIND_LABELS, getSource } from "../../evidence/sources";
 	import { EVIDENCE_LABELS } from "../../model/constants";
@@ -16,7 +16,8 @@
 
 <details class="bf-research">
 	<summary>
-		{t("What the research says: {title}", { title: topic.title })} <span class="bf-tag">{EVIDENCE_LABELS[topic.evidence]}</span>
+		{topic.evidence === "practice" ? t("Coaching practice: {title}", { title: topic.title }) : t("What the research says: {title}", { title: topic.title })}
+		<span class="bf-tag">{EVIDENCE_LABELS[topic.evidence]}</span>
 	</summary>
 	<p>{topic.summary}</p>
 	<p><strong>{t("In practice:")}</strong> {topic.practical}</p>

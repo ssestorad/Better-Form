@@ -198,7 +198,7 @@
 		<div class="bf-body-summary">
 			<div>
 				<div class="bf-body-eyebrow">{t("Last 7 days")}</div>
-				<h4>{t("Hover over or click a muscle group")}</h4>
+				<h4>{t("Tap, click or hover over a muscle group")}</h4>
 				<p class="bf-muted bf-small">{t("You'll see only its statistics. Click to pin it, click again to unpin.")}</p>
 			</div>
 			{#if !hasStrength}
