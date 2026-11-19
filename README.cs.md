@@ -53,9 +53,12 @@ Plugin funguje v Obsidianu pro Android i iOS; na telefonu se panel obvykle otev�
 
 - **Klepnutí místo najetí myší:** kde počítač ukáže doplňující informaci po najetí myší (datum rekordu, podrobnosti řádku tabulky), na telefonu na ni klepni – text se ukáže jako hláška.
 - **Strava** se přihlašuje vložením kódu místo místního serveru, který používá počítač; nastavení tě tím provede. Garmin Connect, Runna i importy ze souboru fungují stejně jako na počítači.
+- **Rychlé odkazy:** Nastavení → Better Form → Rychlé odkazy pro telefon nabízí hotové odkazy `obsidian://better-form?…` (check-in, zápis tréninku nebo šablony, přičtení do denního počítadla, synchronizace) pro zástupce na ploše nebo Zkratky v iOS. Příkazy jdou dát i do mobilní lišty (nastavení Obsidianu → Lišta nástrojů).
 - **Když se karta nedá zobrazit,** uvidíš místo prázdné plochy rámeček s textem chyby – pošli ho autorovi ([issue na GitHubu](https://github.com/ssestorad/Better-Form/issues)), přesně z něj pozná, co selhalo.
 
 ## Co najdeš na kartách
+
+Části, které nepoužíváš, jde vypnout v Nastavení → Moduly (i v průvodci) – celou kartu jako Suplementy nebo Výživa, nebo menší část jako panáčka či tlačítko Runna. Nic se nesmaže. Deník bolesti vypnout nejde.
 
 Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle nadpisu každé karty otevře knihovnu odkudkoli, každé nastavení najde hledání v nastavení Obsidianu a hlavní akce jsou i v paletě příkazů (Ctrl+P).
 
@@ -64,6 +67,7 @@ Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle n
 - **Ranní check-in** do půl minuty – spánek, pocity, chuť trénovat, HRV, klidový tep, váha, kroky, nepovinně tělesné míry. Paprskový graf porovná dnešek s posledními 14 dny.
 - **Připravenost** (0–100) s rozpadem a trendem za 14 dní.
 - **Doporučení** se zdůvodněním a zdroji – spánek, HRV, skoky v zátěži, regenerace partií, bolest, deload, cíle, plán týdne, výživa. Třeba naplánovaný běh o víc než 10 % delší než tvůj nejdelší běh za posledních 30 dní dostane upozornění.
+- **Deník návyků** – zaškrtni včerejší návyky (alkohol, kofein po 14. hodině, pozdní jídlo, obrazovka před spaním, cestování – seznam jde upravit). Jakmile je za posledních 90 dní aspoň 5 dní s návykem a 5 bez něj, karta ukáže, jak se lišilo další ráno (HRV, klidový tep, spánek, pocity) – souvislost, ne příčina.
 - **Spánkový dluh** za posledních 7 nocí (jakmile jsou zapsané aspoň 4 noci), dnešní plán, dnešní tréninky a výživa na dnešek.
 
 ### Zapsat
@@ -79,13 +83,15 @@ Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle n
 - **Cílové tempo** u naplánovaných běhů podle Jacka Danielse z tvého nejnovějšího rekordu – lehké, prahové, intervalové nebo tempo úseků podle názvu a intenzity tréninku.
 - **Ladění formy před závodem** – když má cíl „čas na trati“ termín do 3 týdnů, plán ukáže, jak ladit poslední 2 týdny: objem běhu postupně o 41–60 % dolů, intenzita a počet běhů zůstanou, a kolik máš naplánováno.
 - **Výhled zátěže** proti posledním čtyřem týdnům a upozornění na naplánovaný běh, který je mnohem delší než obvykle.
+- **Úpravy běhu** – u dnešního a zítřejšího běhu plán navrhne změnu i s důvodem: při bolesti nohou 4/10 a víc běh vynechat, při mírnější bolesti lehce a kratší, v den s nízkou připraveností lehce a vynechané běhy nedohánět. Jen návrh, plán zůstane, jak je.
 - **Volno, nemoc a dovolená** položky jen odloží a série nepřeruší.
 - **Do kalendáře** uloží týden jako soubor `.ics` pro kalendář Google, Outlook nebo Apple; opakovaný import události aktualizuje, nezdvojí. Tréninky načtené z Runny se vynechají – v kalendáři už jsou.
+- **Do hodinek** uloží nadcházející běhy týdne jako tréninky `.fit` s cílovým tempem – do Garminu je zkopíruj přes USB (`GARMIN/NewFiles`) nebo naimportuj v aplikaci výrobce hodinek. Každý běh je jeden krok; intervaly se nerozdělují.
 
 ### Přehled
 
 - **Souhrn** – týden, měsíc a rok v číslech, kalendář tréninků za 12 měsíců, série (splněné týdny v řadě) a 22 odznaků za běh, sílu vůči vlastní váze, kalisteniku a pravidelnost; poznámky s měsíčním a ročním souhrnem.
-- **Grafy** – zátěž, kondice a únava; tempo a kadence běhu; odhad 1RM; spánek a zátěž s posledními 7 nocemi (spánkový dluh a pravidelnost spánku – cíl nastavíš v Pokročilé → HRV a spánek); váha; HRV.
+- **Grafy** – zátěž, kondice a únava; tempo a kadence běhu; odhad 1RM; spánek a zátěž s posledními 7 nocemi (spánkový dluh a pravidelnost spánku – cíl nastavíš v Pokročilé → HRV a spánek); váha s trendovou váhou; HRV.
 - **Rekordy**, odhad závodního času a **tréninková tempa** podle Jacka Danielse (lehké, maratonské, prahové, intervalové a tempo úseků z vybraného rekordu) s limity rychlého běhu podle tvého týdenního objemu.
 - **Běh** – tepové zóny, rozložení intenzit 80/20, boty a jejich nájezd.
 
@@ -98,13 +104,14 @@ Panel má pro každou oblast jednu kartu. Tlačítko **Knihovna cviků** vedle n
 ### Dovednosti, Programy a Cíle
 
 - **Dovednosti** – žebříčky kalisteniky: shyby, kliky, dřep na jedné noze, stojka, front lever, planche…
-- **Programy** – vlastní i 13 předpřipravených (Základ 4, Od gauče k 5 km, První shyb, 100 kliků denně, Grease the groove, Síla od nuly 3×5, Kettlebell – Program Minimum, švihadlo…), denní počítadlo a testy maxim. Tréninky se můžou střídat v pořadí – A/B nebo A/B/C – bez ohledu na den v týdnu. Program jde vytvořit i ze souboru nebo z vloženého textu.
+- **Programy** – vlastní i 14 předpřipravených (Základ 4, Od gauče k 5 km, První shyb, 100 kliků denně, Grease the groove, Síla od nuly 3×5, Kettlebell – Program Minimum a Simple & Sinister, švihadlo…), denní počítadlo a testy maxim. Tréninky se můžou střídat v pořadí – A/B nebo A/B/C – bez ohledu na den v týdnu. Program jde vytvořit i ze souboru nebo z vloženého textu.
 - **Cíle a normy** – čas na trati, síla, opakování, váha nebo vlastní tabulky norem, s předpovědí podle trendu.
 
 ### Výživa
 
 - **Doporučený denní příjem** a makroživiny podle klidového výdeje, běžné aktivity, tréninků a cíle, s výpočtem krok po kroku.
 - **Pojistky** proti příliš nízkému příjmu a **kontrola podle vývoje váhy** s úpravou jedním klepnutím.
+- **Trendová váha** vyhladí denní výkyvy; s cílem na váhu karta odhadne, kdy ho dosáhneš. Fáze hubnutí nebo nabírání může mít datum konce (Nastavení → Profil → Cíl platí do), potom se výživa přepne na udržování.
 - Zápis jídla plugin nemá.
 
 ### Suplementy
@@ -175,13 +182,13 @@ Od června 2026 Strava dovolí vytvořit API aplikaci jen účtům s **placeným
 
 ### Další data
 
-- **Denní data z hodinek** – kroky, délka spánku, HRV, klidový tep a váha z CSV; doplní jen to, co chybí.
+- **Denní data z hodinek nebo telefonu** – kroky, délka spánku, HRV, klidový tep a váha z CSV, z Apple Health (`export.xml` z Exportovat všechna data zdraví) nebo z Health Auto Export (JSON nebo CSV); doplní jen to, co chybí. HRV z Apple Health je SDNN a neimportuje se. Android Health Connect vlastní export nemá – použij CSV z aplikace jako Health Sync.
 - **Z jiného deníku** – historie silových tréninků z exportu Strong a Hevy (CSV). Nejdřív si to vyzkoušej na záloze.
-- **Ven** – CSV pro Excel, záloha celé složky do ZIP a plán týdne jako kalendář `.ics`.
+- **Ven** – CSV pro Excel, záloha celé složky do ZIP, plán týdne jako kalendář `.ics` a naplánované běhy jako tréninky `.fit`.
 
 ## Tvoje data
 
-Každý trénink, den, cvik, program nebo cíl je jedna poznámka s frontmatterem (`forma: workout`, `forma: day`, …). Plugin čte a zapisuje jen přes Obsidian API a nepotřebuje Dataview ani jiné pluginy.
+Každý trénink, den, cvik, program nebo cíl je jedna poznámka s frontmatterem (`forma: workout`, `forma: day`, …). Plugin čte a zapisuje jen přes Obsidian API a nepotřebuje Dataview ani jiné pluginy. Všechny klíče popisuje [docs/schema.md](docs/schema.md) i s příklady pro Bases a Dataview. Volitelně plugin zapisuje metriky dne (`bf_readiness`, `bf_sleep_h`, `bf_hrv`, …) i do tvé vlastní denní poznámky – Nastavení → Metriky ve vlastní denní poznámce.
 
 ```
 Better Form/

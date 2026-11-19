@@ -61,3 +61,11 @@ describe("import denních hodnot z CSV", () => {
 		expect(() => parseDailyCsv("date,mood\n2026-10-05,4\n")).toThrow("Sloupce v souboru: date, mood");
 	});
 });
+
+describe("CSV z Health Auto Export", () => {
+	it("kroky, klidový tep, váha a celkový spánek; HRV (SDNN) a fáze spánku ne", () => {
+		const csv = ["Date/Time,Step Count (count),Resting Heart Rate (count/min),Heart Rate Variability (ms),Weight & Body Mass (kg),Sleep Analysis [Asleep] (hr),Sleep Analysis [Deep] (hr)", "2026-11-01 00:00:00,8123,52,41,74.3,7.25,1.1"].join("\n");
+		const parsed = parseDailyCsv(csv);
+		expect(parsed.rows).toEqual([{ date: "2026-11-01", steps: 8123, resting_hr: 52, weight_kg: 74.3, duration_min: 435 }]);
+	});
+});

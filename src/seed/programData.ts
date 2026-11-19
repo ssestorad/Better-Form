@@ -1016,7 +1016,7 @@ Workouts A and B alternate in order, whatever the day:
 
 - More swings in the 12 minutes, later a heavier kettlebell – first for a few sets, then for all.
 - Get-ups: a heavier kettlebell only once the movement is smooth and controlled all the way.
-- **Next step:** the follow-up book *Simple & Sinister* sets a standard – 100 one-arm swings in 5 minutes (10 every 30 seconds), a minute's rest, then 10 get-ups in 10 minutes (one a minute). The "Simple" standard is 32 kg for men; for women 24 kg for swings and 16 kg for get-ups.
+- **Next step:** the follow-up book *Simple & Sinister* (also a built-in program) sets a standard – 100 one-arm swings in 5 minutes (10 every 30 seconds), a minute's rest, then 10 get-ups in 10 minutes (one a minute). The "Simple" standard is 32 kg for men; for women 24 kg for swings and 16 kg for get-ups.
 
 ## When to back off
 
@@ -1028,6 +1028,53 @@ Workouts A and B alternate in order, whatever the day:
 - **Sleep:** at least 7 hours a day; after a short night choose an easier day. *(Watson 2015 – consensus)*
 
 Label: **practice** – the program comes from Tsatsouline's books (Tsatsouline 2006, 2019); that swing training improves strength and conditioning is supported by research (Lake 2012, Farrar 2010).`,
+	},
+	{
+		id: "kettlebell-simple-sinister",
+		note: program({
+			name: "Kettlebell – Simple & Sinister",
+			evidence: "practice",
+			sources: ["tsatsouline2019", "tsatsouline2006", "lake2012", "farrar2010", "practice"],
+			days: ["mon", "tue", "wed", "thu", "fri", "sat"],
+			items: [
+				{ exercise: "Kettlebell swing", target: { kind: "emom", reps: 20, minutes: 5 } },
+				{ exercise: "Turkish get-up", target: { kind: "emom", reps: 1, minutes: 10 } },
+			],
+			progression: { rule: "none" },
+		}),
+		description: `One kettlebell, two exercises in every session: one-arm swings and the Turkish get-up. Based on Pavel Tsatsouline's *Kettlebell Simple & Sinister* (StrongFirst) – the follow-up to Program Minimum.
+
+## Who it's for
+
+For anyone who has learned the swing and the get-up (see the exercise library) and can do Program Minimum comfortably. The session is short – about 16 minutes plus a warm-up.
+
+## How it works
+
+| Part | What to do |
+|---|---|
+| **Swings** | 100 one-arm swings in 5 minutes: 10 every 30 seconds, switching hands each set |
+| Rest | 1 minute |
+| **Get-ups** | 10 get-ups in 10 minutes: one at the start of every minute, switching sides |
+
+- In the plugin the swings are a block of 20 a minute (two sets of 10) for 5 minutes and the get-ups 1 a minute for 10 minutes.
+- The default days are Monday to Saturday – the publisher's page doesn't say how many days a week; set your own on the Programs tab.
+
+## How to progress
+
+- **The "Simple" standard:** the whole session within the time limits with 32 kg for men; for women 24 kg for swings and 16 kg for get-ups.
+- Move to a heavier kettlebell gradually – first for a few sets, then for all – only once the session feels comfortable within the time limits.
+- **"Sinister":** 48 kg for men; for women 32 kg for swings and 24 kg for get-ups.
+
+## When to back off
+
+- Your lower back or shoulders hurt → stop and check your technique with a light kettlebell. If the pain is 4/10 or more or lasts longer than a week, see a physiotherapist or doctor.
+- When the times stop being comfortable or technique slips, stay with the lighter kettlebell – the standard isn't a test to force.
+
+## Recommendations
+
+- **Sleep:** at least 7 hours a day; after a short night choose an easier day. *(Watson 2015 – consensus)*
+
+Label: **practice** – the program and standards come from Tsatsouline's book (Tsatsouline 2019, checked on the publisher's page); that swing training improves strength and conditioning is supported by research (Lake 2012, Farrar 2010).`,
 	},
 	{
 		id: "deload-week",

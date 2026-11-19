@@ -53,17 +53,19 @@ The plugin works on Obsidian for Android and iOS; on a phone the panel usually o
 
 - **Tap instead of hover:** where the desktop shows extra information when you hover over something (a record's date, a table row's details), tap it on the phone – the text appears as a notice.
 - **Strava** signs in by pasting a code instead of the local server the desktop uses; the settings walk you through it. Garmin Connect, Runna and imports from a file work the same as on desktop.
+- **Quick links:** Settings → Better Form → Quick links for your phone has ready-made `obsidian://better-form?…` links (check-in, log a workout or a template, add to a daily counter, sync) for a home-screen shortcut or iOS Shortcuts. Commands can also go into the mobile toolbar (Obsidian settings → Toolbar).
 - **If a tab can't be displayed,** you'll see a box with the error text instead of an empty tab – send it to the author ([an issue on GitHub](https://github.com/ssestorad/Better-Form/issues)), it says exactly what failed.
 
 ## What's on each tab
 
-The panel has one tab per area. The **Exercise library** button next to every tab's title opens the library from anywhere, every setting can be found through Obsidian's settings search, and the main actions are in the command palette (Ctrl+P) too.
+The panel has one tab per area. Parts you don't use can be turned off in Settings → Modules (also in the setup guide) – a whole tab like Supplements or Nutrition, or a smaller part like the body figure or the Runna button. Nothing is deleted. The pain log can't be turned off. The **Exercise library** button next to every tab's title opens the library from anywhere, every setting can be found through Obsidian's settings search, and the main actions are in the command palette (Ctrl+P) too.
 
 ### Today
 
 - **Morning check-in** in under half a minute – sleep, how you feel, desire to train, HRV, resting heart rate, weight, steps, optionally body measurements. A radar chart compares today with the last 14 days.
 - **Readiness** (0–100) with a breakdown and a 14-day trend.
 - **Recommendations** with their reasons and sources – sleep, HRV, load jumps, muscle recovery, pain, deload, goals, the weekly plan, nutrition. For example, a planned run more than 10 % longer than your longest run of the last 30 days gets a warning.
+- **Habit journal** – tick yesterday's habits (alcohol, caffeine after 2 pm, late meal, screen before bed, travel – the list is editable). Once there are at least 5 days with and 5 without a habit in the last 90 days, the card shows how your next morning differed (HRV, resting heart rate, sleep, how you feel) – an association, not a cause.
 - **Sleep debt** over the last 7 nights (once at least 4 nights are logged), today's plan, today's workouts and today's nutrition.
 
 ### Log
@@ -79,13 +81,15 @@ The panel has one tab per area. The **Exercise library** button next to every ta
 - **Target pace** for planned runs by Jack Daniels from your latest record – easy, threshold, interval or repetition pace by the workout's name and intensity.
 - **Race taper** – when a race time goal has a date within 3 weeks, the plan shows how to taper for the last 2 weeks: running volume gradually down by 41–60 % with the intensity and number of runs kept, and how much you have planned.
 - **Load outlook** against the last four weeks, and a warning for a planned run that's much longer than usual.
+- **Run adjustments** – for today's and tomorrow's run the plan suggests a change with the reason: skip it with leg pain of 4/10 or more, run easy and shorter with milder pain, take it easy on a low-readiness day, and don't make up missed runs. Only a suggestion; the plan stays as it is.
 - **Rest, illness and vacation** only postpone items and don't break streaks.
 - **To calendar** saves the week as an `.ics` file for Google, Outlook or Apple Calendar; importing it again updates the events instead of duplicating them. Workouts loaded from Runna are left out – they're already in your calendar.
+- **To watch** saves the week's upcoming runs as `.fit` workouts with the target pace – copy them to a Garmin over USB (`GARMIN/NewFiles`) or import them in the watch maker's app. Each run is one step; intervals aren't split up.
 
 ### Overview
 
 - **Summary** – week, month and year in numbers, a 12-month workout calendar, streaks (completed weeks in a row) and 22 badges for running, strength for your body weight, calisthenics and consistency; monthly and yearly summary notes.
-- **Charts** – load, fitness and fatigue; running pace and cadence; estimated 1RM; sleep and load with the last 7 nights (sleep debt and how regular your sleep times are – set the target under Advanced → HRV and sleep); weight; HRV.
+- **Charts** – load, fitness and fatigue; running pace and cadence; estimated 1RM; sleep and load with the last 7 nights (sleep debt and how regular your sleep times are – set the target under Advanced → HRV and sleep); weight with the trend weight; HRV.
 - **Records**, a race time prediction and **training paces** by Jack Daniels (easy, marathon, threshold, interval and repetition pace from the selected record) with limits on fast running based on your weekly volume.
 - **Running** – heart-rate zones, the 80/20 intensity split, shoes and their mileage.
 
@@ -98,13 +102,14 @@ The panel has one tab per area. The **Exercise library** button next to every ta
 ### Skills, Programs and Goals
 
 - **Skills** – calisthenics progressions: pull-ups, push-ups, pistol squat, handstand, front lever, planche…
-- **Programs** – your own and 13 built-in ones (Basic 4, Couch to 5K, Zero to your first pull-up, 100 push-ups a day, Grease the groove, Novice strength 3×5, Kettlebell – Program Minimum, jump rope…), a daily counter and max tests. Workouts can alternate in order – A/B or A/B/C – whatever the day of the week. A program can also be created from a file or pasted text.
+- **Programs** – your own and 14 built-in ones (Basic 4, Couch to 5K, Zero to your first pull-up, 100 push-ups a day, Grease the groove, Novice strength 3×5, Kettlebell – Program Minimum and Simple & Sinister, jump rope…), a daily counter and max tests. Workouts can alternate in order – A/B or A/B/C – whatever the day of the week. A program can also be created from a file or pasted text.
 - **Goals and standards** – time over a distance, strength, reps, weight or your own standards tables, with a forecast from your trend.
 
 ### Nutrition
 
 - **Suggested daily intake** and macros from resting energy expenditure, everyday activity, workouts and your goal, with the calculation shown step by step.
 - **Safeguards** against too low an intake, and a **check against your weight trend** with a one-tap adjustment.
+- **Trend weight** smooths out daily swings; with a weight goal the tab estimates when you'll reach it. A fat-loss or muscle-gain phase can have an end date (Settings → Profile → Goal applies until), after which nutrition switches to maintenance.
 - There is no food logging.
 
 ### Supplements
@@ -175,13 +180,13 @@ Since June 2026 Strava only lets accounts with a **paid subscription** create an
 
 ### Other data
 
-- **Daily data from your watch** – steps, sleep duration, HRV, resting heart rate and weight from CSV; only fills in what's missing.
+- **Daily data from your watch or phone** – steps, sleep duration, HRV, resting heart rate and weight from CSV, Apple Health (`export.xml` from Export All Health Data) or Health Auto Export (JSON or CSV); only fills in what's missing. HRV from Apple Health is SDNN and isn't imported. Android Health Connect has no export of its own – use a CSV from an app like Health Sync.
 - **From another log** – strength workout history from Strong and Hevy exports (CSV). Try it on a backup first.
-- **Out** – CSV for spreadsheets, a ZIP backup of the whole folder and the weekly plan as an `.ics` calendar.
+- **Out** – CSV for spreadsheets, a ZIP backup of the whole folder, the weekly plan as an `.ics` calendar and planned runs as `.fit` workouts.
 
 ## Your data
 
-Every workout, day, exercise, program or goal is one note with frontmatter (`forma: workout`, `forma: day`, …). The plugin reads and writes only through the Obsidian API and needs no Dataview or other plugins.
+Every workout, day, exercise, program or goal is one note with frontmatter (`forma: workout`, `forma: day`, …). The plugin reads and writes only through the Obsidian API and needs no Dataview or other plugins. All keys are described in [docs/schema.md](docs/schema.md), with examples for Bases and Dataview. Optionally the plugin also writes the day's metrics (`bf_readiness`, `bf_sleep_h`, `bf_hrv`, …) into your own daily note – Settings → Metrics in your daily note.
 
 ```
 Better Form/

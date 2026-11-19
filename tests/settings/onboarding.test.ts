@@ -53,6 +53,19 @@ describe("úvodní průvodce", () => {
 		expect(onboardingMissing(onboardingFromSettings(settings))).toEqual([]);
 	});
 
+	it("moduly: při prvním spuštění běh podle sportů, uložení zapíše jen vypnuté", () => {
+		const settings = mergeSettings(null);
+		settings.sports.run = false;
+		const values = onboardingFromSettings(settings);
+		expect(values.modules).toMatchObject({ running: false, nutrition: true, supplements: true });
+		applyOnboarding(settings, { ...values, modules: { ...values.modules, supplements: false } });
+		expect(settings.modules).toEqual({ running: false, supplements: false });
+		// Po dokončení průvodce se výchozí hodnoty podle sportů už neuplatňují – zapnutý modul zůstane zapnutý.
+		applyOnboarding(settings, { ...onboardingFromSettings(settings), modules: { ...onboardingFromSettings(settings).modules, running: true } });
+		expect(settings.modules).toEqual({ supplements: false });
+		expect(onboardingFromSettings(settings).modules.running).toBe(true);
+	});
+
 	it("vymazané pole profilu se uloží jako nevyplněné", () => {
 		const settings = mergeSettings({ profile: { sex: "female", heightCm: 170 } });
 		applyOnboarding(settings, { ...onboardingFromSettings(settings), sex: "", heightCm: undefined });

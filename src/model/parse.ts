@@ -260,6 +260,7 @@ export function parseDay(raw: Raw): DayNote | null {
 		}),
 		steps: asSteps(raw.steps),
 		supplements: Array.isArray(raw.supplements) ? asNameList(raw.supplements) : undefined,
+		habits: Array.isArray(raw.habits) ? asNameList(raw.habits) : undefined,
 		notes: asNonEmptyString(raw.notes),
 	});
 }

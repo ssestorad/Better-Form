@@ -361,4 +361,20 @@
 		font-size: var(--font-ui-smaller);
 		text-align: right;
 	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-md-tr {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: 0;
+		}
+
+		.bf-md-tr > :first-child {
+			grid-column: 1 / -1;
+		}
+
+		.bf-md-tr > [role="columnheader"]:first-child {
+			display: none;
+		}
+	}
 </style>

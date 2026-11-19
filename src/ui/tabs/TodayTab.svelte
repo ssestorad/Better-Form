@@ -14,6 +14,7 @@
 	import StravaCard from "../strava/StravaCard.svelte";
 	import CheckInRadar from "../today/CheckInRadar.svelte";
 	import ReadinessCard from "../today/ReadinessCard.svelte";
+	import HabitsCard from "../today/HabitsCard.svelte";
 	import RecommendationList from "../today/RecommendationList.svelte";
 	import ResearchCard from "../components/ResearchCard.svelte";
 	import { researchTopic } from "../../seed/research";
@@ -58,6 +59,10 @@
 		return plan ? nutritionLine(plan) : null;
 	});
 	const checkedIn = $derived(hasCheckIn(day));
+	const habitsOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("habits");
+	});
 	const femaleProfile = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.settings.profile.sex === "female";
@@ -91,7 +96,13 @@
 	// Aktivní programy, které mají na dnešek nějaký úkol.
 	const programs = $derived.by(() => {
 		void $indexVersion;
+		void $settingsVersion;
+		if (!plugin.moduleOn("programs.today_card")) return [];
 		return plugin.programs.active(today).filter((p) => p.tasks.length > 0);
+	});
+	const showNutrition = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("nutrition.day_note");
 	});
 </script>
 
@@ -122,7 +133,11 @@
 <ReadinessCard readiness={insights.readiness} history={readinessHistory} onCheckIn={() => plugin.openCheckIn(today)} />
 <RecommendationList recommendations={insights.recommendations} />
 <!-- Menstruační cyklus a trénink – jen u ženského profilu. -->
-{#if femaleProfile && researchTopic("menstrual_cycle")}
+{#if habitsOn}
+	<HabitsCard {today} days={dayNotes} />
+{/if}
+
+{#if femaleProfile && researchTopic("menstrual_cycle") && plugin.moduleOn("research.research")}
 	<section class="bf-card"><ResearchCard topic={researchTopic("menstrual_cycle")!} /></section>
 {/if}
 
@@ -188,6 +203,7 @@
 	{/if}
 </section>
 
+{#if showNutrition}
 <section class="bf-card">
 	<header class="bf-card-header">
 		<h4>{t("Nutrition for today")}</h4>
@@ -200,6 +216,7 @@
 		<button type="button" onclick={() => plugin.openOnboarding()}>{t("Complete profile")}</button>
 	{/if}
 </section>
+{/if}
 
 <div class="bf-actions">
 	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Open daily note")}</button>

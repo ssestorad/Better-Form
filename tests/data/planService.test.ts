@@ -251,6 +251,19 @@ describe("programy v plánu týdne", () => {
 		expect(texts).toEqual(["Trénink A: Kliky 3×5", "Trénink B: Kliky 3×5, Shyby 3×5", "Trénink A: Kliky 3×5"]);
 	});
 
+	it("trénink patří jen jednomu programu – i když má kopie stejný název", () => {
+		// Kopie se stejným názvem programu, ale jiným souborem; trénink odkazuje na soubor originálu.
+		w.vault.write("Forma/Knihovna/Programy/Síla – kopie.md", program("Síla", { days: ["mon", "wed", "fri"], items: [{ exercise: "[[Kliky]]", target: { sets: 3, reps: 10 } }], session_min: 40 }));
+		w.vault.write("Forma/Tréninky/p.md", workoutNote(TODAY, "strength", { program: "[[Síla]]", duration_min: 40, rpe: 7, blocks: [{ type: "sets", exercise: "[[Kliky]]", sets: [{ reps: 10 }, { reps: 10 }, { reps: 10 }] }] }));
+		const today = w.plans.view(WEEK, TODAY).days[2]!.entries.filter((e) => e.program);
+		expect(today.map((e) => [e.program!.file.path, e.status])).toEqual([
+			[PROGRAM, "done"],
+			["Forma/Knihovna/Programy/Síla – kopie.md", "planned"],
+		]);
+		const note = w.index.all("workout")[0]!.note;
+		expect(programs.programOf(note)?.file.path).toBe(PROGRAM);
+	});
+
 	it("export do kalendáře: položky, dny programu i počítadlo, stálé UID", async () => {
 		await w.plans.add(run);
 		const events = planEvents(w.plans.view(WEEK, TODAY).days);

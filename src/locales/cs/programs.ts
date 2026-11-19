@@ -338,7 +338,7 @@ Tréninky A a B se střídají po sobě, bez ohledu na den:
 
 - Víc swingů za 12 minut, později těžší kettlebell – nejdřív na pár sérií, pak na všechny.
 - Vztyky: těžší kettlebell, až když je pohyb celou dobu plynulý a pod kontrolou.
-- **Další krok:** navazující kniha *Simple & Sinister* dává cíl – 100 swingů jednou rukou za 5 minut (10 každých 30 sekund), minuta pauza a pak 10 vztyků za 10 minut (jeden za minutu). Standard „Simple“ je pro muže 32 kg, pro ženy 24 kg na swingy a 16 kg na vztyky.
+- **Další krok:** navazující kniha *Simple & Sinister* (je i mezi předpřipravenými programy) dává cíl – 100 swingů jednou rukou za 5 minut (10 každých 30 sekund), minuta pauza a pak 10 vztyků za 10 minut (jeden za minutu). Standard „Simple“ je pro muže 32 kg, pro ženy 24 kg na swingy a 16 kg na vztyky.
 
 ## Kdy ubrat
 
@@ -350,6 +350,42 @@ Tréninky A a B se střídají po sobě, bez ohledu na den:
 - **Spánek:** aspoň 7 hodin denně; po krátké noci zvol lehčí den. *(Watson 2015 – konsenzus)*
 
 Štítek: **praxe** – program pochází z Tsatsoulinových knih (Tsatsouline 2006, 2019); že trénink swingů zlepšuje sílu a kondici, podporuje výzkum (Lake 2012, Farrar 2010).`,
+	},
+	"kettlebell-simple-sinister": {
+		name: "Kettlebell – Simple & Sinister",
+		description: `Jeden kettlebell, v každém tréninku dva cviky: swingy jednou rukou a turecký vztyk. Podle knihy *Kettlebell Simple & Sinister* Pavla Tsatsoulina (StrongFirst) – pokračování Programu Minimum.
+
+## Pro koho
+
+Pro každého, kdo zvládá swing a turecký vztyk (viz knihovna cviků) a Program Minimum mu jde pohodlně. Trénink je krátký – asi 16 minut plus rozcvičení.
+
+## Jak to funguje
+
+| Část | Co dělat |
+|---|---|
+| **Swingy** | 100 swingů jednou rukou za 5 minut: 10 každých 30 sekund, ruce se střídají po sérii |
+| Pauza | 1 minuta |
+| **Vztyky** | 10 vztyků za 10 minut: jeden na začátku každé minuty, strany se střídají |
+
+- V pluginu jsou swingy blok 20 za minutu (dvě série po 10) na 5 minut a vztyky 1 za minutu na 10 minut.
+- Výchozí dny jsou pondělí až sobota – stránka vydavatele neříká, kolikrát týdně; vlastní dny nastavíš na kartě Programy.
+
+## Jak přidávat
+
+- **Standard „Simple“:** celý trénink v časových limitech s 32 kg u mužů; u žen 24 kg na swingy a 16 kg na vztyky.
+- Na těžší kettlebell přecházej postupně – nejdřív na pár sérií, pak na všechny – až když trénink v limitech zvládáš pohodlně.
+- **„Sinister“:** 48 kg u mužů; u žen 32 kg na swingy a 24 kg na vztyky.
+
+## Kdy ubrat
+
+- Bolí tě kříž nebo ramena → přestaň a zkontroluj techniku s lehkým kettlebellem. Pokud bolest dosahuje 4/10 a víc nebo trvá déle než týden, zajdi za fyzioterapeutem nebo lékařem.
+- Když časy přestanou být pohodlné nebo se zhorší technika, zůstaň u lehčího kettlebellu – standard není test, který se má vynutit.
+
+## Doporučení
+
+- **Spánek:** aspoň 7 hodin denně; po kratší noci zvol lehčí den. *(Watson 2015 – konsenzus)*
+
+Štítek: **praxe** – program i standardy pocházejí z Tsatsoulinovy knihy (Tsatsouline 2019, ověřeno na stránce vydavatele); že trénink swingů zlepšuje sílu a kondici, podporuje výzkum (Lake 2012, Farrar 2010).`,
 	},
 	"deload-week": {
 		name: "Odlehčovací týden",

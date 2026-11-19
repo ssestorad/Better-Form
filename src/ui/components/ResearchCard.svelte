@@ -4,16 +4,26 @@
 	import { STUDY_KIND_LABELS, getSource } from "../../evidence/sources";
 	import { EVIDENCE_LABELS } from "../../model/constants";
 	import type { ResearchTopic } from "../../seed/research";
+	import { researchCardOn } from "../../settings/modules";
+	import { usePlugin } from "../context";
 
 	interface Props {
 		topic: ResearchTopic;
 	}
 	let { topic }: Props = $props();
+	const plugin = usePlugin();
+	const settingsVersion = plugin.settingsVersion;
+	// Vypnuté karty výzkumu nebo praxe (nastavení → Moduly) se neukazují nikde.
+	const visible = $derived.by(() => {
+		void $settingsVersion;
+		return researchCardOn(plugin.settings.modules, topic.evidence);
+	});
 
 	const studies = $derived(topic.studies.map((s) => ({ ...getSource(s.source), finding: s.finding })));
 	const hasEmg = $derived(studies.some((s) => s.kind === "biomech"));
 </script>
 
+{#if visible}
 <details class="bf-research">
 	<summary>
 		{topic.evidence === "practice" ? t("Coaching practice: {title}", { title: topic.title }) : t("What the research says: {title}", { title: topic.title })}
@@ -40,6 +50,7 @@
 		<p class="bf-muted bf-research-citation">{t("EMG measures muscle activation, not growth – for conclusions about hypertrophy it's the weakest type of evidence.")}</p>
 	{/if}
 </details>
+{/if}
 
 <style>
 	.bf-research {

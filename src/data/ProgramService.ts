@@ -135,9 +135,16 @@ export class ProgramService {
 		return link === normalizeSearch(entry.file.basename) || link === normalizeSearch(entry.note.name);
 	}
 
-	/** Program, ke kterému trénink patří. */
+	/**
+	 * Program, ke kterému trénink patří – vždy jen jeden. Odkaz na soubor má přednost
+	 * před shodou názvu programu (kopie programu může mít stejný název jako originál);
+	 * jinak by jeden trénink splnil den ve dvou programech a v plánu se počítal dvakrát.
+	 */
 	programOf(workout: WorkoutNote): ProgramEntry | undefined {
-		return workout.program ? this.programs().find((p) => this.isLinked(workout, p)) : undefined;
+		if (!workout.program) return undefined;
+		const link = normalizeSearch(workout.program);
+		const all = this.programs();
+		return all.find((p) => normalizeSearch(p.file.basename) === link) ?? all.find((p) => normalizeSearch(p.note.name) === link);
 	}
 
 	private freshFor(entry: ProgramEntry, date: string): FreshCounter | undefined {
@@ -150,7 +157,8 @@ export class ProgramService {
 		const fresh = this.freshFor(entry, date);
 		const fromIndex = this.index
 			.workouts()
-			.filter((w) => w.note.date === date && this.isLinked(w.note, entry) && w.file !== fresh?.file)
+			// isLinked jako rychlé síto, programOf rozhodne o jediném vlastníkovi tréninku.
+			.filter((w) => w.note.date === date && this.isLinked(w.note, entry) && this.programOf(w.note)?.file.path === entry.file.path && w.file !== fresh?.file)
 			.map((w) => ({ file: w.file, note: w.note }));
 		return fresh ? [...fromIndex, { file: fresh.file, note: fresh.note }] : fromIndex;
 	}

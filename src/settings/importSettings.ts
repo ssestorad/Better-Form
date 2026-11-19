@@ -45,13 +45,16 @@ function runImport(host: SettingsHost): SettingGroupItem[] {
 function dailyImport(host: SettingsHost): SettingGroupItem[] {
 	return [
 		{
-			name: t("Import daily data from CSV"),
-			desc: t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export. Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."),
+			name: t("Import daily data"),
+			desc: t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export (CSV), Apple Health (export.xml) or Health Auto Export (JSON). Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."),
 			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickDailyFile())),
 		},
 		guidePage(t("Which files it reads"), [
 			{
 				desc: t("A CSV with a date column and at least one column recognized by its name (Czech or English): steps (Steps, Step count), sleep duration (Sleep duration – hours, minutes, seconds or 7:45), HRV (HRV, rMSSD), resting heart rate (Resting heart rate) or weight (Weight). Scores, goals and sleep stages are skipped. Several rows for one day are merged."),
+			},
+			{
+				desc: t("Apple Health: in the Health app tap your profile → Export All Health Data, unzip the file and choose export.xml (it may take a minute). Health Auto Export: export as JSON or CSV. Android Health Connect has no readable export of its own – export a CSV with an app like Health Sync. HRV from Apple Health is SDNN and isn't imported."),
 			},
 			{
 				desc: t("Example: Google Fit via Google Takeout – the file Daily activity metrics.csv contains steps. Elonga has no export, so its HRV is still copied by hand. Tested only on hand-built files; before writing you'll see what will be added."),

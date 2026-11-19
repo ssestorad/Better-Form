@@ -62,7 +62,7 @@ const fold = (text: string) =>
 const COLUMNS: Record<DailyField, { is: RegExp; not: RegExp }> = {
 	steps: { is: /step|krok/, not: /goal|cil|target|distance|vzdal|length/ },
 	duration_min: {
-		is: /^(sleep|spanek)$|(sleep|span|asleep).*(duration|total|delka|doba|hours|hodin|minut|\bmin\b|time|\bh\b)|(total|delka|doba|minutes|hours).*(sleep|span|asleep)/,
+		is: /^(sleep|spanek)$|\[asleep\]|(sleep|span|asleep).*(duration|total|delka|doba|hours|hodin|minut|\bmin\b|time|\bh\b)|(total|delka|doba|minutes|hours).*(sleep|span|asleep)/,
 		not: /score|skore|efficien|latenc|quality|kvalit|rem|deep|hlubok|light|lehk|awake|bdel|start|end|bed|need|debt|goal|cil/,
 	},
 	rmssd_ms: { is: /hrv|rmssd/, not: /score|skore|status|balance|baseline|sdnn/ },

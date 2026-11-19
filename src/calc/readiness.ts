@@ -34,6 +34,9 @@ const PART_BASIS: Record<ReadinessPartId, Basis> = {
 	form: { sourceIds: ["banister"], evidence: "research" },
 };
 
+/** Elonga počítá vlastní připravenost ze spektrální analýzy HRV; převzetí jejího skóre je praxe, ne výzkum. */
+const ELONGA_BASIS: Basis = { sourceIds: ["elongaSaHrv"], evidence: "practice" };
+
 export interface ReadinessInput {
 	/** lnRMSSD proti normě; null = bez měření. */
 	hrv: Baseline | null;
@@ -49,6 +52,8 @@ export interface ReadinessInput {
 	/** Kondice a forma; null, dokud model nemá dost dat. */
 	form: { ctl: number; tsb: number } | null;
 	sleepTargetHours: number;
+	/** Readiness z aplikace Elonga (0–100) – zastoupí HRV, když ranní RMSSD chybí (Elonga RMSSD neukazuje). */
+	elonga?: number | null;
 }
 
 export interface ReadinessPart {
@@ -158,7 +163,7 @@ export const READINESS_LEVELS = { ready: 70, caution: 45 } as const;
 
 /** Složené skóre; null, když dnes není z čeho počítat. */
 export function readiness(input: ReadinessInput): Readiness | null {
-	const scored: { id: ReadinessPartId; score: number; detail: string }[] = [];
+	const scored: { id: ReadinessPartId; score: number; detail: string; label?: string; basis?: Basis }[] = [];
 	const missing: string[] = [];
 	const add = (id: ReadinessPartId, score: number | null, detail: string) => {
 		if (score === null) missing.push(PART_LABELS[id]);
@@ -168,6 +173,8 @@ export function readiness(input: ReadinessInput): Readiness | null {
 	if (input.hrv?.ready) {
 		const s = input.hrv.status;
 		add("hrv", s === "below" ? NORM_SCORES.bad : s === "above" ? NORM_SCORES.good : NORM_SCORES.within, STATUS_TEXT[s]);
+	} else if (input.elonga !== undefined && input.elonga !== null) {
+		scored.push({ id: "hrv", score: clamp(input.elonga, 0, 100), detail: t("readiness from the Elonga app"), label: t("HRV (Elonga readiness)"), basis: ELONGA_BASIS });
 	} else add("hrv", null, "");
 
 	if (input.restingHr?.ready) {
@@ -201,11 +208,11 @@ export function readiness(input: ReadinessInput): Readiness | null {
 	const totalWeight = scored.reduce((sum, p) => sum + READINESS_WEIGHTS[p.id], 0);
 	const parts: ReadinessPart[] = scored.map((p) => ({
 		id: p.id,
-		label: PART_LABELS[p.id],
+		label: p.label ?? PART_LABELS[p.id],
 		score: Math.round(p.score),
 		share: READINESS_WEIGHTS[p.id] / totalWeight,
 		detail: p.detail,
-		basis: PART_BASIS[p.id],
+		basis: p.basis ?? PART_BASIS[p.id],
 	}));
 	const score = Math.round(scored.reduce((sum, p) => sum + p.score * (READINESS_WEIGHTS[p.id] / totalWeight), 0));
 	const level: ReadinessLevel = score >= READINESS_LEVELS.ready ? "ready" : score >= READINESS_LEVELS.caution ? "caution" : "rest";

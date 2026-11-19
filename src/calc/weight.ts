@@ -180,3 +180,60 @@ export function correctionAdvice(check: BalanceCheck | null, currentKcal: number
 	const total = clampCorrection(current + check.adjustKcal);
 	return total === current ? { kind: "none" } : { kind: "offer", stepKcal: total - current, totalKcal: total };
 }
+
+// ---------- Trendová váha (exponenciální vyhlazení) ----------
+
+/**
+ * Váha exponenciálního vyhlazení: každý den se trend posune o 10 % směrem k vážení
+ * (postup z The Hacker's Diet, používají ho i aplikace jako Happy Scale) – praxe.
+ * Den bez vážení trend jen přenese, takže chybějící dny nevadí.
+ */
+export const TREND_SMOOTHING = 0.1;
+
+/** Trendová váha pro každé datum (od prvního vážení dál; dřív null). */
+export function trendWeightSeries(points: readonly WeightPoint[], dates: readonly string[]): (number | null)[] {
+	if (points.length === 0 || dates.length === 0) return dates.map(() => null);
+	const byDate = new Map(points.map((p) => [p.date, p.kg]));
+	const first = points[0]!.date;
+	const out: (number | null)[] = [];
+	let trend: number | null = null;
+	// Začít od prvního vážení, i když leží před prvním datem grafu – trend na začátku grafu pak není od nuly.
+	let day = first < dates[0]! ? first : dates[0]!;
+	const last = dates[dates.length - 1]!;
+	const wanted = new Set(dates);
+	const values = new Map<string, number | null>();
+	while (day <= last) {
+		const kg = byDate.get(day);
+		if (kg !== undefined) trend = trend === null ? kg : trend + TREND_SMOOTHING * (kg - trend);
+		if (wanted.has(day)) values.set(day, trend);
+		day = addDays(day, 1);
+	}
+	for (const date of dates) out.push(values.get(date) ?? null);
+	return out;
+}
+
+/** Trendová váha v den `date`; null bez vážení, nebo když poslední vážení je starší než 14 dní. */
+export function trendWeight(points: readonly WeightPoint[], date: string): number | null {
+	const past = points.filter((p) => p.date <= date);
+	if (past.length === 0 || daysBetween(past[past.length - 1]!.date, date) > 14) return null;
+	return trendWeightSeries(past, [date])[0] ?? null;
+}
+
+/**
+ * Kdy trend dosáhne cílové váhy, když bude pokračovat stejným tempem. Null, když jde
+ * opačným směrem, skoro stojí (pod 0,05 kg týdně) nebo by to trvalo déle než 2 roky.
+ */
+export function goalWeightDate(trend: Extract<WeightTrend, { ready: true }>, targetKg: number, today: string): string | null {
+	const remaining = targetKg - trend.currentKg;
+	if (Math.abs(remaining) < 0.1) return today;
+	if (Math.abs(trend.kgPerWeek) < 0.05 || Math.sign(remaining) !== Math.sign(trend.kgPerWeek)) return null;
+	const days = Math.ceil((remaining / trend.kgPerWeek) * 7);
+	return days > 730 ? null : addDays(today, days);
+}
+
+// ---------- Fáze s koncovým datem ----------
+
+/** Cíl, který platí v daný den: po konci fáze hubnutí nebo nabírání přichází udržování. */
+export function effectiveGoal(goal: BodyGoal, until: string | null | undefined, today: string): BodyGoal {
+	return until && today > until && goal !== "maintain" ? "maintain" : goal;
+}

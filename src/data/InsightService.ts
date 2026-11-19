@@ -9,7 +9,7 @@ import { HARD_RPE } from "../calc/weekPlan";
 import { WEEKDAYS } from "../model/constants";
 import { addDays, startOfWeek } from "../model/dates";
 import type { ExerciseNote } from "../model/types";
-import { buildContext, evaluateRules } from "../rules/engine";
+import { buildContext, evaluateRules, rulesForModules } from "../rules/engine";
 import type { Recommendation, RuleContext, RuleGoal, RulePlan } from "../rules/types";
 import type { BetterFormSettings } from "../settings/settings";
 import type { FormaIndex } from "./FormaIndex";
@@ -133,7 +133,7 @@ export class InsightService {
 			goals: this.ruleGoals(today),
 		});
 
-		return { context, recommendations: evaluateRules(context), readiness: this.readinessOf(context, today) };
+		return { context, recommendations: evaluateRules(context, rulesForModules(settings.modules)), readiness: this.readinessOf(context, today) };
 	}
 
 	/** Připravenost dne z kontextu pravidel a check-inu toho dne. */
@@ -151,6 +151,7 @@ export class InsightService {
 			checkIn: hasFeelings ? day.check_in : null,
 			form: context.form,
 			sleepTargetHours: this.settings().thresholds.sleepTargetHours,
+			elonga: day?.hrv.elonga_readiness,
 		});
 	}
 

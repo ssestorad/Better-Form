@@ -1,6 +1,7 @@
 // Úvodní průvodce: hodnoty formuláře, kontrola a zápis do nastavení.
 // Bez závislosti na Obsidianu.
 
+import { defaultModules, MODULE_IDS, type ModuleId } from "./modules";
 import { SPORTS, type Sport } from "../model/constants";
 import type { ActivityLevel, AppMode, BetterFormSettings, BodyGoal, SettingsSex } from "./settings";
 import { t } from "../i18n";
@@ -17,6 +18,8 @@ export interface OnboardingValues {
 	activity: ActivityLevel;
 	mode: AppMode;
 	sports: Record<Sport, boolean>;
+	/** Hlavní moduly, které uživatele zajímají (podmoduly se mění jen v nastavení). */
+	modules: Record<ModuleId, boolean>;
 	weeklyWorkoutGoal?: number;
 }
 
@@ -45,6 +48,8 @@ export function onboardingFromSettings(settings: BetterFormSettings): Onboarding
 		activity: p.activity,
 		mode: settings.mode,
 		sports: { ...settings.sports },
+		// Při prvním spuštění se běžecké nástroje nabídnou jen tomu, kdo běhá.
+		modules: Object.fromEntries(MODULE_IDS.map((id) => [id, settings.modules[id] ?? (settings.onboarded ? true : (defaultModules(settings.sports)[id] ?? true))])) as Record<ModuleId, boolean>,
 		weeklyWorkoutGoal: settings.weeklyWorkoutGoal,
 	};
 }
@@ -89,6 +94,10 @@ export function applyOnboarding(settings: BetterFormSettings, values: Onboarding
 	p.activity = values.activity;
 	settings.mode = values.mode;
 	settings.sports = { ...values.sports };
+	for (const id of MODULE_IDS) {
+		if (values.modules[id]) delete settings.modules[id];
+		else settings.modules[id] = false;
+	}
 	if (values.weeklyWorkoutGoal !== undefined) settings.weeklyWorkoutGoal = values.weeklyWorkoutGoal;
 	settings.onboarded = true;
 }

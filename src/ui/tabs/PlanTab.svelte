@@ -7,6 +7,8 @@
 	import { formatClockDuration, formatPace } from "../../calc/performance";
 	import { PACES_BASIS, paceRange, planPaceKind, trainingPaces } from "../../calc/runningPaces";
 	import { TAPER_BASIS, TAPER_DAYS, taperPlan } from "../../calc/taper";
+	import { RUN_ADAPT_BASIS, adaptRun, type RunAdaptation } from "../../calc/runAdapt";
+	import { isOpenPain } from "../../calc/pain";
 	import { OUTLOOK_WEEKS, PLAN_LOAD_BASIS, PLAN_STATUS_LABELS, type PlanStatus } from "../../calc/weekPlan";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
 	import type { PlanDay, PlanEntry } from "../../data/PlanService";
@@ -23,7 +25,7 @@
 	const settingsVersion = plugin.settingsVersion;
 	const runna = $derived.by(() => {
 		void $settingsVersion;
-		return plugin.settings.runna.url.trim() !== "";
+		return plugin.moduleOn("running.runna") && plugin.settings.runna.url.trim() !== "";
 	});
 
 	const today = $derived.by(() => {
@@ -55,7 +57,7 @@
 	const paceBase = $derived([...runRecords(workouts)].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null);
 	const paces = $derived(paceBase ? trainingPaces(paceBase.distance.km, paceBase.seconds) : null);
 	function paceOf(entry: PlanEntry): string | null {
-		if (!paces || entry.program || entry.status !== "planned" || entry.item.sport !== "run") return null;
+		if (!paces || !plugin.moduleOn("running.paces") || entry.program || entry.status !== "planned" || entry.item.sport !== "run") return null;
 		const kind = planPaceKind(entry.item.title ?? "", entry.item.intensity);
 		const r = paceRange(paces, kind);
 		const text = r.slow === r.fast ? formatPace(r.fast) : `${formatClockDuration(r.slow)} – ${formatPace(r.fast)}`;
@@ -65,6 +67,8 @@
 	// Ladění formy: nejbližší závod z aktivního cíle „čas na trati“ s termínem do 3 týdnů.
 	const taper = $derived.by(() => {
 		void $indexVersion;
+		void $settingsVersion;
+		if (!plugin.moduleOn("running.taper")) return null;
 		const goal = plugin.index
 			.all("goal")
 			.map((g) => g.note)
@@ -88,9 +92,49 @@
 
 	/** Naplánovaný běh o víc než 10 % delší než nejdelší za předchozích 30 dní (Frandsen 2025). */
 	function spikeOf(entry: PlanEntry) {
+		if (!plugin.moduleOn("running.run_spike")) return null;
 		const km = entry.status === "planned" && entry.item.sport === "run" ? entry.item.distance_km : undefined;
 		return km ? runSpike(workouts, entry.item.date, km) : null;
 	}
+	// Úprava dnešního a zítřejšího běhu podle bolesti, připravenosti a vynechaných běhů.
+	const adaptState = $derived.by(() => {
+		void $indexVersion;
+		void $settingsVersion;
+		if (!plugin.moduleOn("running.adapt")) return null;
+		const from = addDays(today, -7);
+		const missedRuns = [...new Set([startOfWeek(from), startOfWeek(today)])]
+			.flatMap((w) => plugin.plans.view(w, today).days)
+			.flatMap((d) => d.entries)
+			.filter((e) => e.status === "missed" && e.item.sport === "run" && e.item.date >= from && e.item.date < today).length;
+		const pains = plugin.index
+			.all("pain")
+			.map((p) => p.note)
+			.filter(isOpenPain);
+		return { missedRuns, pains, readiness: plugin.insights.readinessHistory(today, 1)[0]?.score ?? null };
+	});
+	function adaptOf(entry: PlanEntry): RunAdaptation | null {
+		const s = adaptState;
+		const { item } = entry;
+		if (!s || entry.status !== "planned" || item.sport !== "run" || item.date < today || item.date > addDays(today, 1)) return null;
+		return adaptRun({ ...item, readiness: item.date === today ? s.readiness : null, pains: s.pains, missedRuns: s.missedRuns });
+	}
+	function adaptText(a: RunAdaptation): string {
+		const length = a.km !== undefined ? `${formatNumber(a.km, 1)} km` : a.minutes !== undefined ? formatDurationMin(a.minutes) : "";
+		switch (a.reason) {
+			case "pain_stop":
+				return t("Leg pain of 4/10 or more – skip the run, or swap it for cycling or swimming if it doesn't hurt. If it lasts, see a professional.");
+			case "pain":
+				return length ? t("Leg pain – run only easy and shorter ({v}); stop if it gets worse than 3/10.", { v: length }) : t("Leg pain – run only easy and shorter; stop if it gets worse than 3/10.");
+			case "readiness":
+				return a.action === "easy" ? t("Low readiness today – make it an easy run instead.") : length ? t("Low readiness today – shorten it to {v}.", { v: length }) : t("Low readiness today – shorten it by about a third.");
+			case "missed":
+				return t("You missed two or more runs this week – don't make them up; run this one easy and get back into the plan.");
+		}
+	}
+	const showRunFit = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("running");
+	});
 	const acwrWarn = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.settings.thresholds.acwrWarn;
@@ -176,6 +220,7 @@
 	</span>
 	<button type="button" aria-label={t("Next week")} onclick={() => (week = addDays(week, 7))}>›</button>
 	<button type="button" class="bf-plan-ics" title={t("Save the week as an .ics file for Google, Outlook or Apple Calendar")} onclick={() => void plugin.exportPlanCalendar(week)}>{t("To calendar")}</button>
+	{#if showRunFit}<button type="button" class="bf-plan-ics" title={t("Save the week's upcoming runs as workouts (.fit) for a Garmin, COROS or other watch")} onclick={() => void plugin.exportPlanWorkouts(week)}>{t("To watch")}</button>{/if}
 	{#if runna}
 		<button type="button" class="bf-plan-ics" title={t("Load the next 4 weeks of your Runna plan")} disabled={$runnaBusy} onclick={() => void plugin.syncRunnaPlan()}>{$runnaBusy ? t("Syncing…") : "Runna"}</button>
 	{/if}
@@ -220,6 +265,7 @@
 					{#each day.entries as entry (entry.item.id)}
 						{@const pace = paceOf(entry)}
 						{@const spike = spikeOf(entry)}
+						{@const adapt = adaptOf(entry)}
 						<div class="bf-plan-item">
 							{#if entry.program}
 								<button type="button" class="bf-link-button bf-plan-title" title={t("Active program day – change the days and workout duration on the Programs tab")} onclick={() => plugin.showTab("programs")}>
@@ -244,6 +290,9 @@
 									{t("{v} % longer than your longest run of the last 30 days ({v2} km) – shorten it to at most {v3} km.", { v: formatNumber(spike.pct, 0), v2: formatNumber(spike.longestKm, 1), v3: formatNumber(spike.maxKm, 1) })}
 									<BasisTag basis={RUN_SPIKE_BASIS} />
 								</span>
+							{/if}
+							{#if adapt}
+								<span class="bf-small bf-plan-warning">{adaptText(adapt)} <BasisTag basis={RUN_ADAPT_BASIS} /></span>
 							{/if}
 							{#if entry.status === "done" && entry.workout}
 								<button type="button" class="bf-plan-action" onclick={() => plugin.openWorkout({ file: entry.workout!.file })}>{t("Workout")}</button>

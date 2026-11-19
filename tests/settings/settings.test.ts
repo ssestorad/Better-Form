@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { defaultModules, moduleOn, researchCardOn } from "../../src/settings/modules";
+import { rulesForModules } from "../../src/rules/engine";
 import { DEFAULT_SETTINGS, mergeSettings, parseNumberList, parseTextList } from "../../src/settings/settings";
 
 describe("mergeSettings", () => {
@@ -73,7 +75,7 @@ describe("migrace nastavení", () => {
 	it("verze 1: do cviků režimu Základ přidá běh, zbytek zachová", () => {
 		const settings = mergeSettings({ settingsVersion: 1, basicExercises: ["Kliky", "Dipy"] });
 		expect(settings.basicExercises).toEqual(["Kliky", "Dipy", "Running"]);
-		expect(settings.settingsVersion).toBe(2);
+		expect(settings.settingsVersion).toBe(3);
 		// Běh se doplní v jazyce vaultu; už zapsaný (v kterémkoli jazyce) se nezdvojí.
 		expect(mergeSettings({ settingsVersion: 1, language: "cs", basicExercises: ["Kliky"] }).basicExercises).toEqual(["Kliky", "Běh"]);
 		expect(mergeSettings({ settingsVersion: 1, basicExercises: ["Kliky", "Běh"] }).basicExercises).toEqual(["Kliky", "Běh"]);
@@ -117,5 +119,37 @@ describe("parseTextList", () => {
 	it("položky oddělené čárkou, bez mezer na krajích a bez prázdných", () => {
 		expect(parseTextList(" Run, TrailRun , ,VirtualRun ")).toEqual(["Run", "TrailRun", "VirtualRun"]);
 		expect(parseTextList("")).toEqual([]);
+	});
+});
+
+describe("moduly", () => {
+	it("starý přepínač sérií se převede na modul; uložené moduly přežijí načtení, nesmysly ne", () => {
+		expect(mergeSettings({ settingsVersion: 2, showStreaks: false }).modules).toEqual({ badges: false });
+		expect(mergeSettings({ settingsVersion: 2, showStreaks: true }).modules).toEqual({});
+		expect(mergeSettings({ modules: { running: false, "running.taper": false, nutrition: "ne" } }).modules).toEqual({ running: false, "running.taper": false });
+		expect(mergeSettings(null).modules).toEqual({});
+	});
+
+	it("podmodul jen se zapnutým hlavním modulem; chybějící = zapnuto", () => {
+		expect(moduleOn({}, "running.taper")).toBe(true);
+		expect(moduleOn({ running: false }, "running")).toBe(false);
+		expect(moduleOn({ running: false }, "running.taper")).toBe(false);
+		expect(moduleOn({ "running.taper": false }, "running")).toBe(true);
+		expect(moduleOn({ "running.taper": false }, "running.taper")).toBe(false);
+		expect(researchCardOn({ "research.practice": false }, "practice")).toBe(false);
+		expect(researchCardOn({ "research.practice": false }, "research")).toBe(true);
+		expect(defaultModules({ run: false, strength: true })).toEqual({ running: false });
+		expect(defaultModules({ run: true })).toEqual({});
+	});
+
+	it("pravidla vypnutých modulů nevydají doporučení; bezpečnostní platí vždy", () => {
+		const ids = (modules: Record<string, boolean>) => rulesForModules(modules).map((r) => r.id);
+		const all = ids({});
+		expect(all).toEqual(expect.arrayContaining(["pain", "sleep", "hrv", "nutrition_check", "run_spike", "goal", "challenge"]));
+		const off = ids({ nutrition: false, running: false, goals: false, programs: false, body: false, badges: false, research: false, supplements: false, skills: false });
+		expect(off).not.toEqual(expect.arrayContaining(["nutrition_check"]));
+		for (const id of ["nutrition_check", "run_spike", "goal", "challenge", "recovery", "volume"]) expect(off).not.toContain(id);
+		for (const id of ["pain", "sleep", "hrv", "acwr", "deload"]) expect(off).toContain(id);
+		expect(ids({ "nutrition.weight_check": false })).not.toContain("nutrition_check");
 	});
 });

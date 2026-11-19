@@ -101,7 +101,7 @@ export function registerCommands(plugin: BetterFormPlugin): void {
 	});
 	plugin.addCommand({
 		id: "import-daily",
-		name: t("Import daily data from CSV (steps, sleep, HRV, weight)"),
+		name: t("Import daily data (steps, sleep, HRV, weight)"),
 		callback: () => plugin.pickDailyFile(),
 	});
 	plugin.addCommand({

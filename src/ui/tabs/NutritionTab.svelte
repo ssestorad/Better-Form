@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { researchCardOn } from "../../settings/modules";
 	// Karta Výživa (SPEC 5.9, kap. 11): doporučený denní příjem jako rozsahy, rozpad výpočtu a zdroje.
 	import { t } from "../../i18n";
 	import {
@@ -17,12 +18,12 @@
 		tenHaafOutOfRange,
 		type DayLoad,
 	} from "../../calc/nutrition";
-	import { TREND_MIN_SAMPLES, TREND_MIN_SPAN_DAYS, TREND_WINDOW_DAYS, assessBalance, correctionAdvice, weightPoints, weightTrend } from "../../calc/weight";
+	import { TREND_MIN_SAMPLES, TREND_MIN_SPAN_DAYS, TREND_WINDOW_DAYS, assessBalance, correctionAdvice, goalWeightDate, trendWeight, weightPoints, weightTrend } from "../../calc/weight";
 	import { MAX_STEPS } from "../../model/parse";
 	import { workoutLabel } from "../../data/dayBlock";
 	import type { SourceId } from "../../evidence/sources";
 	import type { EvidenceLevel } from "../../model/constants";
-	import { addDays, toIsoDate } from "../../model/dates";
+	import { addDays, daysBetween, toIsoDate } from "../../model/dates";
 	import BasisTag from "../components/BasisTag.svelte";
 	import { usePlugin } from "../context";
 	import { formatCzechDate, formatDays, formatNumber } from "../format";
@@ -83,9 +84,25 @@
 	const kg = $derived(profile.weightKg ?? 0);
 
 	// Co říká váha: trend za 3 týdny proti cíli (SPEC 11.6).
-	const trend = $derived.by(() => {
+	const weightPts = $derived.by(() => {
 		void $indexVersion;
-		return weightTrend(weightPoints(plugin.index.all("day").map((e) => e.note)), date);
+		return weightPoints(plugin.index.all("day").map((e) => e.note));
+	});
+	const trend = $derived(weightTrend(weightPts, date));
+	// Trendová váha (vyhlazená) jako hlavní číslo a kdy trend dosáhne cílové váhy z aktivního cíle.
+	const trendKg = $derived(trendWeight(weightPts, date));
+	const weightGoal = $derived.by(() => {
+		void $indexVersion;
+		const goal = plugin.index.all("goal").map((g) => g.note).find((g) => g.type === "body_weight" && g.status === "active" && g.target !== undefined);
+		if (!goal || !trend.ready) return null;
+		return { name: goal.name, target: goal.target!, reach: goalWeightDate(trend, goal.target!, date), deadline: goal.deadline };
+	});
+	// Fáze hubnutí nebo nabírání s koncem (nastavení → Profil → Cíl platí do).
+	const phase = $derived.by(() => {
+		void $settingsVersion;
+		const { goal, goalUntil } = plugin.settings.profile;
+		if (!goalUntil || goal === "maintain") return null;
+		return { goal, until: goalUntil, ended: date > goalUntil, weeksLeft: Math.max(0, Math.ceil(daysBetween(date, goalUntil) / 7)) };
 	});
 	// Co říká výzkum: bílkoviny, hubnutí bez ztráty svalů (jen při cíli zhubnout), kroky, alkohol, pitný režim; trenérská praxe: energetická dostupnost.
 	const topics = $derived(
@@ -134,6 +151,10 @@
 
 	const basis = (sourceIds: SourceId[], evidence: EvidenceLevel) => ({ sourceIds, evidence });
 	const perKg = (g: number) => (kg > 0 ? formatNumber(g / kg, 1) : "–");
+	const weightCheckOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("nutrition.weight_check");
+	});
 </script>
 
 <div class="bf-nutri-nav">
@@ -191,8 +212,33 @@
 		{/if}
 	</section>
 
+	{#if weightCheckOn}
 	<section class="bf-card">
 		<h4>{t("What your weight says")}</h4>
+		{#if trendKg !== null}
+			<p class="bf-nutri-total">{t("Trend weight {v} kg", { v: formatNumber(trendKg, 1) })}</p>
+			<p class="bf-muted bf-small">{t("The smoothed weight – each weigh-in moves it 10 % of the way, so one salty dinner barely changes it.")} <BasisTag basis={basis(["practice"], "practice")} /></p>
+		{/if}
+		{#if phase}
+			<p class="bf-small">
+				{#if phase.ended}
+					{t("The {v} phase ended on {v2} – nutrition now aims at maintenance. Set a new goal or its end in the settings.", { v: GOAL_LABELS[phase.goal], v2: formatCzechDate(phase.until, false) })}
+				{:else}
+					{t("Phase: {v} until {v2} (weeks left: {v3}), then maintenance.", { v: GOAL_LABELS[phase.goal], v2: formatCzechDate(phase.until, false), v3: phase.weeksLeft })}
+				{/if}
+				<BasisTag basis={basis(["practice"], "practice")} />
+			</p>
+		{/if}
+		{#if weightGoal}
+			<p class="bf-small">
+				{#if weightGoal.reach}
+					{t("At the current pace you'll reach {v} kg (goal “{v2}”) around {v3}.", { v: formatNumber(weightGoal.target, 1), v2: weightGoal.name, v3: formatCzechDate(weightGoal.reach, false) })}
+					{#if weightGoal.deadline && weightGoal.reach > weightGoal.deadline}{t("That's after the goal's deadline ({v}).", { v: formatCzechDate(weightGoal.deadline, false) })}{/if}
+				{:else}
+					{t("At the current pace your weight isn't heading towards {v} kg (goal “{v2}”).", { v: formatNumber(weightGoal.target, 1), v2: weightGoal.name })}
+				{/if}
+			</p>
+		{/if}
 		{#if trend.ready}
 			<p>{t("Trend over {v} weeks:", { v: TREND_WINDOW_DAYS / 7 })} <strong>{trendText(trend)}</strong>.</p>
 			{#if balance}<p>{balanceText(balance, profile.goal, plugin.settings.nutrition.lossRatePctMax)}</p>{/if}
@@ -235,6 +281,7 @@
 			</div>
 		{/if}
 	</section>
+	{/if}
 
 	<section class="bf-card">
 		<h4>{t("How it was calculated")}</h4>
@@ -369,9 +416,11 @@
 	</section>
 {/if}
 
-<section class="bf-card">
-	{#each topics as topic (topic.id)}<ResearchCard {topic} />{/each}
-</section>
+{#if topics.some((topic) => researchCardOn(plugin.settings.modules, topic.evidence))}
+	<section class="bf-card">
+		{#each topics as topic (topic.id)}<ResearchCard {topic} />{/each}
+	</section>
+{/if}
 
 <p class="bf-muted bf-small">
 	{t("A rough estimate from equations and tables, not a meal plan from a nutrition professional. Food logging and fine-tuning by your actual weight trend will come later.")}
@@ -427,6 +476,12 @@
 		font-size: var(--font-ui-small);
 	}
 
+	/* Dlouhé názvy zdrojů („Thomas 2016 (ACSM/AND/DC)“) se na úzkém panelu zalomí, nepřetečou. */
+	.bf-nutri-macros [role="cell"] {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
 	.bf-nutri-macros [role="columnheader"] {
 		color: var(--text-muted);
 		font-size: var(--font-ui-smaller);
@@ -477,5 +532,36 @@
 		border-left: 3px solid var(--text-warning);
 		background-color: var(--background-secondary);
 		font-size: var(--font-ui-small);
+	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-nutri-macros {
+			grid-template-columns: auto auto minmax(0, 1fr);
+		}
+
+		/* Výpočet krok po kroku: popisek nad hodnotou, rozbalovací pole na celou šířku. */
+		.bf-nutri-steps {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: 0;
+		}
+
+		.bf-nutri-steps dd {
+			margin-bottom: var(--size-4-2);
+		}
+
+		.bf-nutri-steps select {
+			width: 100%;
+			max-width: 100%;
+		}
+
+		/* Zdroj (každá 4. buňka) pod řádkem makroživiny; záhlaví „Zdroj“ se skryje. */
+		.bf-nutri-macros > :nth-child(4n) {
+			grid-column: 1 / -1;
+		}
+
+		.bf-nutri-macros > [role="columnheader"]:nth-child(4n) {
+			display: none;
+		}
 	}
 </style>

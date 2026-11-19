@@ -142,3 +142,16 @@ describe("trend připravenosti (SPEC 8.9)", () => {
 		expect(readinessTrend([])).toMatchObject({ samples: 0, recent: null, previous: null, delta: null });
 	});
 });
+
+describe("připravenost s Readiness z Elongy", () => {
+	it("bez ranního RMSSD zastoupí složku HRV skóre z Elongy", () => {
+		const r = readiness({ hrv: null, restingHr: null, sleep: null, checkIn: null, form: null, sleepTargetHours: 8, elonga: 62 });
+		expect(r?.score).toBe(62);
+		expect(r?.parts[0]).toMatchObject({ id: "hrv", score: 62, basis: { evidence: "practice" } });
+		expect(r?.missing).not.toContain(r?.parts[0]?.label);
+	});
+
+	it("bez Elongy a bez RMSSD HRV chybí", () => {
+		expect(readiness({ hrv: null, restingHr: null, sleep: null, checkIn: null, form: null, sleepTargetHours: 8 })).toBeNull();
+	});
+});

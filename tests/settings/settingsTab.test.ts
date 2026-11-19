@@ -32,8 +32,9 @@ describe("stránka nastavení", () => {
 			settings: structuredClone(DEFAULT_SETTINGS),
 			strava: { isConnected: connected, canUseLocalServer: true },
 			requestSaveSettings: Object.assign(vi.fn(), { run() {} }),
+			index: { all: () => [] },
 		};
-		return { plugin, tab: new BetterFormSettingTab({} as never, plugin as never) };
+		return { plugin, tab: new BetterFormSettingTab({ vault: { getName: () => "Test" } } as never, plugin as never) };
 	}
 
 	/** Všechny definice ve stromu (skupiny a stránky se rozbalí). */

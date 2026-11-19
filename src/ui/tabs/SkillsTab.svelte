@@ -177,4 +177,16 @@
 	.bf-sk-ok {
 		color: var(--text-success);
 	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-sk-step {
+			grid-template-columns: 1.5em minmax(0, 1fr);
+		}
+
+		.bf-sk-state {
+			grid-column: 2;
+			text-align: left;
+		}
+	}
 </style>

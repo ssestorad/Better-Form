@@ -55,12 +55,13 @@ export class ExportService {
 		return { folder, files, workouts: workouts.length, days: days.length };
 	}
 
-	/** Uloží text do složky exportů pod volným názvem; vrátí cestu. */
-	async saveText(name: string, content: string): Promise<string> {
+	/** Uloží text nebo bajty do složky exportů pod volným názvem; vrátí cestu. */
+	async saveText(name: string, content: string | Uint8Array): Promise<string> {
 		const folder = folderPath(this.settings().folders, "exports");
 		await this.writer.ensureFolder(folder);
 		const path = uniquePath(joinPath(folder, name), (p) => this.app.vault.getAbstractFileByPath(p) !== null);
-		await this.app.vault.create(path, content);
+		if (typeof content === "string") await this.app.vault.create(path, content);
+		else await this.app.vault.createBinary(path, content.slice().buffer);
 		return path;
 	}
 

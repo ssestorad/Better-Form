@@ -1,5 +1,12 @@
-import { debounce, getLanguage as obsidianLanguage, Notice, Platform, Plugin, type TFile, type WorkspaceLeaf } from "obsidian";
+import { debounce, getLanguage as obsidianLanguage, normalizePath, Notice, Platform, Plugin, TFile, type WorkspaceLeaf } from "obsidian";
 import { titleForTap } from "./ui/touchTitles";
+import { moduleOn, type ModuleKey } from "./settings/modules";
+import { parseQuickAction, QUICK_ACTION_PROTOCOL, type QuickAction } from "./data/quickAction";
+import { appleHealthReader, parseHealthAutoExport, type ParsedHealth } from "./calc/appleHealth";
+import { installErrorLog } from "./ui/errorLog";
+import { applyMirror, dailyNoteName, mirrorDiffers, mirrorValues } from "./calc/dailyMirror";
+import { dailyLoads } from "./calc/load";
+import { effectiveGoal } from "./calc/weight";
 import { ageFromBirthYear, clampCorrection, nutritionPlan, stepsActivity, weeklyTrainingHours, type DayLoad, type NutritionPlan, type NutritionProfile } from "./calc/nutrition";
 import { assessBalance, correctionAdvice, weightPoints, weightTrend } from "./calc/weight";
 import { workoutTonnage } from "./calc/overview";
@@ -18,7 +25,7 @@ import { DAILY_FIELDS, DAILY_FIELD_LABELS, missingValues, parseDailyCsv } from "
 import { describeHistory, type WeightUnit } from "./calc/historyImport";
 import { describeRunImport, RUN_FILE_EXTENSIONS, type RunImportCounts } from "./calc/runFile";
 import { SummaryService } from "./data/SummaryService";
-import type { TabId } from "./ui/tabs";
+import { isTabId, type TabId } from "./ui/tabs";
 import { renderWorkoutBlock } from "./data/workoutBlock";
 import { joinPath, sanitizeFileName } from "./data/paths";
 import type { ExerciseNote, WorkoutNote } from "./model/types";
@@ -37,6 +44,9 @@ import { DayService } from "./data/DayService";
 import { workoutLabel } from "./data/dayBlock";
 import { planEvents, planItemTitle } from "./data/planBlock";
 import { toIcs } from "./calc/ics";
+import { encodeFitWorkout, type FitStep } from "./calc/fitWorkout";
+import { runRecords } from "./calc/running";
+import { paceRange, planPaceKind, trainingPaces } from "./calc/runningPaces";
 import { formatCzechDate, formatShortDate } from "./ui/format";
 import { FormaIndex } from "./data/FormaIndex";
 import { NoteWriter } from "./data/NoteWriter";
@@ -112,6 +122,7 @@ export default class BetterFormPlugin extends Plugin {
 	readonly requestSaveSettings = debounce(() => void this.saveSettings(), 400, true);
 
 	override async onload(): Promise<void> {
+		this.register(installErrorLog(window));
 		await this.loadSettings();
 		this.writer = new NoteWriter(this.app);
 		this.index = new FormaIndex(this.app);
@@ -161,7 +172,7 @@ export default class BetterFormPlugin extends Plugin {
 		this.plans = new PlanService(this.app, this.index, this.writer, () => this.settings, notify);
 		this.plans.isCounterWorkout = (note) => this.programs.isCounterWorkout(note);
 		this.plans.isProgramSession = (note) => this.programs.isPlanSession(note);
-		this.plans.programsOn = (date) => this.programs.planDays(date);
+		this.plans.programsOn = (date) => (this.moduleOn("programs.plan_days") ? this.programs.planDays(date) : []);
 		this.insights = new InsightService(
 			this.index,
 			this.programs,
@@ -175,11 +186,13 @@ export default class BetterFormPlugin extends Plugin {
 		this.exporter = new ExportService(this.app, this.index, this.writer, () => this.settings, (w) => workoutTonnage(w, this.statsContext()));
 		// Doporučená výživa v denní poznámce (SPEC 4.1) – jen když jsou v profilu potřebné údaje.
 		this.days.nutritionLine = (date, workouts) => {
+			if (!this.moduleOn("nutrition.day_note")) return null;
 			// Denní poznámka je záznam – počítá jen se zapsanými tréninky, ne s plánem.
 			const plan = this.nutritionPlan(date, undefined, workouts, false);
 			return plan ? nutritionLine(plan) : null;
 		};
 		this.workouts.onSaved = async (note, file, isNew) => {
+			void this.mirrorDailyNotes([note.date]);
 			this.programs.forget(file);
 			for (const max of await this.programs.recordMaxes(note)) {
 				new Notice(t("New max logged: {exercise} – {reps} reps", { exercise: max.exercise, reps: max.reps }));
@@ -195,6 +208,14 @@ export default class BetterFormPlugin extends Plugin {
 		});
 
 		registerCommands(this);
+		// Metriky dne do vlastní denní poznámky uživatele (volitelné) – po každé změně dat jen pro dnešek.
+		this.registerEvent(this.index.onUpdated(() => this.mirrorSoon()));
+		// Rychlé akce z odkazu obsidian://better-form?action=… (zástupce na ploše telefonu, Zkratky).
+		this.registerObsidianProtocolHandler(QUICK_ACTION_PROTOCOL, (params) => {
+			const action = parseQuickAction(params);
+			if (action) void this.runQuickAction(action);
+			else new Notice(t("Better Form: unknown link action."));
+		});
 		// Na telefonu se bublina po najetí myší neukáže – klepnutí ji zobrazí jako hlášku.
 		if (Platform.isMobile) {
 			this.registerDomEvent(activeDocument, "click", (event) => {
@@ -325,6 +346,80 @@ export default class BetterFormPlugin extends Plugin {
 	}
 
 	/** Kontext pro rekordy, objem a přehledy. */
+	private readonly mirrorSoon = debounce(() => void this.mirrorDailyNotes([toIsoDate(new Date())]), 2000, true);
+
+	/**
+	 * Zapíše metriky dne (bf_…) do existující denní poznámky uživatele, jen když je to zapnuté
+	 * a hodnoty se liší. Poznámku nezakládá a nic jiného v ní nemění.
+	 */
+	async mirrorDailyNotes(dates: readonly string[]): Promise<void> {
+		const mirror = this.settings.dailyMirror;
+		if (!mirror.enabled || !mirror.format.trim()) return;
+		for (const date of new Set(dates)) {
+			const name = dailyNoteName(date, mirror.format.trim());
+			const file = this.app.vault.getAbstractFileByPath(normalizePath(mirror.folder.trim() ? `${mirror.folder.trim()}/${name}.md` : `${name}.md`));
+			if (!(file instanceof TFile)) continue;
+			const workouts = this.index.all("workout").map((w) => w.note).filter((w) => w.date === date);
+			const values = mirrorValues({
+				day: this.index.day(date)?.note,
+				workouts,
+				loadAu: dailyLoads(workouts).byDate.get(date),
+				readiness: this.insights.readinessHistory(date, 1)[0]?.score ?? null,
+			});
+			if (!mirrorDiffers(this.app.metadataCache.getFileCache(file)?.frontmatter, values)) continue;
+			try {
+				await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => void applyMirror(frontmatter, values));
+			} catch (err) {
+				console.error("Better Form: daily note metrics", err);
+			}
+		}
+	}
+
+	/** Provede rychlou akci z odkazu (data/quickAction.ts). */
+	async runQuickAction(action: QuickAction): Promise<void> {
+		const today = toIsoDate(new Date());
+		const same = (a: string, b: string) => a.trim().toLocaleLowerCase("cs") === b.trim().toLocaleLowerCase("cs");
+		switch (action.kind) {
+			case "checkin":
+				this.openCheckIn(action.date ?? today);
+				return;
+			case "log": {
+				const template = action.template ? this.index.all("template").find((e) => same(e.note.name, action.template!) || same(e.file.basename, action.template!)) : undefined;
+				if (action.template && !template) new Notice(t("Template “{v}” wasn't found – opening an empty workout.", { v: action.template }));
+				this.openWorkout({ date: action.date ?? today, ...(template ? { template: template.file } : {}), ...(action.sport ? { sport: action.sport } : {}) });
+				return;
+			}
+			case "tab":
+				if (!isTabId(action.tab)) {
+					new Notice(t("Better Form: unknown tab “{v}”.", { v: action.tab }));
+					return;
+				}
+				await this.activateView();
+				this.showTab(action.tab);
+				return;
+			case "counter": {
+				const entry = this.programs.programs().find((p) => same(p.note.name, action.program) || same(p.file.basename, action.program));
+				const task = entry ? this.programs.tasks(entry, today).find((x) => x.target.kind === "daily_total" && (!action.exercise || same(x.exercise, action.exercise))) : undefined;
+				if (!entry || !task) {
+					new Notice(t("No daily counter of program “{v}” for today.", { v: action.program }));
+					return;
+				}
+				await this.programs.addToCounter(entry, task.exercise, action.reps, today);
+				this.indexVersion.update((n) => n + 1);
+				new Notice(t("Added {reps} × {exercise} to the daily counter.", { reps: action.reps, exercise: task.exercise }));
+				return;
+			}
+			case "sync":
+				await (action.service === "garmin" ? this.syncGarmin() : action.service === "strava" ? this.syncStrava() : this.syncRunnaPlan());
+				return;
+		}
+	}
+
+	/** Je modul nebo podmodul zapnutý (nastavení → Moduly)? */
+	moduleOn(key: ModuleKey): boolean {
+		return moduleOn(this.settings.modules, key);
+	}
+
 	statsContext(): { info: (exercise: string) => ExerciseNote | undefined; bodyweightKg?: number } {
 		return { info: (exercise) => this.exerciseInfo(exercise), bodyweightKg: this.bodyweightKg() };
 	}
@@ -344,7 +439,8 @@ export default class BetterFormPlugin extends Plugin {
 			weightKg: this.bodyweightKg() ?? null,
 			bodyFatPct: measured?.body.body_fat_pct ?? p.bodyFatPct,
 			activity: p.activity,
-			goal: p.goal,
+			// Po konci fáze hubnutí nebo nabírání platí udržování.
+			goal: effectiveGoal(p.goal, p.goalUntil, date),
 			trainingHoursPerWeek: weeklyTrainingHours(workouts, date, daysBetween),
 			steps: stepsActivity(days, workouts, date, daysBetween),
 		};
@@ -417,6 +513,37 @@ export default class BetterFormPlugin extends Plugin {
 			}
 			const path = await this.exporter.saveText(t("Plan {week}.ics", { week }), toIcs(events, new Date()));
 			new Notice(t("Saved “{path}” – import it into your calendar (e.g. Google Calendar: Settings → Import).", { path }), 10000);
+		} catch (err) {
+			this.fail(t("Export failed"), err);
+		}
+	}
+
+	/** Naplánované běhy týdne (od dneška) jako tréninky FIT pro hodinky – jeden soubor na běh. */
+	async exportPlanWorkouts(week: string): Promise<void> {
+		try {
+			const today = toIsoDate(new Date());
+			const runs = this.plans
+				.view(week, today)
+				.days.flatMap((d) => d.entries)
+				.filter((e) => !e.program && e.status === "planned" && e.item.sport === "run" && e.item.date >= today);
+			if (runs.length === 0) {
+				new Notice(t("No upcoming runs are planned this week."));
+				return;
+			}
+			// Cílové tempo podle Danielse z nejnovějšího rekordu (jako v Plánu); bez rekordu bez cíle.
+			const workouts = this.index.all("workout").map((w) => w.note);
+			const record = [...runRecords(workouts)].sort((a, b) => b.date.localeCompare(a.date))[0];
+			const paces = record && this.moduleOn("running.paces") ? trainingPaces(record.distance.km, record.seconds) : null;
+			const paths: string[] = [];
+			for (const { item } of runs) {
+				const title = planItemTitle(item);
+				const duration: FitStep["duration"] = item.distance_km ? { kind: "distance", m: item.distance_km * 1000 } : item.duration_min ? { kind: "time", s: item.duration_min * 60 } : { kind: "open" };
+				const pace = paces ? paceRange(paces, planPaceKind(item.title ?? "", item.intensity)) : undefined;
+				// ponytail: jeden krok na celý běh; intervaly by chtěly strukturu tréninku v plánu.
+				const fit = encodeFitWorkout({ name: title, steps: [{ name: title, duration, pace, intensity: "active" }] }, new Date());
+				paths.push(await this.exporter.saveText(`${item.date} ${title.replace(/[\\/:*?<>|#^[\]"]/g, "")}.fit`, fit));
+			}
+			new Notice(tn(paths.length, ["Saved {n} workout to the exports folder – copy it to the watch (Garmin: the GARMIN/NewFiles folder over USB).", "Saved {n} workouts to the exports folder – copy them to the watch (Garmin: the GARMIN/NewFiles folder over USB)."]), 10000);
 		} catch (err) {
 			this.fail(t("Export failed"), err);
 		}
@@ -725,15 +852,31 @@ export default class BetterFormPlugin extends Plugin {
 		}
 	}
 
-	/** Výběr CSV s denními hodnotami z hodinek nebo aplikace. */
+	/** Výběr souboru s denními hodnotami: CSV z hodinek či aplikace, export.xml z Apple Health, JSON z Health Auto Export. */
 	pickDailyFile(): void {
-		pickFiles(".csv", false, ([file]) => void file!.text().then((text) => this.importDaily(text)));
+		pickFiles(".csv,.xml,.json", false, ([file]) => void this.importDaily(file!));
+	}
+
+	/** export.xml mívá stovky MB – čte se po kouscích, ne celý do paměti. */
+	private async readDailyFile(file: File): Promise<ParsedHealth | ReturnType<typeof parseDailyCsv>> {
+		const name = file.name.toLowerCase();
+		if (name.endsWith(".json")) return parseHealthAutoExport(JSON.parse(await file.text()));
+		if (!name.endsWith(".xml")) return parseDailyCsv(await file.text());
+		const reader = appleHealthReader();
+		const stream = file.stream().pipeThrough(new TextDecoderStream()).getReader();
+		for (;;) {
+			const { done, value } = await stream.read();
+			if (done) break;
+			reader.push(value);
+		}
+		return reader.finish();
 	}
 
 	/** Import denních hodnot: ukáže, co se doplní, a po potvrzení zapíše jen chybějící hodnoty. */
-	async importDaily(text: string): Promise<void> {
+	async importDaily(file: File): Promise<void> {
 		try {
-			const parsed = parseDailyCsv(text);
+			const parsed = await this.readDailyFile(file);
+			if (parsed.rows.length === 0) throw new Error(t("I didn't find any steps, sleep, resting heart rate or weight in the file."));
 			const plan = parsed.rows.map((row) => ({ row, missing: missingValues(row, this.index.day(row.date)?.note) })).filter((p) => Object.keys(p.missing).length > 0);
 			const span = parsed.rows.length > 0 ? ` (${formatCzechDate(parsed.rows[0]!.date, false)} – ${formatCzechDate(parsed.rows[parsed.rows.length - 1]!.date, false)})` : "";
 			const found = t("In the file – days: {rows_length}{span}; values: {v}.", { rows_length: parsed.rows.length, span, v: parsed.fields.map((f) => DAILY_FIELD_LABELS[f]).join(", ") });
@@ -749,6 +892,7 @@ export default class BetterFormPlugin extends Plugin {
 				newNotes > 0 ? t("New daily notes to create: {newNotes}.", { newNotes }) : "",
 				parsed.fields.includes("duration_min") ? t("Sleep duration goes to the day stated in the file – it should be the day you woke up.") : "",
 				parsed.skippedRows > 0 ? t("Rows without a valid date skipped: {skippedRows}.", { skippedRows: parsed.skippedRows }) : "",
+				"sdnnSkipped" in parsed && parsed.sdnnSkipped > 0 ? t("HRV isn't imported: Apple Health measures it as SDNN, which can't be compared with the morning RMSSD the plugin uses.") : "",
 			].filter((line) => line !== "");
 			if (!(await confirmAction(this.app, t("Import daily data?"), lines.join("\n\n"), t("Import")))) return;
 			const progress = new Notice(t("Importing… {done} of {total}", { done: 0, total: plan.length }), 0);

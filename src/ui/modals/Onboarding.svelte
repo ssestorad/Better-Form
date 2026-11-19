@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MODULE_IDS, MODULE_LABELS } from "../../settings/modules";
 	// Úvodní průvodce: profil pro výpočty, cíl, běžný den, režim a sporty. Vše jde
 	// později změnit v nastavení; prázdná pole profilu se dají doplnit kdykoli.
 	import { t } from "../../i18n";
@@ -125,6 +126,15 @@
 				{/each}
 			</div>
 			{#if errors.sports}<span class="bf-error">{errors.sports}</span>{/if}
+		</div>
+		<div class="bf-field">
+			<span class="bf-field-label">{t("What interests you")}</span>
+			<div class="bf-onb-sports">
+				{#each MODULE_IDS as id (id)}
+					<label class="bf-onb-sport" class:is-active={values.modules[id]} title={MODULE_LABELS[id].desc}><input type="checkbox" bind:checked={values.modules[id]} /> {MODULE_LABELS[id].label}</label>
+				{/each}
+			</div>
+			<span class="bf-note">{t("You can change this later in the settings under Modules, including smaller parts of each module.")}</span>
 		</div>
 	</fieldset>
 

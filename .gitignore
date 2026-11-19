@@ -24,3 +24,7 @@ graphify-out/
 
 # Náhled obrazovek – sestavení a snímky
 tools/preview/dist/
+
+# Průzkumy (deep-research) – jen lokálně
+research_notes/
+reports/

@@ -646,6 +646,7 @@ export const PROGRAM_TOPICS: Record<string, string[]> = {
 	"grease-the-groove": ["frequency_programs"],
 	"daily-kettlebell": ["kettlebell"],
 	"kettlebell-program-minimum": ["kettlebell"],
+	"kettlebell-simple-sinister": ["kettlebell"],
 	"novice-strength-3x5": ["squat", "deadlift", "push", "training", "strength_methods"],
 	"deload-week": ["deload", "maintaining", "training_theory", "compensation_exercise"],
 };

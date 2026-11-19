@@ -1,6 +1,7 @@
 // Vyhodnocení pravidel a sestavení jejich kontextu z dat (SPEC kap. 10).
 // Čisté funkce bez závislosti na Obsidianu.
 
+import { moduleOn, type ModuleKey } from "../settings/modules";
 import { daySamples } from "../calc/chartData";
 import { checkInTrend, deloadSignals, stagnation } from "../calc/deload";
 import { acwr, fitnessSeries, loadDataDays, lowFormDays, monotony } from "../calc/fitness";
@@ -29,6 +30,24 @@ export const MAX_MAIN_RECOMMENDATIONS = 3;
  * informace); při shodě rozhoduje pořadí pravidel. Zdroje a štítek se berou
  * z definice pravidla, takže je má každé doporučení.
  */
+/**
+ * Pravidla, která patří k vypínatelnému modulu (nastavení → Moduly). Bezpečnostní a obecná
+ * pravidla (bolest, spánek, HRV, skoky v zátěži, deload, plán) tu nejsou – platí vždy.
+ */
+export const RULE_MODULES: Readonly<Record<string, ModuleKey>> = {
+	nutrition_check: "nutrition.weight_check",
+	run_spike: "running.run_spike",
+	goal: "goals",
+	challenge: "programs",
+	recovery: "body",
+	volume: "body",
+};
+
+/** Pravidla bez těch, jejichž modul je vypnutý. */
+export function rulesForModules(modules: Readonly<Record<string, boolean>>, rules: readonly Rule[] = RULES): Rule[] {
+	return rules.filter((rule) => RULE_MODULES[rule.id] === undefined || moduleOn(modules, RULE_MODULES[rule.id]!));
+}
+
 export function evaluateRules(ctx: RuleContext, rules: readonly Rule[] = RULES): Recommendation[] {
 	const out: Recommendation[] = [];
 	for (const rule of rules) {

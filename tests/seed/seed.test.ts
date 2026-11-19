@@ -156,6 +156,7 @@ describe("předpřipravené programy", () => {
 			"Kettlebell denně",
 			"Síla od nuly 3×5",
 			"Kettlebell – Program Minimum",
+			"Kettlebell – Simple & Sinister",
 			"Odlehčovací týden",
 			"Švihadlo od nuly – 4 týdny",
 			"Švihadlo – kondice 6 týdnů",

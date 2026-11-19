@@ -216,4 +216,20 @@
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
 	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-elec-tr {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: 0;
+		}
+
+		.bf-elec-tr > :first-child {
+			grid-column: 1 / -1;
+		}
+
+		.bf-elec-tr > [role="columnheader"]:first-child {
+			display: none;
+		}
+	}
 </style>

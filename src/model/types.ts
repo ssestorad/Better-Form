@@ -90,6 +90,8 @@ export interface DayNote extends NoteBase {
 	steps?: number;
 	/** Názvy suplementů, které uživatel ten den vzal (poznámky `forma: supplement`). */
 	supplements?: string[];
+	/** Návyky toho dne z deníku návyků (alkohol, pozdní jídlo…) – názvy z nastavení. */
+	habits?: string[];
 	notes?: string;
 }
 

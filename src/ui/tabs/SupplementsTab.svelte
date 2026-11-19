@@ -59,6 +59,19 @@
 	] as const;
 	type Section = (typeof SECTIONS)[number]["id"];
 	let section = $state<Section>("today");
+	// Podmoduly suplementů (nastavení → Moduly).
+	const safetyOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("supplements.safety");
+	});
+	const trialOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("supplements.trial");
+	});
+	const tablesOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("supplements.tables");
+	});
 
 	const GROUPS: MatchGroup[] = ["fits", "maybe", "other"];
 	const WINDOWS = [7, 30] as const;
@@ -278,7 +291,7 @@
 </script>
 
 <div class="bf-seg" role="tablist" aria-label={t("Supplements tab sections")}>
-	{#each SECTIONS as s (s.id)}
+	{#each SECTIONS.filter((s) => s.id !== "tables" || tablesOn) as s (s.id)}
 		<button type="button" role="tab" class:is-active={section === s.id} aria-selected={section === s.id} onclick={() => (section = s.id)}>{s.label}</button>
 	{/each}
 </div>
@@ -337,7 +350,7 @@
 </section>
 
 {#if active.length > 0}
-	<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />
+	{#if safetyOn}<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />{/if}
 	<DailyOverview entries={active} {weightKg} />
 {/if}
 {/if}
@@ -345,7 +358,7 @@
 {#if section === "mine"}
 <section class="bf-section">
 	<h4>{t("My supplements")}</h4>
-	<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />
+	{#if safetyOn}<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />{/if}
 	{#each [...active, ...inactive] as entry (entry.file.path)}
 		<div class="bf-card">
 			<div class="bf-supp-head">
@@ -394,7 +407,7 @@
 	{/if}
 </section>
 
-<TrialCard supplements={active} days={dayNotes} workouts={workoutNotes} ctx={statsContext} {today} />
+{#if trialOn}<TrialCard supplements={active} days={dayNotes} workouts={workoutNotes} ctx={statsContext} {today} />{/if}
 {/if}
 
 {#if section === "library"}
@@ -488,7 +501,7 @@
 {#if researchTopic("supplement_basics")}<ResearchCard topic={researchTopic("supplement_basics")!} />{/if}
 {/if}
 
-{#if section === "tables"}
+{#if section === "tables" && tablesOn}
 <ReferenceTables {sex} {bedtime} {medications} {totals} />
 <ElectrolyteTable {weightKg} {sex} />
 <AminoAcidTable {weightKg} owned={active.map((e) => ({ name: e.note.name, catalog: e.note.catalog }))} />
@@ -616,5 +629,12 @@
 	.bf-supp-tr:first-child {
 		border-top: none;
 		font-size: var(--font-ui-small);
+	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-supp-tr {
+			grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
+		}
 	}
 </style>

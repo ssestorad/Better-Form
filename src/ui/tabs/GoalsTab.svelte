@@ -85,6 +85,10 @@
 		if (i.kind === "run_time") return t("Run {v} km", { v: formatNumber(i.distance_km ?? 0, 2) });
 		return i.time_limit_s !== undefined ? `${i.exercise} (${formatSeconds(i.time_limit_s)})` : `${i.exercise}${i.kind === "hold" ? " – hold" : ""}`;
 	}
+	const normsOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("goals.norms");
+	});
 </script>
 
 <section class="bf-card">
@@ -160,6 +164,7 @@
 	</details>
 {/if}
 
+{#if normsOn}
 <section class="bf-card">
 	<header class="bf-goal-head">
 		<h4>{t("Standards")}</h4>
@@ -173,6 +178,7 @@
 		<NormForm onSave={(note) => saveNorm(note)} onCancel={() => (addingNorm = false)} />
 	{/if}
 </section>
+{/if}
 
 {#each norms as { entry, status } (entry.file.path)}
 	<section class="bf-card">
@@ -296,5 +302,21 @@
 
 	.bf-norm-ok {
 		color: var(--text-success);
+	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-norm-tr {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: 0;
+		}
+
+		.bf-norm-tr > :first-child {
+			grid-column: 1 / -1;
+		}
+
+		.bf-norm-tr > [role="columnheader"]:first-child {
+			display: none;
+		}
 	}
 </style>

@@ -1,6 +1,7 @@
 // Nastavení pluginu (SPEC kap. 12). Nic osobního napevno – profil je ve výchozím stavu prázdný.
 // Bez závislosti na Obsidianu.
 
+import { DEFAULT_HABITS } from "../calc/habits";
 import { isLanguage, type Language } from "../i18n";
 import { SPORTS, type MuscleId, type Sport, MEDICATIONS, type MedicationId } from "../model/constants";
 import { builtinName, exerciseId } from "../seed/localize";
@@ -23,6 +24,8 @@ export interface ProfileSettings {
 	hrMax: number | null;
 	activity: ActivityLevel;
 	goal: BodyGoal;
+	/** Konec fáze hubnutí nebo nabírání (YYYY-MM-DD); potom platí udržování. null = bez konce. */
+	goalUntil: string | null;
 	/** Skupiny léků, které uživatel bere – jen pro upozornění na interakce se suplementy. */
 	medications: MedicationId[];
 }
@@ -147,6 +150,15 @@ export interface GarminSettings {
 	lastSync: string;
 }
 
+/** Zrcadlení denních metrik (bf_…) do vlastní denní poznámky uživatele – pro Bases a Dataview. */
+export interface DailyMirrorSettings {
+	enabled: boolean;
+	/** Složka denních poznámek (jako v jádrovém pluginu Denní poznámky); prázdné = kořen vaultu. */
+	folder: string;
+	/** Formát názvu (moment.js), např. YYYY-MM-DD. */
+	format: string;
+}
+
 export interface RunnaSettings {
 	/** Soukromý odkaz na kalendář (iCal) z Runny nebo jiné trenérské aplikace; jen v data.json. */
 	url: string;
@@ -172,8 +184,11 @@ export interface BetterFormSettings {
 	situpAlternative: string;
 	folders: FolderSettings;
 	sports: Record<Sport, boolean>;
-	/** Zobrazovat série dnů a týdnů a odznaky (9.2); někomu pomáhají, někoho stresují. */
-	showStreaks: boolean;
+	/**
+	 * Vypnuté moduly a podmoduly (settings/modules.ts): klíč „running“ nebo „running.taper“ → false.
+	 * Chybějící klíč = zapnuto. Nahrazuje dřívější showStreaks (= modul badges).
+	 */
+	modules: Record<string, boolean>;
 	kettlebellsKg: number[];
 	/** Hmotnost osy velké činky (kg) – pro kalkulačku kotoučů a rozcvičovací série. */
 	barbellKg: number;
@@ -194,10 +209,13 @@ export interface BetterFormSettings {
 	strava: StravaSettings;
 	garmin: GarminSettings;
 	runna: RunnaSettings;
+	dailyMirror: DailyMirrorSettings;
+	/** Návyky v deníku návyků (karta Včera na Dnes). */
+	habits: string[];
 }
 
 /** Verze nastavení; při změně výchozích hodnot přidat krok do migrateSettings. */
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 
 export const DEFAULT_THRESHOLDS: ThresholdSettings = {
 	ctlDays: 42,
@@ -307,6 +325,7 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 		hrMax: null,
 		activity: "light",
 		goal: "maintain",
+		goalUntil: null,
 		medications: [],
 	},
 	mode: "full",
@@ -314,7 +333,7 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 	situpAlternative: "",
 	folders: DEFAULT_FOLDERS,
 	sports: Object.fromEntries(SPORTS.map((s) => [s, true])) as Record<Sport, boolean>,
-	showStreaks: true,
+	modules: {},
 	kettlebellsKg: [],
 	barbellKg: 20,
 	platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
@@ -347,6 +366,8 @@ export const DEFAULT_SETTINGS: BetterFormSettings = {
 		lastSync: "",
 	},
 	runna: { url: "", lastSync: "" },
+	dailyMirror: { enabled: false, folder: "", format: "YYYY-MM-DD" },
+	habits: [...DEFAULT_HABITS],
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -375,6 +396,11 @@ function mergeValue(def: unknown, loaded: unknown): unknown {
  */
 export function mergeSettings(loaded: unknown): BetterFormSettings {
 	const settings = mergeValue(DEFAULT_SETTINGS, loaded) as BetterFormSettings;
+	// Moduly mají libovolné klíče – obecné slučování (podle klíčů výchozí hodnoty) by je zahodilo.
+	const modules = isPlainObject(loaded) && isPlainObject(loaded.modules) ? loaded.modules : {};
+	settings.modules = Object.fromEntries(Object.entries(modules).filter((entry): entry is [string, boolean] => typeof entry[1] === "boolean"));
+	// 2 → 3: přepínač „Série a odznaky“ je teď modul badges (staré pole merge zahodí, proto se čte předem).
+	if (isPlainObject(loaded) && loaded.showStreaks === false && settings.modules.badges === undefined) settings.modules.badges = false;
 	return migrateSettings(settings);
 }
 

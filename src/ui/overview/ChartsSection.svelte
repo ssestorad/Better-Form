@@ -9,7 +9,7 @@
 	import { EPLEY_BASIS } from "../../calc/oneRm";
 	import { formatPace } from "../../calc/performance";
 	import { exerciseSeries, type RecordContext } from "../../calc/records";
-	import { TREND_MIN_SAMPLES, TREND_WINDOW_DAYS, weightChart, weightPoints, weightTrend } from "../../calc/weight";
+	import { TREND_MIN_SAMPLES, TREND_WINDOW_DAYS, trendWeightSeries, weightChart, weightPoints, weightTrend } from "../../calc/weight";
 	import { addDays } from "../../model/dates";
 	import { trendText } from "../nutrition/text";
 	import type { DayNote, WorkoutNote } from "../../model/types";
@@ -78,6 +78,7 @@
 	// 6. Váha.
 	const weights = $derived(weightPoints(days));
 	const weight = $derived(weightChart(weights, dates));
+	const weightTrendLine = $derived(trendWeightSeries(weights, dates));
 	const hasWeight = $derived(weight.value.some((v) => v !== null));
 	const weightNow = $derived(weightTrend(weights, today));
 	const kg1 = (v: number) => `${formatNumber(v, 1)} kg`;
@@ -202,11 +203,11 @@
 		<LineChart
 			{dates}
 			lines={[
-				{ label: t("7-day average"), color: COLORS[0]!, values: weight.average, connect: true },
+				{ label: t("Trend weight"), color: COLORS[0]!, values: weightTrendLine, connect: true },
 				{ label: t("Weigh-ins"), color: "var(--text-muted)", values: weight.value, pointsOnly: true },
 			]}
 			format={kg1}
-			label={t("Weight and rolling average")}
+			label={t("Weight and trend weight")}
 		/>
 		<p class="bf-muted bf-ch-note">
 			{#if weightNow.ready}
@@ -214,7 +215,7 @@
 			{:else}
 				{t("Collecting data for the trend ({samples} of {TREND_MIN_SAMPLES} weigh-ins in the last {v} weeks).", { samples: weightNow.samples, TREND_MIN_SAMPLES, v: TREND_WINDOW_DAYS / 7 })}
 			{/if}
-			{t("The 7-day average smooths out daily swings (water, salt, food). What the trend means for your diet is on the Nutrition tab.")}
+			{t("Trend weight moves 10 % of the way towards each weigh-in, so daily swings (water, salt, food) barely move it; days without a weigh-in don't matter. What the trend means for your diet is on the Nutrition tab.")} <BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
 		</p>
 	{:else}
 		<p class="bf-muted">{t("No weight logged in this period – it's logged in the morning check-in.")}</p>

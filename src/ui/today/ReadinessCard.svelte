@@ -102,6 +102,15 @@
 		gap: var(--size-4-2);
 	}
 
+	/* V úzkém panelu se pravá část zalomí pod levou, nic nepřeteče. */
+	.bf-rd-row {
+		flex-wrap: wrap;
+	}
+
+	.bf-rd-row > * {
+		min-width: 0;
+	}
+
 	.bf-rd-main {
 		display: flex;
 		align-items: center;
@@ -137,6 +146,7 @@
 
 	.bf-rd-level {
 		font-weight: var(--font-semibold);
+		white-space: nowrap;
 	}
 
 	.bf-rd-trend {

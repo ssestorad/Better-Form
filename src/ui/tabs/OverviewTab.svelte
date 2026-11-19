@@ -24,6 +24,11 @@
 	] as const;
 	type ViewId = (typeof VIEWS)[number]["id"];
 	let view = $state<ViewId>("summary");
+	// Část Běh jen se zapnutým modulem (nastavení → Moduly).
+	const showRun = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("running.analysis");
+	});
 
 	const today = $derived.by(() => {
 		void $indexVersion;
@@ -59,7 +64,7 @@
 </script>
 
 <div class="bf-seg" role="tablist" aria-label={t("Overview sections")}>
-	{#each VIEWS as v (v.id)}
+	{#each VIEWS.filter((v) => v.id !== "run" || showRun) as v (v.id)}
 		<button type="button" role="tab" aria-selected={view === v.id} class:is-active={view === v.id} onclick={() => (view = v.id)}>{v.label}</button>
 	{/each}
 </div>
@@ -72,6 +77,6 @@
 	<ChartsSection {workouts} {days} {byDate} {ctx} {thresholds} {today} />
 {:else if view === "records"}
 	<RecordsSection {workouts} {tests} {ctx} />
-{:else}
+{:else if showRun}
 	<RunSection />
 {/if}

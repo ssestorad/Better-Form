@@ -662,6 +662,12 @@ export const CORE_SOURCES = {
 		citation: "NHS Couch to 5K.",
 		evidence: "consensus",
 	},
+	elongaSaHrv: {
+		short: "Elonga – SA-HRV",
+		citation: "Elonga – What Elonga measures and how it works (SA-HRV), help article.",
+		evidence: null,
+		url: "https://elonga-help.freshdesk.com/en/support/solutions/articles/205000044397-what-elonga-measures-and-how-it-works-sa-hrv-",
+	},
 	elongaHelp: {
 		short: "Elonga – help",
 		citation: "Elonga – help on connecting apps.",

@@ -81,6 +81,18 @@ export class DayService {
 		return result;
 	}
 
+	/** Návyky dne (deník návyků) – celý seznam se nahradí; prázdný seznam klíč smaže. */
+	async setHabits(date: string, habits: readonly string[]): Promise<void> {
+		if (this.index.day(date)?.schemaStatus === "newer") {
+			throw new Error(t("The daily note is from a newer version of the plugin – update the plugin."));
+		}
+		const file = await this.ensureDayNote(date);
+		await this.writer.updateFrontmatter(file, (frontmatter) => {
+			if (habits.length > 0) frontmatter.habits = [...habits];
+			else delete frontmatter.habits;
+		});
+	}
+
 	/**
 	 * Doplní do denních poznámek hodnoty z importu – jen ty, které chybí; zapsané nepřepíše.
 	 * Vrátí počet dnů, kterých se zápis týkal, a počet doplněných hodnot.

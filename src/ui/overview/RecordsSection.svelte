@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { usePlugin } from "../context";
 	// Osobní rekordy (SPEC 9.1) a odhad závodního času (8.7).
 	import { t, tn } from "../../i18n";
 	import { formatClockDuration, formatPace } from "../../calc/performance";
@@ -42,7 +43,13 @@
 	);
 
 	// Tréninková tempa podle Danielse ze stejného rekordu a limity z průměrného týdenního objemu za 4 týdny.
-	const paces = $derived(base ? trainingPaces(base.distance.km, base.seconds) : null);
+	const plugin = usePlugin();
+	const settingsVersion = plugin.settingsVersion;
+	const pacesOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("running.paces");
+	});
+	const paces = $derived(base && pacesOn ? trainingPaces(base.distance.km, base.seconds) : null);
 	const weeklyKm = $derived.by(() => {
 		const from = addDays(toIsoDate(new Date()), -27);
 		return workouts.filter((w) => w.sport === "run" && w.date >= from).reduce((sum, w) => sum + (w.run?.distance_km ?? 0), 0) / 4;
@@ -265,5 +272,17 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--size-4-2);
+	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-rec-run {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: 0;
+		}
+
+		.bf-rec-run > :first-child {
+			grid-column: 1 / -1;
+		}
 	}
 </style>

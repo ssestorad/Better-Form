@@ -223,4 +223,20 @@
 		gap: var(--size-4-2);
 		font-size: var(--font-ui-small);
 	}
+
+	/* Úzký panel (telefon, postranní panel): název přes celý řádek, hodnoty pod ním. */
+	@container (max-width: 420px) {
+		.bf-ref-4 {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			row-gap: 0;
+		}
+
+		.bf-ref-4 > :first-child {
+			grid-column: 1 / -1;
+		}
+
+		.bf-ref-4 > [role="columnheader"]:first-child {
+			display: none;
+		}
+	}
 </style>

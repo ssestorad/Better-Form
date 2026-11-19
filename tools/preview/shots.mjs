@@ -20,7 +20,7 @@ const browser = browsers.find((b) => existsSync(b));
 if (!browser) throw new Error("Nenašel jsem Edge ani Chrome – nastav cestu v PREVIEW_BROWSER.");
 if (!existsSync(path.join(dist, "out.js"))) throw new Error("Chybí sestavení – spusť nejdřív npm run preview.");
 
-const [viewArg, langArg, widthArg] = process.argv.slice(2);
+const [viewArg, langArg, widthArg, heightArg] = process.argv.slice(2);
 const views = viewArg ? [viewArg] : ["plan", "records"];
 const langs = langArg ? [langArg] : ["en", "cs"];
 const width = Number(widthArg ?? 640);
@@ -38,7 +38,7 @@ for (const view of views) {
 			`--user-data-dir=${path.join(dist, "profile")}`,
 			"--virtual-time-budget=3000",
 			"--force-device-scale-factor=2",
-			`--window-size=${width + 40},2400`,
+			`--window-size=${width + 40},${Number(heightArg ?? 2400)}`,
 			`--screenshot=${out}`,
 			`${pathToFileURL(page).href}?view=${view}&lang=${lang}`,
 		]);

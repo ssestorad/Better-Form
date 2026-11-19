@@ -13,6 +13,19 @@ import PlanTab from "../../src/ui/tabs/PlanTab.svelte";
 import RecordsSection from "../../src/ui/overview/RecordsSection.svelte";
 import Onboarding from "../../src/ui/modals/Onboarding.svelte";
 import { onboardingFromSettings } from "../../src/settings/onboarding";
+import { moduleOn } from "../../src/settings/modules";
+import { readiness } from "../../src/calc/readiness";
+import ReferenceTables from "../../src/ui/supplements/ReferenceTables.svelte";
+import ElectrolyteTable from "../../src/ui/supplements/ElectrolyteTable.svelte";
+import StreaksCard from "../../src/ui/overview/StreaksCard.svelte";
+import ReadinessCard from "../../src/ui/today/ReadinessCard.svelte";
+import HabitsCard from "../../src/ui/today/HabitsCard.svelte";
+import NutritionTab from "../../src/ui/tabs/NutritionTab.svelte";
+import GoalsTab from "../../src/ui/tabs/GoalsTab.svelte";
+import SkillsTab from "../../src/ui/tabs/SkillsTab.svelte";
+import { GoalService } from "../../src/data/GoalService";
+import { seedExercises } from "../../src/seed/exercises";
+import { nutritionPlan } from "../../src/calc/nutrition";
 
 const params = new URLSearchParams(location.search);
 const lang = params.get("lang") === "cs" ? "cs" : "en";
@@ -72,6 +85,20 @@ for (let w = 0; w < 4; w++) {
 // Splněné položky tohoto týdne (dnes je úterý – pondělí posilovna hotová).
 add(`Forma/Workouts/${week} Gym.md`, { ...base, forma: "workout", date: week, sport: "strength", title: "Push", duration_min: 58, rpe: 7 });
 
+// Norma a cviky pro Cíle a Dovednosti; denní poznámky s váhou pro Výživu.
+add("Forma/Goals/Army test.md", {
+	forma: "norm",
+	schema: 1,
+	name: cs ? "Armádní test" : "Army fitness test",
+	items: [
+		{ exercise: "Push-up", kind: "reps", rows: [{ sex: "male", value: 40 }] },
+		{ exercise: "Sit-up", kind: "reps", rows: [{ sex: "male", value: 45 }] },
+		{ exercise: "Running", kind: "run_time", distance_km: 3, rows: [{ sex: "male", value: 840 }] },
+	],
+});
+for (const ex of seedExercises(lang)) add(`Forma/Library/${ex.name}.md`, ex);
+for (let i = 20; i >= 0; i -= 2) add(`Forma/Journal/${addDays(today, -i)}.md`, { forma: "day", schema: 1, date: addDays(today, -i), sleep: {}, check_in: {}, hrv: {}, body: { weight_kg: 80 + i * 0.05 } });
+
 // ---------- falešný plugin ----------
 const index = {
 	isReady: true,
@@ -97,7 +124,23 @@ const plugin = {
 	exportPlanCalendar: () => {},
 	syncRunnaPlan: () => {},
 	weeklySummary: () => {},
+	openTest: () => {},
+	openLibrary: () => {},
+	openOnboarding: () => {},
+	fillSkillLadders: () => {},
+	trashNote: async () => false,
+	nutritionProfile: () => ({ sex: "male", age: 34, heightCm: 180, weightKg: 80, bodyFatPct: null, activity: "light", goal: "maintain" }),
+	workouts: { isSameExercise: (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase() },
+	moduleOn: (key) => moduleOn(settings.modules, key),
+	days: { setHabits: async () => {} },
+	programs: { active: () => [], tasks: () => [] },
 };
+plugin.nutritionPlan = (date) => nutritionPlan({ planned: [], profile: plugin.nutritionProfile(date), settings: settings.nutrition, eaMin: settings.thresholds.eaMinKcalPerKgFfm, workouts: [] });
+index.day = (date) => entries.find((e) => e.note.forma === "day" && e.note.date === date);
+index.findExercise = () => undefined;
+settings.profile.sex = "male";
+settings.profile.birthYear = 1992;
+plugin.goals = new GoalService(index, writer, () => settings, () => ({ info: () => undefined, bodyweightKg: 80 }), plugin.workouts.isSameExercise, () => {});
 plugin.plans = new PlanService(app, index, writer, () => settings, () => indexVersion.update((n) => n + 1));
 
 const context = createContext(plugin);
@@ -109,6 +152,21 @@ const views = {
 		mount(Onboarding, { target, context, props: { initial, first: true, onSave: async () => {}, onCancel: () => {} } });
 	},
 	plan: (target) => mount(PlanTab, { target, context }),
+	nutrition: (target) => mount(NutritionTab, { target, context }),
+	goals: (target) => mount(GoalsTab, { target, context }),
+	skills: (target) => mount(SkillsTab, { target, context }),
+	// Úzké karty pro kontrolu rozvržení na telefonu (node tools/preview/shots.mjs narrow cs 340).
+	narrow: (target) => {
+		const workouts = index.all("workout").map((w) => w.note);
+		const ready = readiness({ form: { ctl: 10, tsb: 10 }, sleepTargetHours: 8 });
+		const history = [{ date: addDays(today, -2), score: null }, { date: addDays(today, -1), score: null }, { date: today, score: ready?.score ?? null }];
+		const box = () => target.appendChild(Object.assign(document.createElement("section"), { className: "bf-card" }));
+		mount(ReadinessCard, { target: box(), context, props: { readiness: ready, history, onCheckIn: () => {} } });
+		mount(HabitsCard, { target, context, props: { today, days: [] } });
+		mount(StreaksCard, { target, context, props: { workouts, sessions: workouts, today } });
+		mount(ReferenceTables, { target: box(), context, props: { sex: "male", bedtime: null, totals: [], medications: [] } });
+		mount(ElectrolyteTable, { target: box(), context, props: { weightKg: 80, sex: "male" } });
+	},
 	records: (target) =>
 		mount(RecordsSection, {
 			target,

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { moduleOn } from "../../settings/modules";
 	// Série a odznaky (SPEC 9.2) a měsíční souhrn (9.5).
 	import { t, tn } from "../../i18n";
 	import { Notice } from "obsidian";
@@ -39,7 +40,11 @@
 	const week = $derived(weekStreak(sessions.map((w) => w.date), today, goal, excused));
 	const showStreaks = $derived.by(() => {
 		void $settingsVersion;
-		return plugin.settings.showStreaks;
+		return moduleOn(plugin.settings.modules, "badges.streaks");
+	});
+	const showBadges = $derived.by(() => {
+		void $settingsVersion;
+		return moduleOn(plugin.settings.modules, "badges.badges");
 	});
 
 	const programStreaks = $derived.by(() => {
@@ -112,7 +117,9 @@
 		{t("Change the weekly goal in the settings. An unfinished week doesn't break the streak; workouts from the daily counter count only on days without another workout. Illness and vacation logged in the weekly plan don't break the streak – the week's goal is lowered instead. Streaks can be turned off in the settings.")}
 	</p>
 </section>
+{/if}
 
+{#if showBadges}
 <section class="bf-card">
 	<h4>{t("Badges")} <span class="bf-muted bf-st-small">{t("{done} of {total}", { done: list.filter((b) => b.achieved !== null).length, total: list.length })}</span></h4>
 	{#each groups as { group, items } (group)}
@@ -229,6 +236,13 @@
 
 	.bf-st-text {
 		min-width: 0;
+	}
+
+	/* Popisek odznaku na jeden řádek – v pevné výšce dlaždice nepřeteče přes okraj. */
+	.bf-st-text .bf-st-small {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.bf-st-title {

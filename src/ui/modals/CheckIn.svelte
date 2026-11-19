@@ -161,7 +161,7 @@
 				<NumberField label={t("Readiness")} unit={t("Elonga")} decimals bind:value={values.elonga_readiness} hint={hints.elonga_readiness} error={errors.elonga_readiness} />
 			</div>
 			<p class="bf-note">
-				{t("Elonga's readiness score is only shown and isn't used in calculations – composite scores lack sufficient independent validation.")}
+				{t("Elonga doesn't show rMSSD. Without it, Elonga's readiness stands in for the HRV part of the day's readiness – a practice choice, because composite scores lack independent validation.")}
 			</p>
 		</fieldset>
 

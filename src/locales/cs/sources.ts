@@ -110,6 +110,7 @@ export const SOURCES: Record<string, { short?: string; citation?: string; note?:
 	sawka2007: { note: "Složení potu se mezi lidmi liší až několikanásobně." },
 	efsaDrv: { short: "EFSA – referenční příjem", citation: "EFSA (2017, doplněno 2019) Dietary Reference Values for nutrients: summary report. Sodík a chlorid: EFSA Journal 17(9):5778 a 5779.", note: "Hodnoty pro běžnou dospělou populaci, ne zvlášť pro sportovce." },
 	elongaHelp: { short: "Elonga – nápověda", citation: "Elonga – nápověda k propojení." },
+	elongaSaHrv: { short: "Elonga – SA-HRV", citation: "Elonga – Co Elonga měří a jak funguje (SA-HRV), článek nápovědy." },
 	owen2008: { note: "Autoři pracovali pro výrobce čaje (Unilever)." },
 	giesbrecht2010: { note: "Autoři pracovali pro výrobce čaje (Unilever)." },
 	grgic2021bicarb: { short: "ISSN 2021 (Grgic, bikarbonát)" },

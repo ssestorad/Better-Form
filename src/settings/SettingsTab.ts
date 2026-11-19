@@ -11,6 +11,7 @@ import { MEDICATION_LABELS, MEDICATIONS } from "../calc/supplementSafety";
 import { normalizeVaultPath } from "../data/paths";
 import { isLanguage, LANGUAGE_LABELS, LANGUAGES, t } from "../i18n";
 import { importGroup } from "./importSettings";
+import { dailyMirrorPage, modulesPage, quickLinksPage } from "./modulesSettings";
 import { advancedGroup, backupGroup, libraryGroup } from "./librarySettings";
 import { getPath, note, optionalNumber, setPath, type SettingsHost } from "./settingsUi";
 
@@ -27,7 +28,7 @@ export class BetterFormSettingTab extends PluginSettingTab implements SettingsHo
 			// První skupina bez nadpisu (pravidla Obsidianu): jazyk, průvodce a režim.
 			{ type: "group", items: [this.language(), ...this.mode()] },
 			{ type: "group", heading: t("Profile and nutrition"), items: this.profile() },
-			{ type: "group", heading: t("Training and equipment"), items: this.training() },
+			{ type: "group", heading: t("Training and equipment"), items: [modulesPage(this), quickLinksPage(this), dailyMirrorPage(this), ...this.training()] },
 			importGroup(this),
 			libraryGroup(this),
 			backupGroup(this),
@@ -162,6 +163,18 @@ export class BetterFormSettingTab extends PluginSettingTab implements SettingsHo
 				name: t("Goal"),
 				control: { type: "dropdown", key: "profile.goal", options: { lose: t("Lose weight"), maintain: t("Maintain"), gain: t("Gain") } },
 			},
+			{
+				name: t("Goal applies until"),
+				desc: t("The end of a fat-loss or muscle-gain phase. After it, nutrition switches to maintenance. Coaching practice is a phase of 6–12 weeks followed by maintenance. Empty = no end."),
+				render: (s) =>
+					void s.addText((field) => {
+						field.inputEl.type = "date";
+						field.setValue(this.settings.profile.goalUntil ?? "").onChange((v) => {
+							this.settings.profile.goalUntil = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+							this.save();
+						});
+					}),
+			},
 			this.medications(),
 			this.nutrition(),
 		];
@@ -246,14 +259,21 @@ export class BetterFormSettingTab extends PluginSettingTab implements SettingsHo
 				control: { type: "toggle", key: `sports.${sport}` },
 			})),
 			{
+				name: t("Habit journal"),
+				desc: t("Habits you tick on the Today tab, separated by commas."),
+				render: (s) =>
+					void s.addText((text) =>
+						text.setValue(this.settings.habits.join(", ")).onChange((v) => {
+							this.settings.habits = parseTextList(v);
+							this.save();
+							this.plugin.settingsVersion.update((n) => n + 1);
+						}),
+					),
+			},
+			{
 				name: t("Weekly workout goal"),
 				desc: t("Number of workouts per week (for streaks of completed weeks)."),
 				control: { type: "number", key: "weeklyWorkoutGoal", min: 1, max: 21, step: 1, defaultValue: DEFAULT_SETTINGS.weeklyWorkoutGoal },
-			},
-			{
-				name: t("Streaks and badges"),
-				desc: t("Show streaks of completed weeks and program days, and badges on the Overview tab. Illness and vacation logged in the weekly plan don't break a streak."),
-				control: { type: "toggle", key: "showStreaks" },
 			},
 			{
 				name: t("Kettlebells"),

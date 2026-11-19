@@ -160,8 +160,14 @@
 	function pin(muscle: MuscleId) {
 		pinned = pinned === muscle ? null : muscle;
 	}
+	// Panáček s objemem svalů jde vypnout (nastavení → Moduly); záznam bolesti a měření zůstávají.
+	const figureOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.moduleOn("body");
+	});
 </script>
 
+{#if figureOn}
 <section class="bf-card">
 	<div class="bf-body-modes" role="tablist" aria-label={t("Figure coloring")}>
 		{#each MODES as m (m)}
@@ -183,8 +189,10 @@
 		{/each}
 	</div>
 </section>
+{/if}
 
 <section class="bf-card bf-body-panel">
+	{#if figureOn}
 	{#if detail}
 		<MuscleDetail
 			{...detail}
@@ -232,6 +240,7 @@
 				</div>
 			</div>
 		</div>
+	{/if}
 	{/if}
 	{#if researchTopic("recovery_methods")}<ResearchCard topic={researchTopic("recovery_methods")!} />{/if}
 	{#if researchTopic("pain_training")}<ResearchCard topic={researchTopic("pain_training")!} />{/if}

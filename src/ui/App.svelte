@@ -1,9 +1,12 @@
 <script lang="ts">
+	import type { ModuleKey } from "../settings/modules";
 	import { t } from "../i18n";
 	import type { Writable } from "svelte/store";
 	import { icon, tooltip } from "./actions";
 	import { usePlugin } from "./context";
 	import { TABS, type TabId } from "./tabs";
+	import { Platform } from "obsidian";
+	import { describeError, recentErrors } from "./errorLog";
 	import BasicTab from "./tabs/BasicTab.svelte";
 	import BodyTab from "./tabs/BodyTab.svelte";
 	import GoalsTab from "./tabs/GoalsTab.svelte";
@@ -30,14 +33,38 @@
 		void $settingsVersion;
 		return plugin.settings.mode === "basic";
 	});
-	const visible = $derived(TABS.filter((x) => (basic ? x.id === "basic" || x.id === "settings" : x.id !== "basic")));
+	// Karty vypnutých modulů se neukazují (nastavení → Moduly). Karta Tělo zůstává kvůli záznamu bolesti.
+	const TAB_MODULE: Partial<Record<TabId, ModuleKey>> = { nutrition: "nutrition", supplements: "supplements", skills: "skills", goals: "goals", programs: "programs" };
+	const visible = $derived.by(() => {
+		void $settingsVersion;
+		return TABS.filter((x) => (basic ? x.id === "basic" || x.id === "settings" : x.id !== "basic" && (TAB_MODULE[x.id] === undefined || plugin.moduleOn(TAB_MODULE[x.id]!))));
+	});
 	const active = $derived(visible.find((x) => x.id === $tab) ?? visible[0]!);
 
-	/** Text chyby pro hlášení: verze pluginu, zpráva a začátek výpisu volání. */
+	/** Text chyby pro hlášení: verze pluginu, karta, zařízení, zpráva a začátek výpisu volání. */
 	function errorText(error: unknown): string {
-		const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-		const stack = error instanceof Error && error.stack ? error.stack.split("\n").slice(1, 6).join("\n") : "";
-		return [`Better Form ${plugin.manifest.version} · ${active.id}`, message, stack].filter((part) => part !== "").join("\n");
+		const device = `${Platform.isMobile ? "mobile" : "desktop"} · ${navigator.userAgent}`;
+		return [`Better Form ${plugin.manifest.version} · ${active.id}`, device, describeError(error)].join("\n");
+	}
+
+	// Karta, která zůstala prázdná bez zachycené chyby (např. chyba mimo vykreslování):
+	// po chvíli se ukáže rámeček s posledními chybami, ať je co poslat autorovi.
+	let content: HTMLDivElement | undefined = $state();
+	let emptyReport = $state("");
+	$effect(() => {
+		const id = active.id;
+		emptyReport = "";
+		const timer = window.setTimeout(() => {
+			if (content && content.childElementCount === 0) {
+				const errors = recentErrors();
+				emptyReport = `${errorText(errors.length > 0 ? errors.join("\n\n") : "no error recorded")}\nempty tab: ${id}`;
+			}
+		}, 1500);
+		return () => window.clearTimeout(timer);
+	});
+	let copied = $state(false);
+	function copy(text: string) {
+		void navigator.clipboard.writeText(text).then(() => (copied = true));
 	}
 </script>
 
@@ -67,7 +94,16 @@
 		</button>
 	</div>
 
-	<div class="bf-tab-content">
+	{#if emptyReport}
+		<div class="bf-card bf-tab-error" role="alert">
+			<strong>{t("This tab couldn't be displayed.")}</strong>
+			<p class="bf-small">{t("Please send this text to the plugin's author:")}</p>
+			<pre class="bf-small">{emptyReport}</pre>
+			<button type="button" onclick={() => copy(emptyReport)}>{copied ? t("Copied") : t("Copy")}</button>
+		</div>
+	{/if}
+
+	<div class="bf-tab-content" bind:this={content}>
 		<!-- Chyba při vykreslení karty se ukáže místo prázdné plochy (na telefonu není vidět konzole). -->
 		{#key active.id}
 			<svelte:boundary onerror={(error) => console.error("Better Form:", error)}>
@@ -102,6 +138,7 @@
 						<p class="bf-small">{t("Please send this text to the plugin's author:")}</p>
 						<pre class="bf-small">{errorText(error)}</pre>
 						<button type="button" onclick={reset}>{t("Try again")}</button>
+						<button type="button" onclick={() => copy(errorText(error))}>{copied ? t("Copied") : t("Copy")}</button>
 					</div>
 				{/snippet}
 			</svelte:boundary>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessBalance, weightChart, weightPoints, weightTrend, type WeightTrend } from "../../src/calc/weight";
+import { assessBalance, effectiveGoal, goalWeightDate, trendWeight, trendWeightSeries, weightChart, weightPoints, weightTrend, type WeightTrend } from "../../src/calc/weight";
 import type { DayNote } from "../../src/model/types";
 import { adjustText, balanceText, trendText } from "../../src/ui/nutrition/text";
 
@@ -124,5 +124,42 @@ describe("týdenní kontrola: osobní korekce výdeje (SPEC 11.6)", () => {
 		const { correctionAdvice } = await import("../../src/calc/weight");
 		expect(correctionAdvice(check(-300), -400, "", "2026-10-07")).toEqual({ kind: "offer", stepKcal: -100, totalKcal: -500 });
 		expect(correctionAdvice(check(-300), -500, "", "2026-10-07")).toEqual({ kind: "none" });
+	});
+});
+
+describe("trendová váha, projekce a fáze", () => {
+	it("exponenciální vyhlazení: 10 % směrem k vážení, den bez vážení trend přenese", () => {
+		const pts = [
+			{ date: "2026-11-01", kg: 80 },
+			{ date: "2026-11-02", kg: 82 },
+			{ date: "2026-11-04", kg: 79 },
+		];
+		const series = trendWeightSeries(pts, ["2026-10-31", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04"]);
+		expect(series[0]).toBeNull();
+		expect(series[1]).toBe(80);
+		expect(series[2]).toBeCloseTo(80.2, 6);
+		expect(series[3]).toBeCloseTo(80.2, 6);
+		expect(series[4]).toBeCloseTo(80.2 + 0.1 * (79 - 80.2), 6);
+		// Trend na začátku grafu počítá i se staršími váženími.
+		expect(trendWeightSeries(pts, ["2026-11-04"])[0]).toBeCloseTo(80.08, 6);
+		expect(trendWeight(pts, "2026-11-04")).toBeCloseTo(80.08, 6);
+		expect(trendWeight(pts, "2026-11-30")).toBeNull();
+		expect(trendWeight([], "2026-11-04")).toBeNull();
+	});
+
+	it("datum dosažení cílové váhy podle tempa trendu", () => {
+		const trend = { ready: true as const, samples: 10, spanDays: 20, currentKg: 80, kgPerWeek: -0.5, pctPerWeek: -0.625, kcalPerDay: -550 };
+		expect(goalWeightDate(trend, 78, "2026-11-19")).toBe("2026-12-17");
+		expect(goalWeightDate(trend, 82, "2026-11-19")).toBeNull();
+		expect(goalWeightDate({ ...trend, kgPerWeek: -0.01 }, 78, "2026-11-19")).toBeNull();
+		expect(goalWeightDate(trend, 80.05, "2026-11-19")).toBe("2026-11-19");
+		expect(goalWeightDate(trend, 20, "2026-11-19")).toBeNull();
+	});
+
+	it("po konci fáze hubnutí nebo nabírání platí udržování", () => {
+		expect(effectiveGoal("lose", "2026-12-31", "2026-11-19")).toBe("lose");
+		expect(effectiveGoal("lose", "2026-11-18", "2026-11-19")).toBe("maintain");
+		expect(effectiveGoal("gain", null, "2026-11-19")).toBe("gain");
+		expect(effectiveGoal("maintain", "2026-01-01", "2026-11-19")).toBe("maintain");
 	});
 });

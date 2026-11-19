@@ -40,7 +40,7 @@ const vars = `
 	--font-normal: 400; --font-medium: 500; --font-semibold: 600; --font-bold: 700; --font-monospace: monospace;
 }
 body { font-family: system-ui, sans-serif; font-size: 15px; color: var(--text-normal); background: var(--background-secondary); margin: 0; }
-#root { width: WIDTHpx; margin: 12px auto; }
+#root { width: WIDTHpx; margin: 12px; }
 button { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
 button.mod-cta { background: var(--interactive-accent); color: #fff; border-color: transparent; }
 select, input { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
