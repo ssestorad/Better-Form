@@ -199,6 +199,9 @@ describe("zdrojový jazyk", () => {
 		const labels = translated({ a: "Save" });
 		expect(t("Save")).toBe("Uložit");
 		expect(labels.a).toBe("Uložit");
+		// Id a ikony se nepřekládají, i když jsou ve slovníku (0.6.0: id „today“ → „dnes“ = prázdná karta).
+		const tabs = translated([{ id: "today", key: "plan", icon: "today", label: "Today" }]);
+		expect([tabs[0]!.id, tabs[0]!.key, tabs[0]!.icon, tabs[0]!.label]).toEqual(["today", "plan", "today", "Dnes"]);
 		expect(tn(1, ["{n} day", "{n} days"])).toBe("1 den");
 		expect(tn(3, ["{n} day", "{n} days"])).toBe("3 dny");
 		expect(tn(5, ["{n} day", "{n} days"])).toBe("5 dní");

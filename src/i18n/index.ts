@@ -90,13 +90,16 @@ export function tn(n: number, forms: readonly [one: string, other: string], vars
 
 /**
  * Tabulka (objekt nebo pole, i vnořené), která při čtení vrací texty v aktuálním jazyce.
- * Hodnoty bez překladu (id, zkratky) zůstanou, jak jsou.
+ * Identifikátory (`id`, `key`, `icon`) se nepřekládají nikdy – i když se shodují s klíčem ve slovníku
+ * (např. id karty "today" vs. slovo „today“), jinak by se karty na telefonu v češtině nevykreslily.
  */
+const RAW_KEYS = new Set<PropertyKey>(["id", "key", "icon"]);
+
 export function translated<T extends object>(table: T): T {
 	return new Proxy(table, {
 		get(target, key, receiver) {
 			const value: unknown = Reflect.get(target, key, receiver);
-			if (typeof value === "string") return t(value);
+			if (typeof value === "string") return RAW_KEYS.has(key) ? value : t(value);
 			return typeof value === "object" && value !== null ? translated(value) : value;
 		},
 	});
