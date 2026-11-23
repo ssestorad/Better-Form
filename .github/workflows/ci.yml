@@ -1,4 +1,4 @@
-# Kontrola při každém pushi a pull requestu: testy, typová kontrola a produkční build.
+# Kontrola při každém pushi a pull requestu: testy, kontrola rozhraní, typová kontrola a produkční build.
 name: Kontrola
 
 on:
@@ -27,5 +27,8 @@ jobs:
         run: npm ci
       - name: Testy
         run: npm test
+      # Všechny karty, formuláře a knihovna v Chromu (předinstalovaný na ubuntu-latest), česky i anglicky.
+      - name: Kontrola rozhraní
+        run: npm run check:ui
       - name: Typová kontrola a build
         run: npm run build

@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Karta Zapsat: nový trénink podle sportu, ze šablony, úprava posledních tréninků.
+	// Trénink → Zápis (nový trénink, z programu, import běhů, ze šablony) a Historie (poslední tréninky).
 	import { t } from "../../i18n";
 	import { workoutDetails, workoutLabel } from "../../data/dayBlock";
 	import { SPORT_LABELS, type Sport } from "../../model/constants";
@@ -8,6 +8,8 @@
 	import { formatShortDate } from "../format";
 	import StravaCard from "../strava/StravaCard.svelte";
 	import { normalizeSearch } from "../workout/search";
+
+	let { view }: { view: "log" | "history" } = $props();
 
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
@@ -44,8 +46,7 @@
 	});
 </script>
 
-<StravaCard />
-
+{#if view === "log"}
 <section class="bf-card">
 	<h4>{t("New workout")}</h4>
 	<div class="bf-log-sports">
@@ -65,6 +66,8 @@
 		</div>
 	</section>
 {/if}
+
+<StravaCard />
 
 <section class="bf-card">
 	<h4>{t("From a template")}</h4>
@@ -86,10 +89,7 @@
 	{/if}
 </section>
 
-<div class="bf-actions">
-	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Exercise library")}</button>
-</div>
-
+{:else}
 <section class="bf-card">
 	<h4>{t("Recent workouts")}</h4>
 	{#if recent.length === 0}
@@ -108,6 +108,7 @@
 		</ul>
 	{/if}
 </section>
+{/if}
 
 <style>
 	h4 {

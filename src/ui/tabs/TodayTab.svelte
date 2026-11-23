@@ -1,23 +1,26 @@
 <script lang="ts">
-	import { t } from "../../i18n";
+	import { Menu } from "obsidian";
+	import { nutritionPlanFor } from "../../plugin/nutrition";
+	import { t, tn } from "../../i18n";
 	import { hasCheckIn, wellnessPoints } from "../../calc/checkIn";
-	import { sleepWeek } from "../../calc/sleep";
-	import { PLAN_STATUS_LABELS } from "../../calc/weekPlan";
+	import { bedtimeAdvice, BEDTIME_MIN_NIGHTS, SLEEP_WEEK_BASIS, sleepWeek } from "../../calc/sleep";
+	import { CYCLE_BASIS, cycleState } from "../../calc/cycle";
+	import BasisTag from "../components/BasisTag.svelte";
+	import { pendingImports } from "../../calc/running";
+	import { PLAN_STATUS_LABELS, nextPlannedEntry } from "../../calc/weekPlan";
 	import { daySummary, workoutDetails, workoutLabel } from "../../data/dayBlock";
 	import { planItemDetails, planItemTitle } from "../../data/planBlock";
 	import type { PlanEntry } from "../../data/PlanService";
 	import { addDays, startOfWeek, toIsoDate } from "../../model/dates";
 	import { usePlugin } from "../context";
-	import { formatCzechDate, formatDurationMin } from "../format";
+	import { formatCzechDate, formatDurationMin, formatNumber, formatShortDate } from "../format";
 	import { nutritionLine } from "../nutrition/text";
 	import ProgramCard from "../program/ProgramCard.svelte";
-	import StravaCard from "../strava/StravaCard.svelte";
+	import SupplementCheck from "../supplements/SupplementCheck.svelte";
 	import CheckInRadar from "../today/CheckInRadar.svelte";
 	import ReadinessCard from "../today/ReadinessCard.svelte";
 	import HabitsCard from "../today/HabitsCard.svelte";
 	import RecommendationList from "../today/RecommendationList.svelte";
-	import ResearchCard from "../components/ResearchCard.svelte";
-	import { researchTopic } from "../../seed/research";
 
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
@@ -55,17 +58,13 @@
 	const nutrition = $derived.by(() => {
 		void $indexVersion;
 		void $settingsVersion;
-		const plan = plugin.nutritionPlan(today);
+		const plan = nutritionPlanFor(plugin, today);
 		return plan ? nutritionLine(plan) : null;
 	});
 	const checkedIn = $derived(hasCheckIn(day));
 	const habitsOn = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.moduleOn("habits");
-	});
-	const femaleProfile = $derived.by(() => {
-		void $settingsVersion;
-		return plugin.settings.profile.sex === "female";
 	});
 	const dayNotes = $derived.by(() => {
 		void $indexVersion;
@@ -79,6 +78,18 @@
 		void $settingsVersion;
 		return sleepWeek(dayNotes, today, plugin.settings.thresholds.sleepTargetHours * 60);
 	});
+	// Kdy dnes usnout: obvyklé vstávání mínus cíl délky spánku.
+	const targetHours = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.settings.thresholds.sleepTargetHours;
+	});
+	const bedtime = $derived(bedtimeAdvice(dayNotes, today, targetHours * 60));
+	// Menstruační cyklus – jen se zapnutým modulem u ženského profilu.
+	const cycleOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.cycleOn();
+	});
+	const cycle = $derived(cycleState(dayNotes, today));
 	const summary = $derived(daySummary(day));
 	// Plán týdne (SPEC 5.16): dnešní položky a co je v plánu zítra.
 	const planned = $derived.by(() => {
@@ -104,9 +115,34 @@
 		void $settingsVersion;
 		return plugin.moduleOn("nutrition.day_note");
 	});
+	const supplements = $derived.by(() => {
+		void $indexVersion;
+		void $settingsVersion;
+		return plugin.moduleOn("supplements") ? plugin.supplements.all().filter((e) => e.note.active) : [];
+	});
+	const pendingRuns = $derived.by(() => {
+		void $indexVersion;
+		return pendingImports(plugin.index.all("workout")).length;
+	});
+	// Hlavní akce dne: první nesplněná položka plánu, jinak nový trénink.
+	const nextPlanned = $derived(nextPlannedEntry(planned.today));
+	function start() {
+		if (nextPlanned) logPlanned(nextPlanned);
+		else plugin.openWorkout({ date: today });
+	}
+	function moreMenu(event: MouseEvent) {
+		const menu = new Menu();
+		menu.addItem((item) => item.setTitle(t("Log workout")).setIcon("plus").onClick(() => plugin.openWorkout({ date: today })));
+		menu.addItem((item) => item.setTitle(t("Open daily note")).setIcon("file-text").onClick(() => void plugin.days.openDayNote(today)));
+		menu.addItem((item) => item.setTitle(t("Basic mode")).setIcon("home").onClick(() => void plugin.setMode("basic")));
+		menu.showAtMouseEvent(event);
+	}
 </script>
 
-<p class="bf-date">{formatCzechDate(today)}</p>
+<div class="bf-today-head">
+	<p class="bf-date">{formatCzechDate(today)}</p>
+	<button type="button" aria-label={t("More actions")} onclick={moreMenu}>⋯</button>
+</div>
 
 <section class="bf-card">
 	<header class="bf-card-header">
@@ -116,36 +152,28 @@
 		{/if}
 	</header>
 	{#if checkedIn}
-		<dl class="bf-summary">
-			{#if summary.sleep}<dt>{t("Sleep")}</dt><dd>{summary.sleep}</dd>{/if}
-			{#if sleep.debtMin !== null}<dt>{t("Sleep debt")}</dt><dd>{sleep.debtMin === 0 ? t("no debt") : formatDurationMin(sleep.debtMin)} <span class="bf-muted">{t("({v} of the last 7 nights logged)", { v: sleep.nights })}</span></dd>{/if}
-			{#if summary.feelings}<dt>{t("How you feel")}</dt><dd>{summary.feelings}</dd>{/if}
-			{#if summary.hrv}<dt>HRV</dt><dd>{summary.hrv}</dd>{/if}
-			{#if summary.weight}<dt>{t("Weight")}</dt><dd>{summary.weight}</dd>{/if}
-		</dl>
-		{#if hasWellness}<CheckInRadar points={wellness} />{/if}
+		<details>
+			<summary>{t("Filled in today")}</summary>
+			<dl class="bf-summary">
+				{#if summary.sleep}<dt>{t("Sleep")}</dt><dd>{summary.sleep}</dd>{/if}
+				{#if sleep.debtMin !== null}<dt>{t("Sleep debt")}</dt><dd>{sleep.debtMin === 0 ? t("no debt") : formatDurationMin(sleep.debtMin)} <span class="bf-muted">{t("({v} of the last 7 nights logged)", { v: sleep.nights })}</span></dd>{/if}
+				{#if summary.feelings}<dt>{t("How you feel")}</dt><dd>{summary.feelings}</dd>{/if}
+				{#if summary.hrv}<dt>HRV</dt><dd>{summary.hrv}</dd>{/if}
+				{#if summary.weight}<dt>{t("Weight")}</dt><dd>{summary.weight}</dd>{/if}
+			</dl>
+			{#if hasWellness}<CheckInRadar points={wellness} />{/if}
+		</details>
 	{:else}
 		<p class="bf-muted">{t("Not filled in today yet – it takes under half a minute.")}</p>
 		<button type="button" class="mod-cta" onclick={() => plugin.openCheckIn(today)}>{t("Morning check-in")}</button>
 	{/if}
 </section>
 
-<ReadinessCard readiness={insights.readiness} history={readinessHistory} onCheckIn={() => plugin.openCheckIn(today)} />
-<RecommendationList recommendations={insights.recommendations} />
-<!-- Menstruační cyklus a trénink – jen u ženského profilu. -->
-{#if habitsOn}
-	<HabitsCard {today} days={dayNotes} />
-{/if}
-
-{#if femaleProfile && researchTopic("menstrual_cycle") && plugin.moduleOn("research.research")}
-	<section class="bf-card"><ResearchCard topic={researchTopic("menstrual_cycle")!} /></section>
-{/if}
-
-<StravaCard />
+<ReadinessCard readiness={insights.readiness} history={readinessHistory} onCheckIn={() => plugin.openCheckIn(today)} compact />
 
 <section class="bf-card">
 	<header class="bf-card-header">
-		<h4>{t("Today's plan")}</h4>
+		<h4>{t("Today's training")}</h4>
 		<button type="button" onclick={() => plugin.showTab("plan")}>{t("Weekly plan")}</button>
 	</header>
 	{#if planned.today.length === 0}
@@ -162,9 +190,24 @@
 					</span>
 					{#if entry.status === "done"}
 						<span class="bf-tag bf-tag-done">{PLAN_STATUS_LABELS.done}</span>
-					{:else}
+					{:else if entry !== nextPlanned}
 						<button type="button" onclick={() => logPlanned(entry)}>{t("Log")}</button>
 					{/if}
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	<button type="button" class="mod-cta bf-today-start" onclick={start}>{nextPlanned ? t("Log: {v}", { v: planItemTitle(nextPlanned.item) }) : t("Log workout")}</button>
+	{#if workouts.length > 0}
+		<h5 class="bf-today-sub">{t("Today's workouts")}</h5>
+		<ul class="bf-list">
+			{#each workouts as w (w.file.path)}
+				<li>
+					<button type="button" class="bf-link-button" onclick={() => plugin.openWorkout({ file: w.file })}>
+						{workoutLabel(w.note)}
+					</button>
+					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("add RPE")}</span>{/if}
+					{#if workoutDetails(w.note, false)}<span class="bf-muted"> · {workoutDetails(w.note, false)}</span>{/if}
 				</li>
 			{/each}
 		</ul>
@@ -181,49 +224,80 @@
 	{/each}
 {/if}
 
-<section class="bf-card">
-	<header class="bf-card-header">
-		<h4>{t("Today's workouts")}</h4>
-		<button type="button" class="mod-cta" onclick={() => plugin.openWorkout({ date: today })}>{t("Log workout")}</button>
-	</header>
-	{#if workouts.length === 0}
-		<p class="bf-muted">{t("No workout logged yet.")}</p>
+<RecommendationList recommendations={insights.recommendations} />
+
+<section class="bf-card bf-today-rest">
+	<h4>{t("Still today")}</h4>
+	{#each supplements as entry (entry.file.path)}
+		<SupplementCheck {entry} {today} />
+	{/each}
+	{#if showNutrition}
+		{#if nutrition}
+			<p class="bf-nutri-line">
+				<button type="button" class="bf-link-button" onclick={() => plugin.showTab("nutrition")}>{t("Nutrition for today")}</button>: {nutrition}
+			</p>
+		{:else}
+			<p class="bf-muted">{t("Your profile is missing details for the calculation (sex, year of birth, height, weight).")}</p>
+			<button type="button" onclick={() => plugin.openOnboarding()}>{t("Complete profile")}</button>
+		{/if}
+	{/if}
+	{#if bedtime.onset}
+		<p class="bf-small">
+			{bedtime.bed
+				? t("Tonight: in bed around {bed}, asleep by {onset} – {hours} h before your usual wake-up at {wake}.", { bed: bedtime.bed, onset: bedtime.onset ?? "", hours: formatNumber(targetHours, 1), wake: bedtime.wake ?? "" })
+				: t("Tonight: asleep by {onset} – {hours} h before your usual wake-up at {wake}.", { onset: bedtime.onset ?? "", hours: formatNumber(targetHours, 1), wake: bedtime.wake ?? "" })}
+			<BasisTag basis={SLEEP_WEEK_BASIS} />
+		</p>
 	{:else}
-		<ul class="bf-list">
-			{#each workouts as w (w.file.path)}
-				<li>
-					<button type="button" class="bf-link-button" onclick={() => plugin.openWorkout({ file: w.file })}>
-						{workoutLabel(w.note)}
-					</button>
-					{#if w.note.rpe === undefined && !plugin.programs.isCounterWorkout(w.note)}<span class="bf-tag bf-tag-warn">{t("add RPE")}</span>{/if}
-					{#if workoutDetails(w.note, false)}<span class="bf-muted"> · {workoutDetails(w.note, false)}</span>{/if}
-				</li>
-			{/each}
-		</ul>
+		<p class="bf-small bf-muted">{t("Bedtime suggestion: collecting data ({v} of {min} nights with a wake-up time).", { v: bedtime.wakeNights, min: BEDTIME_MIN_NIGHTS })}</p>
+	{/if}
+	{#if cycleOn && cycle.day !== null}
+		<p class="bf-small">
+			<button type="button" class="bf-link-button" onclick={() => plugin.showTab("cycle")}>{t("Day {day} of the cycle (since {start}).", { day: cycle.day, start: formatShortDate(cycle.start!) })}</button>
+			<BasisTag basis={CYCLE_BASIS} />
+		</p>
+	{/if}
+	{#if pendingRuns > 0}
+		<button type="button" class="bf-link-button" onclick={() => plugin.showTab("log")}>{tn(pendingRuns, ["{n} run to complete", "{n} runs to complete"])}</button>
 	{/if}
 </section>
 
-{#if showNutrition}
-<section class="bf-card">
-	<header class="bf-card-header">
-		<h4>{t("Nutrition for today")}</h4>
-		<button type="button" onclick={() => plugin.showTab("nutrition")}>{t("Calculation breakdown")}</button>
-	</header>
-	{#if nutrition}
-		<p class="bf-nutri-line">{nutrition}</p>
-	{:else}
-		<p class="bf-muted">{t("Your profile is missing details for the calculation (sex, year of birth, height, weight).")}</p>
-		<button type="button" onclick={() => plugin.openOnboarding()}>{t("Complete profile")}</button>
-	{/if}
-</section>
+{#if habitsOn}
+	<HabitsCard {today} days={dayNotes} compact />
 {/if}
 
-<div class="bf-actions">
-	<button type="button" onclick={() => void plugin.days.openDayNote(today)}>{t("Open daily note")}</button>
-	<button type="button" title={t("Simple mode: basic exercises, running and quick logging")} onclick={() => void plugin.setMode("basic")}>{t("Basic mode")}</button>
-</div>
-
 <style>
+	.bf-today-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--size-4-2);
+	}
+
+	.bf-today-start {
+		width: 100%;
+		margin-top: var(--size-4-2);
+		height: auto;
+		min-height: 36px;
+		white-space: normal;
+	}
+
+	.bf-today-sub {
+		margin: var(--size-4-2) 0 0;
+	}
+
+	.bf-today-rest {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--size-4-2);
+	}
+
+	.bf-today-rest h4,
+	.bf-today-rest p {
+		margin: 0;
+	}
+
 	.bf-today-plan li {
 		display: flex;
 		justify-content: space-between;

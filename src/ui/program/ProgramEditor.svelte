@@ -242,9 +242,25 @@
 
 	.bf-editor-item-head {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto auto;
+		grid-template-columns: minmax(0, 1fr) auto auto auto;
 		align-items: center;
 		gap: var(--size-4-2);
+	}
+
+	/* Úzké okno (telefon): název cviku přes celý řádek, pod ním oba výběry a odebrání. */
+	@container (max-width: 420px) {
+		.bf-editor-item-head {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+		}
+
+		.bf-editor-item-head > strong {
+			grid-column: 1 / -1;
+		}
+
+		.bf-editor-item-head > select {
+			min-width: 0;
+			width: 100%;
+		}
 	}
 
 	.bf-editor-fields {

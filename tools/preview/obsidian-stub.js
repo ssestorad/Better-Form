@@ -48,7 +48,14 @@ export class Component {
 	unload() {}
 }
 export class Modal {}
-export class Plugin {}
+export class Plugin {
+	register() {}
+	registerEvent() {}
+	async loadData() {
+		return null;
+	}
+	async saveData() {}
+}
 export class ItemView {}
 export class PluginSettingTab {}
 export class Setting {}
@@ -67,4 +74,10 @@ export class Menu {}
 export class App {}
 export function getLanguage() {
 	return "en";
+}
+export function parseYaml(text) {
+	return JSON.parse(text);
+}
+export function getFrontMatterInfo(content) {
+	return { exists: false, frontmatter: "", from: 0, to: 0, contentStart: 0 };
 }

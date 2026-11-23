@@ -33,6 +33,7 @@ export class CheckInModal extends Modal {
 					this.close();
 				},
 				onCancel: () => this.close(),
+				showPeriod: this.plugin.cycleOn(),
 			},
 		});
 	}

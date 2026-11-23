@@ -53,6 +53,11 @@
 	width: min(760px, 95vw);
 }
 
+/* Formuláře v okně: úzké rozvržení (@container) i na telefonu, ne jen v panelu pluginu. */
+.bf-modal .modal-content {
+	container-type: inline-size;
+}
+
 .bf-tag {
 	display: inline-block;
 	padding: 0 var(--size-4-1);

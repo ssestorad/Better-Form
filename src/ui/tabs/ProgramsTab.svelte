@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { pickProgramFile } from "../../plugin/imports";
 	// Karta Programy (SPEC 5.7): aktivní programy s dnešními úkoly, knihovna programů,
 	// nový program, kopie, import / export.
 	import { t, tn } from "../../i18n";
-	import { Notice } from "obsidian";
+	import { Menu, Notice } from "obsidian";
 	import { describeDays } from "../../calc/programText";
 	import { programWeek } from "../../calc/programs";
 	import type { ProgramEntry } from "../../data/ProgramService";
@@ -40,6 +41,14 @@
 	async function exportProgram(entry: ProgramEntry) {
 		const text = await plugin.programs.exportText(entry);
 		await navigator.clipboard.writeText(text);
+	}
+
+	function programMenu(event: MouseEvent) {
+		const menu = new Menu();
+		menu.addItem((item) => item.setTitle(t("From file")).setIcon("file-up").onClick(() => pickProgramFile(plugin)));
+		menu.addItem((item) => item.setTitle(t("From text")).setIcon("clipboard-paste").onClick(() => plugin.openProgramImport()));
+		menu.addItem((item) => item.setTitle(t("Max test")).setIcon("gauge").onClick(() => plugin.openTest({ date: today })));
+		menu.showAtMouseEvent(event);
 	}
 
 	function status(entry: ProgramEntry): string {
@@ -103,10 +112,8 @@
 </section>
 
 <div class="bf-actions">
-	<button type="button" onclick={() => plugin.openProgramEditor()}>{t("New program")}</button>
-	<button type="button" title={t("Creates a program from an .md, .txt, .json or .yaml file")} onclick={() => plugin.pickProgramFile()}>{t("From file")}</button>
-	<button type="button" title={t("Creates a program from pasted text")} onclick={() => plugin.openProgramImport()}>{t("From text")}</button>
-	<button type="button" onclick={() => plugin.openTest({ date: today })}>{t("Max test")}</button>
+	<button type="button" class="mod-cta" onclick={() => plugin.openProgramEditor()}>{t("New program")}</button>
+	<button type="button" aria-label={t("More actions")} onclick={programMenu}>⋯</button>
 </div>
 
 <style>

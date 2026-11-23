@@ -19,6 +19,8 @@ await esbuild.build({
 	target: "es2022",
 	outfile: path.join(here, "dist", "out.js"),
 	alias: { obsidian: path.join(here, "obsidian-stub.js") },
+	// Node moduly (lokální server pro Stravu, zip zálohy) v náhledu nejsou – volají se až po kliknutí.
+	external: ["electron", "http", "https", "fs", "path", "os", "crypto", "zlib", "node:*"],
 	nodePaths: [path.join(repo, "node_modules")],
 	conditions: ["svelte", "browser"],
 	mainFields: ["svelte", "browser", "module", "main"],

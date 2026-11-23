@@ -484,6 +484,7 @@
 
 	textarea {
 		width: 100%;
+		box-sizing: border-box;
 		resize: vertical;
 	}
 

@@ -28,6 +28,7 @@ One note per day (folder *Journal*).
 | `steps` | number | steps |
 | `supplements` | list | supplements taken that day |
 | `habits` | list | habits from the habit journal that day (alcohol, late meal…) |
+| `period` | boolean | `true` on a period day (Menstrual cycle module); missing = no or not logged |
 | `notes` | text | note |
 
 ## Workout – `forma: workout`

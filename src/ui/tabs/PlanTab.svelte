@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { untrack } from "svelte";
+	import { exportPlanCalendar, exportPlanWorkouts, weeklySummary } from "../../plugin/exports";
+	import { syncRunnaPlan } from "../../plugin/sync";
 	// Plán týdne (SPEC 5.16): sedm dní s naplánovanými tréninky, jejich stav,
 	// souhrn týdne a výhled zátěže. Rozvržení řádků je pevné – nic neposkakuje.
 	import { t } from "../../i18n";
@@ -203,6 +206,28 @@
 		}
 	}
 
+	// Souhrn je otevřený jen v prázdném týdnu; změna poznámek uživatelovu volbu nepřepíše.
+	let summaryOpen = $state(false);
+	$effect(() => {
+		void week;
+		summaryOpen = untrack(() => view.summary.planned === 0);
+	});
+	const bigJump = $derived(view.outlook.planned > 0 && view.outlook.ratio !== null && view.outlook.average !== null && view.outlook.ratio > acwrWarn);
+
+	/** Méně časté akce týdne. */
+	function planMenu(event: MouseEvent) {
+		const menu = new Menu();
+		if (week !== currentWeek) menu.addItem((item) => item.setTitle(t("This week")).setIcon("calendar-check").onClick(() => (week = currentWeek)));
+		menu.addItem((item) => item.setTitle(t("Copy last week")).setIcon("copy").setDisabled(busy).onClick(() => void copyPrevious()));
+		menu.addItem((item) => item.setTitle(t("Open the week note")).setIcon("file-text").onClick(() => void openNote()));
+		menu.addItem((item) => item.setTitle(t("Write the week summary note")).setIcon("file-plus").onClick(() => void weeklySummary(plugin, week)));
+		menu.addSeparator();
+		menu.addItem((item) => item.setTitle(t("To calendar")).setIcon("calendar-plus").onClick(() => void exportPlanCalendar(plugin, week)));
+		if (showRunFit) menu.addItem((item) => item.setTitle(t("To watch")).setIcon("watch").onClick(() => void exportPlanWorkouts(plugin, week)));
+		if (runna) menu.addItem((item) => item.setTitle($runnaBusy ? t("Syncing…") : "Runna").setIcon("refresh-cw").setDisabled($runnaBusy).onClick(() => void syncRunnaPlan(plugin)));
+		menu.showAtMouseEvent(event);
+	}
+
 	async function openNote() {
 		try {
 			await plugin.plans.openNote(week);
@@ -219,11 +244,7 @@
 		<span class="bf-muted bf-small bf-plan-weeknote">{weekNote}</span>
 	</span>
 	<button type="button" aria-label={t("Next week")} onclick={() => (week = addDays(week, 7))}>›</button>
-	<button type="button" class="bf-plan-ics" title={t("Save the week as an .ics file for Google, Outlook or Apple Calendar")} onclick={() => void plugin.exportPlanCalendar(week)}>{t("To calendar")}</button>
-	{#if showRunFit}<button type="button" class="bf-plan-ics" title={t("Save the week's upcoming runs as workouts (.fit) for a Garmin, COROS or other watch")} onclick={() => void plugin.exportPlanWorkouts(week)}>{t("To watch")}</button>{/if}
-	{#if runna}
-		<button type="button" class="bf-plan-ics" title={t("Load the next 4 weeks of your Runna plan")} disabled={$runnaBusy} onclick={() => void plugin.syncRunnaPlan()}>{$runnaBusy ? t("Syncing…") : "Runna"}</button>
-	{/if}
+	<button type="button" aria-label={t("More actions")} onclick={planMenu}>⋯</button>
 </div>
 
 {#if taper}
@@ -328,8 +349,20 @@
 	</ul>
 </section>
 
-<section class="bf-card">
-	<h4>{t("Week summary")}</h4>
+{#if view.summary.planned > 0}
+	{#if bigJump}
+		<p class="bf-plan-warning">{t("That's a big jump (threshold {v}×) – consider shortening or easing some workouts.", { v: formatNumber(acwrWarn, 2) })} <BasisTag basis={PLAN_LOAD_BASIS} /></p>
+	{/if}
+	{#each view.streaks as streak (streak[0])}
+		<p class="bf-plan-warning">
+			{t("Hard days in a row: {v} – consider swapping one with an easier day.", { v: streakText(streak) })}
+			<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
+		</p>
+	{/each}
+{/if}
+
+<details class="bf-card" bind:open={summaryOpen}>
+	<summary>{t("Week summary")}</summary>
 	{#if view.summary.planned === 0}
 		<p class="bf-muted">{t("Nothing is planned for this week yet. Add a workout with the + button next to a day.")}</p>
 	{:else}
@@ -353,9 +386,6 @@
 			<dd>
 				{#if view.outlook.ratio !== null && view.outlook.average !== null}
 					{t("about {v} AU, i.e. {v2}× the average of the last {OUTLOOK_WEEKS} weeks ({v3} AU)", { v: formatWhole(view.outlook.expected), v2: formatNumber(view.outlook.ratio, 2), OUTLOOK_WEEKS, v3: formatWhole(view.outlook.average) })}
-					{#if view.outlook.planned > 0 && view.outlook.ratio > acwrWarn}
-						<br /><span class="bf-plan-warning">{t("That's a big jump (threshold {v}×) – consider shortening or easing some workouts.", { v: formatNumber(acwrWarn, 2) })}</span>
-					{/if}
 				{:else}
 					{t("about {v} AU", { v: formatWhole(view.outlook.expected) })}
 					<br /><span class="bf-muted bf-small">{t("Collecting data – the comparison with the average appears after {OUTLOOK_WEEKS} weeks of workouts with RPE and duration logged.", { OUTLOOK_WEEKS })}</span>
@@ -366,23 +396,8 @@
 				</span>
 			</dd>
 		</dl>
-		{#each view.streaks as streak (streak[0])}
-			<p class="bf-plan-warning">
-				{t("Hard days in a row: {v} – consider swapping one with an easier day.", { v: streakText(streak) })}
-				<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
-			</p>
-		{/each}
 	{/if}
-</section>
-
-<div class="bf-actions">
-	<button type="button" disabled={week === currentWeek} onclick={() => (week = currentWeek)}>{t("This week")}</button>
-	<button type="button" disabled={busy} onclick={() => void copyPrevious()}>{t("Copy last week")}</button>
-	<button type="button" onclick={() => void openNote()}>{t("Open the week note")}</button>
-	<button type="button" title={t("The week's numbers against last week, plan completion and new records in a note in the Summaries folder")} onclick={() => void plugin.weeklySummary(week)}>
-		{t("Week summary")}
-	</button>
-</div>
+</details>
 
 <style>
 	.bf-plan-nav {
@@ -418,7 +433,7 @@
 
 	.bf-plan-day {
 		display: grid;
-		grid-template-columns: 5.5em minmax(0, 1fr) auto;
+		grid-template-columns: 7em minmax(0, 1fr) auto;
 		align-items: start;
 		gap: var(--size-4-2);
 		padding: var(--size-4-2) var(--size-2-3);

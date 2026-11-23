@@ -60,7 +60,7 @@
 			<div class="bf-entry-row">
 				<div>
 					<strong>{item.exercise}</strong>
-					{#if item.last}<span class="bf-hint"> · {item.last}</span>{/if}
+					{#if item.last}<span class="bf-hint bf-entry-last">{item.last}</span>{/if}
 				</div>
 				<NumInput
 					bind:value={values[i]}
@@ -113,6 +113,11 @@
 		grid-template-columns: minmax(0, 1fr) 7em;
 		gap: var(--size-4-3);
 		align-items: center;
+	}
+
+	/* Poslední výsledek na vlastním řádku pod názvem – v úzkém okně se nezalamuje do názvu. */
+	.bf-entry-last {
+		display: block;
 	}
 
 	.bf-entry-check {

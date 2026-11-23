@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { yearlySummary } from "../../plugin/exports";
 	import { moduleOn } from "../../settings/modules";
 	// Série a odznaky (SPEC 9.2) a měsíční souhrn (9.5).
 	import { t, tn } from "../../i18n";
@@ -165,7 +166,7 @@
 	</p>
 	<div class="bf-actions">
 		{#each years as year (year)}
-			<button type="button" onclick={() => void plugin.yearlySummary(year)}>{year}</button>
+			<button type="button" onclick={() => void yearlySummary(plugin, year)}>{year}</button>
 		{/each}
 	</div>
 </section>

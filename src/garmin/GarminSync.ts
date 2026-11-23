@@ -74,8 +74,9 @@ export class GarminSync {
 
 			if (garmin.syncDaily) {
 				const rows = await this.dailyRows(from, today, garmin.syncHrv);
-				const missing = rows.filter((row) => Object.keys(missingValues(row, this.index.day(row.date)?.note)).length > 0);
-				const filled = await this.days.fillMissing(missing);
+				const missing = rows.filter((row) => Object.keys(missingValues(row, this.index.day(row.date)?.note, true)).length > 0);
+				// Kroky dne během dne rostou – vyšší počet nahradí dřívější stav.
+				const filled = await this.days.fillMissing(missing, undefined, true);
 				result.days = filled.days;
 				result.values = filled.values;
 			}

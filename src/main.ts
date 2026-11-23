@@ -1,72 +1,40 @@
-import { debounce, getLanguage as obsidianLanguage, normalizePath, Notice, Platform, Plugin, TFile, type WorkspaceLeaf } from "obsidian";
+import { debounce, getLanguage as obsidianLanguage, Notice, Platform, Plugin, TFile, type WorkspaceLeaf } from "obsidian";
 import { titleForTap } from "./ui/touchTitles";
 import { moduleOn, type ModuleKey } from "./settings/modules";
-import { parseQuickAction, QUICK_ACTION_PROTOCOL, type QuickAction } from "./data/quickAction";
-import { appleHealthReader, parseHealthAutoExport, type ParsedHealth } from "./calc/appleHealth";
+import { parseQuickAction, QUICK_ACTION_PROTOCOL } from "./data/quickAction";
 import { installErrorLog } from "./ui/errorLog";
-import { applyMirror, dailyNoteName, mirrorDiffers, mirrorValues } from "./calc/dailyMirror";
-import { dailyLoads } from "./calc/load";
-import { effectiveGoal } from "./calc/weight";
-import { ageFromBirthYear, clampCorrection, nutritionPlan, stepsActivity, weeklyTrainingHours, type DayLoad, type NutritionPlan, type NutritionProfile } from "./calc/nutrition";
-import { assessBalance, correctionAdvice, weightPoints, weightTrend } from "./calc/weight";
-import { workoutTonnage } from "./calc/overview";
-import { allRecords, newRecords } from "./calc/records";
 import { ExportService } from "./data/ExportService";
 import { trashPrompt, type TrashKind } from "./data/trash";
-import { PROGRAM_FILE_EXTENSIONS, describeImport } from "./calc/programFile";
-import { nutritionLine } from "./ui/nutrition/text";
 import { GoalService } from "./data/GoalService";
 import { InsightService } from "./data/InsightService";
 import { PainService } from "./data/PainService";
 import { PlanService } from "./data/PlanService";
 import { RunImportService } from "./data/RunImportService";
 import { HistoryImportService } from "./data/HistoryImportService";
-import { DAILY_FIELDS, DAILY_FIELD_LABELS, missingValues, parseDailyCsv } from "./calc/dailyImport";
-import { describeHistory, type WeightUnit } from "./calc/historyImport";
-import { describeRunImport, RUN_FILE_EXTENSIONS, type RunImportCounts } from "./calc/runFile";
 import { SummaryService } from "./data/SummaryService";
-import { isTabId, type TabId } from "./ui/tabs";
-import { renderWorkoutBlock } from "./data/workoutBlock";
-import { joinPath, sanitizeFileName } from "./data/paths";
+import { type TabId } from "./ui/tabs";
 import type { ExerciseNote, WorkoutNote } from "./model/types";
-import { progressionFor } from "./seed/skills";
-import { get, writable, type Writable } from "svelte/store";
-import { ensureFolders, seedLibrary } from "./data/bootstrap";
+import { writable } from "svelte/store";
 import { SupplementService } from "./data/SupplementService";
 import { GearService } from "./data/GearService";
 import { StravaAuth } from "./strava/StravaAuth";
-import { describeSync } from "./strava/activities";
 import { StravaSync } from "./strava/StravaSync";
-import { GarminSync, describeGarminSync } from "./garmin/GarminSync";
-import { syncRunna } from "./data/RunnaSync";
+import { GarminSync } from "./garmin/GarminSync";
 import { registerCommands } from "./commands";
 import { DayService } from "./data/DayService";
 import { workoutLabel } from "./data/dayBlock";
-import { planEvents, planItemTitle } from "./data/planBlock";
-import { toIcs } from "./calc/ics";
-import { encodeFitWorkout, type FitStep } from "./calc/fitWorkout";
-import { runRecords } from "./calc/running";
-import { paceRange, planPaceKind, trainingPaces } from "./calc/runningPaces";
-import { formatCzechDate, formatShortDate } from "./ui/format";
+import { planItemTitle } from "./data/planBlock";
+import { formatShortDate } from "./ui/format";
 import { FormaIndex } from "./data/FormaIndex";
 import { NoteWriter } from "./data/NoteWriter";
 import { ProgramService, type ProgramEntry } from "./data/ProgramService";
 import { WorkoutService } from "./data/WorkoutService";
-import { previousMonth } from "./calc/monthlySummary";
-import { addDays, daysBetween, startOfWeek, toIsoDate } from "./model/dates";
-import { LEGACY_FOLDERS, mergeSettings, type BetterFormSettings, type RmrFormulaSetting } from "./settings/settings";
+import { startOfWeek, toIsoDate } from "./model/dates";
+import { LEGACY_FOLDERS, mergeSettings, type BetterFormSettings } from "./settings/settings";
 import { BetterFormSettingTab } from "./settings/SettingsTab";
 import { BetterFormView, VIEW_TYPE_BETTER_FORM } from "./ui/BetterFormView";
-import { initialLanguage, LANGUAGES, type Language, setLanguage, t, tn } from "./i18n";
+import { initialLanguage, type Language, setLanguage, t } from "./i18n";
 import { CheckInModal } from "./ui/modals/CheckInModal";
-import { missingTexts } from "./seed/lookup";
-import { seedPrograms } from "./seed/programs";
-import { PROGRAM_DATA } from "./seed/programData";
-import { builtinId, builtinName, exerciseNameIn, type BuiltinKind } from "./seed/localize";
-import { translateExerciseFrontmatter } from "./seed/exercises";
-import { relinkFrontmatter, translateSeedBody, type RenameMaps } from "./calc/relink";
-import { exerciseNoteBody } from "./seed/exerciseTexts";
-import { templateNoteBody } from "./seed/templates";
 import { confirmAction } from "./ui/modals/ConfirmModal";
 import { EntryTestModal } from "./ui/modals/EntryTestModal";
 import { LibraryModal, type LibraryModalOptions } from "./ui/modals/LibraryModal";
@@ -75,10 +43,12 @@ import { PlanItemModal, type PlanItemModalOptions } from "./ui/modals/PlanItemMo
 import { ProgramEditorModal, ProgramImportModal } from "./ui/modals/ProgramModals";
 import { TestModal, type TestModalOptions } from "./ui/modals/TestModal";
 import { WorkoutModal, type WorkoutModalOptions } from "./ui/modals/WorkoutModal";
+import { autoSummary } from "./plugin/exports";
+import { firstRun, seedOnce } from "./plugin/library";
+import { mirrorDailyNotes, runQuickAction } from "./plugin/sync";
+import { createServices } from "./plugin/services";
 import "./styles.css";
 
-/** Kolik rekordů se vypíše v jedné hlášce. */
-const MAX_RECORD_LINES = 5;
 /** Jak dlouho po startu se zkusí vytvořit souhrn za uplynulý měsíc. */
 const AUTO_SUMMARY_DELAY_MS = 8000;
 
@@ -124,81 +94,9 @@ export default class BetterFormPlugin extends Plugin {
 	override async onload(): Promise<void> {
 		this.register(installErrorLog(window));
 		await this.loadSettings();
-		this.writer = new NoteWriter(this.app);
-		this.index = new FormaIndex(this.app);
+		createServices(this);
 		this.index.register(this);
 		this.registerEvent(this.index.onUpdated(() => this.indexVersion.update((n) => n + 1)));
-		this.days = new DayService(this.app, this.index, this.writer, () => this.settings);
-		this.workouts = new WorkoutService(this.app, this.index, this.writer, this.days, () => this.settings);
-		this.programs = new ProgramService(
-			this.app,
-			this.index,
-			this.writer,
-			this.workouts,
-			() => this.settings,
-			() => this.indexVersion.update((n) => n + 1),
-		);
-		this.days.isCounterWorkout = (note) => this.programs.isCounterWorkout(note);
-		this.strava = new StravaAuth(
-			() => this.settings,
-			() => this.saveSettings(),
-		);
-		this.stravaSync = new StravaSync(
-			this.strava,
-			this.index,
-			this.workouts,
-			() => this.settings,
-			() => this.saveSettings(),
-		);
-		this.runImport = new RunImportService(this.index, this.workouts);
-		this.garminSync = new GarminSync(this.index, this.days, this.runImport, () => this.settings, () => this.saveSettings());
-		this.historyImport = new HistoryImportService(this.index, this.workouts);
-		this.gear = new GearService(this.index, this.writer, () => this.settings);
-		this.supplements = new SupplementService(this.index, this.writer, this.days, () => this.settings, () =>
-			this.indexVersion.update((n) => n + 1),
-		);
-		// Po uložení tréninku z programu zapsat nové maximum ze „sérií na maximum“.
-		this.summaries = new SummaryService(this.app, this.index, this.writer, () => this.settings, () => this.statsContext());
-		const notify = () => this.indexVersion.update((n) => n + 1);
-		this.pains = new PainService(this.index, this.writer, () => this.settings, notify);
-		this.goals = new GoalService(
-			this.index,
-			this.writer,
-			() => this.settings,
-			() => this.statsContext(),
-			(a, b) => this.workouts.isSameExercise(a, b),
-			notify,
-		);
-		this.plans = new PlanService(this.app, this.index, this.writer, () => this.settings, notify);
-		this.plans.isCounterWorkout = (note) => this.programs.isCounterWorkout(note);
-		this.plans.isProgramSession = (note) => this.programs.isPlanSession(note);
-		this.plans.programsOn = (date) => (this.moduleOn("programs.plan_days") ? this.programs.planDays(date) : []);
-		this.insights = new InsightService(
-			this.index,
-			this.programs,
-			this.goals,
-			this.plans,
-			() => this.settings,
-			(exercise) => this.exerciseInfo(exercise),
-			() => this.bodyweightKg(),
-		);
-		this.insights.nutritionCheck = (today) => this.nutritionCheck(today);
-		this.exporter = new ExportService(this.app, this.index, this.writer, () => this.settings, (w) => workoutTonnage(w, this.statsContext()));
-		// Doporučená výživa v denní poznámce (SPEC 4.1) – jen když jsou v profilu potřebné údaje.
-		this.days.nutritionLine = (date, workouts) => {
-			if (!this.moduleOn("nutrition.day_note")) return null;
-			// Denní poznámka je záznam – počítá jen se zapsanými tréninky, ne s plánem.
-			const plan = this.nutritionPlan(date, undefined, workouts, false);
-			return plan ? nutritionLine(plan) : null;
-		};
-		this.workouts.onSaved = async (note, file, isNew) => {
-			void this.mirrorDailyNotes([note.date]);
-			this.programs.forget(file);
-			for (const max of await this.programs.recordMaxes(note)) {
-				new Notice(t("New max logged: {exercise} – {reps} reps", { exercise: max.exercise, reps: max.reps }));
-			}
-			if (isNew) this.announceRecords(note, file);
-		};
 
 		this.registerView(VIEW_TYPE_BETTER_FORM, (leaf) => new BetterFormView(leaf, this));
 		this.addSettingTab(new BetterFormSettingTab(this.app, this));
@@ -213,7 +111,7 @@ export default class BetterFormPlugin extends Plugin {
 		// Rychlé akce z odkazu obsidian://better-form?action=… (zástupce na ploše telefonu, Zkratky).
 		this.registerObsidianProtocolHandler(QUICK_ACTION_PROTOCOL, (params) => {
 			const action = parseQuickAction(params);
-			if (action) void this.runQuickAction(action);
+			if (action) void runQuickAction(this, action);
 			else new Notice(t("Better Form: unknown link action."));
 		});
 		// Na telefonu se bublina po najetí myší neukáže – klepnutí ji zobrazí jako hlášku.
@@ -225,10 +123,10 @@ export default class BetterFormPlugin extends Plugin {
 		}
 
 		this.app.workspace.onLayoutReady(() => {
-			if (!this.settings.initialized) void this.firstRun();
-			else if (!this.settings.librarySeeded) void this.seedOnce();
+			if (!this.settings.initialized) void firstRun(this);
+			else if (!this.settings.librarySeeded) void seedOnce(this);
 			// Souhrn za uplynulý měsíc (SPEC 9.5) – až po načtení poznámek do indexu.
-			window.setTimeout(() => void this.autoSummary(), AUTO_SUMMARY_DELAY_MS);
+			window.setTimeout(() => void autoSummary(this), AUTO_SUMMARY_DELAY_MS);
 		});
 	}
 
@@ -264,72 +162,6 @@ export default class BetterFormPlugin extends Plugin {
 		this.settingsVersion.update((n) => n + 1);
 	}
 
-	/**
-	 * Společný průběh ruční synchronizace: jen jedna naráz, chybějící nastavení ohlásí,
-	 * během běhu nastaví `busy` a výsledek nebo chybu oznámí hláškou. Z chyby se vypíše
-	 * jen text – nikdy celý objekt (mohl by nést klíč, token nebo tajný odkaz).
-	 */
-	private async runSync(options: {
-		label: string;
-		busy: Writable<boolean>;
-		missing: string | null;
-		progress?: string;
-		run: () => Promise<string>;
-	}): Promise<void> {
-		if (get(options.busy)) return;
-		if (options.missing) {
-			new Notice(options.missing);
-			return;
-		}
-		options.busy.set(true);
-		const progress = options.progress ? new Notice(options.progress, 0) : null;
-		try {
-			new Notice(await options.run(), 10000);
-		} catch (err) {
-			new Notice(`${options.label}: ${err instanceof Error ? err.message : "sync failed."}`, 10000);
-		} finally {
-			progress?.hide();
-			options.busy.set(false);
-			this.indexVersion.update((n) => n + 1);
-		}
-	}
-
-	/** Ruční synchronizace s Garmin Connect (denní data a běhy). */
-	syncGarmin(): Promise<void> {
-		return this.runSync({
-			label: "Garmin",
-			busy: this.garminBusy,
-			missing: this.garminSync.isConfigured ? null : t("Fill in the Garmin Connect key in the Better Form settings first."),
-			progress: t("Syncing Garmin Connect…"),
-			run: async () => describeGarminSync(await this.garminSync.sync()),
-		});
-	}
-
-	/** Plán z Runny přes odkaz na kalendář. */
-	syncRunnaPlan(): Promise<void> {
-		return this.runSync({
-			label: "Runna",
-			busy: this.runnaBusy,
-			missing: this.settings.runna.url.trim() ? null : t("Fill in the Runna calendar link in the Better Form settings first."),
-			run: async () => {
-				const r = await syncRunna(this.plans, this.settings, () => this.saveSettings(), toIsoDate(new Date()));
-				return r.added + r.updated + r.removed === 0
-					? t("The plan from Runna is up to date.")
-					: t("Plan from Runna: {v} added, {v2} changed, {v3} removed.", { v: r.added, v2: r.updated, v3: r.removed });
-			},
-		});
-	}
-
-	/** Ruční synchronizace běhů ze Stravy. */
-	syncStrava(): Promise<void> {
-		return this.runSync({
-			label: "Strava",
-			busy: this.stravaBusy,
-			missing: this.strava.isConnected ? null : t("Strava isn't connected – connect it in the Better Form settings."),
-			run: async () => describeSync(await this.stravaSync.sync()),
-		});
-	}
-
 	exerciseInfo(exercise: string): ExerciseNote | undefined {
 		return this.index.findExercise(exercise)?.note;
 	}
@@ -339,123 +171,21 @@ export default class BetterFormPlugin extends Plugin {
 		return this.supplements.weightKg() ?? undefined;
 	}
 
-	/** Přepne rovnici klidového výdeje (karta Výživa nabízí tu, která se k profilu hodí). */
-	async setRmrFormula(formula: RmrFormulaSetting): Promise<void> {
-		this.settings.nutrition.rmrFormula = formula;
-		await this.saveSettings();
-	}
-
-	/** Kontext pro rekordy, objem a přehledy. */
-	private readonly mirrorSoon = debounce(() => void this.mirrorDailyNotes([toIsoDate(new Date())]), 2000, true);
-
-	/**
-	 * Zapíše metriky dne (bf_…) do existující denní poznámky uživatele, jen když je to zapnuté
-	 * a hodnoty se liší. Poznámku nezakládá a nic jiného v ní nemění.
-	 */
-	async mirrorDailyNotes(dates: readonly string[]): Promise<void> {
-		const mirror = this.settings.dailyMirror;
-		if (!mirror.enabled || !mirror.format.trim()) return;
-		for (const date of new Set(dates)) {
-			const name = dailyNoteName(date, mirror.format.trim());
-			const file = this.app.vault.getAbstractFileByPath(normalizePath(mirror.folder.trim() ? `${mirror.folder.trim()}/${name}.md` : `${name}.md`));
-			if (!(file instanceof TFile)) continue;
-			const workouts = this.index.all("workout").map((w) => w.note).filter((w) => w.date === date);
-			const values = mirrorValues({
-				day: this.index.day(date)?.note,
-				workouts,
-				loadAu: dailyLoads(workouts).byDate.get(date),
-				readiness: this.insights.readinessHistory(date, 1)[0]?.score ?? null,
-			});
-			if (!mirrorDiffers(this.app.metadataCache.getFileCache(file)?.frontmatter, values)) continue;
-			try {
-				await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => void applyMirror(frontmatter, values));
-			} catch (err) {
-				console.error("Better Form: daily note metrics", err);
-			}
-		}
-	}
-
-	/** Provede rychlou akci z odkazu (data/quickAction.ts). */
-	async runQuickAction(action: QuickAction): Promise<void> {
-		const today = toIsoDate(new Date());
-		const same = (a: string, b: string) => a.trim().toLocaleLowerCase("cs") === b.trim().toLocaleLowerCase("cs");
-		switch (action.kind) {
-			case "checkin":
-				this.openCheckIn(action.date ?? today);
-				return;
-			case "log": {
-				const template = action.template ? this.index.all("template").find((e) => same(e.note.name, action.template!) || same(e.file.basename, action.template!)) : undefined;
-				if (action.template && !template) new Notice(t("Template “{v}” wasn't found – opening an empty workout.", { v: action.template }));
-				this.openWorkout({ date: action.date ?? today, ...(template ? { template: template.file } : {}), ...(action.sport ? { sport: action.sport } : {}) });
-				return;
-			}
-			case "tab":
-				if (!isTabId(action.tab)) {
-					new Notice(t("Better Form: unknown tab “{v}”.", { v: action.tab }));
-					return;
-				}
-				await this.activateView();
-				this.showTab(action.tab);
-				return;
-			case "counter": {
-				const entry = this.programs.programs().find((p) => same(p.note.name, action.program) || same(p.file.basename, action.program));
-				const task = entry ? this.programs.tasks(entry, today).find((x) => x.target.kind === "daily_total" && (!action.exercise || same(x.exercise, action.exercise))) : undefined;
-				if (!entry || !task) {
-					new Notice(t("No daily counter of program “{v}” for today.", { v: action.program }));
-					return;
-				}
-				await this.programs.addToCounter(entry, task.exercise, action.reps, today);
-				this.indexVersion.update((n) => n + 1);
-				new Notice(t("Added {reps} × {exercise} to the daily counter.", { reps: action.reps, exercise: task.exercise }));
-				return;
-			}
-			case "sync":
-				await (action.service === "garmin" ? this.syncGarmin() : action.service === "strava" ? this.syncStrava() : this.syncRunnaPlan());
-				return;
-		}
-	}
+	/** Metriky dne do denní poznámky uživatele – nejvýš jednou za 2 s po změně dat. */
+	private readonly mirrorSoon = debounce(() => void mirrorDailyNotes(this, [toIsoDate(new Date())]), 2000, true);
 
 	/** Je modul nebo podmodul zapnutý (nastavení → Moduly)? */
 	moduleOn(key: ModuleKey): boolean {
 		return moduleOn(this.settings.modules, key);
 	}
 
+	/** Modul Menstruační cyklus platí jen u ženského profilu. */
+	cycleOn(): boolean {
+		return this.settings.profile.sex === "female" && this.moduleOn("cycle");
+	}
+
 	statsContext(): { info: (exercise: string) => ExerciseNote | undefined; bodyweightKg?: number } {
 		return { info: (exercise) => this.exerciseInfo(exercise), bodyweightKg: this.bodyweightKg() };
-	}
-
-	/** Údaje profilu pro výživu: hmotnost z check-inu (jinak profil), % tuku z posledního měření (jinak profil). */
-	nutritionProfile(date: string): NutritionProfile {
-		const p = this.settings.profile;
-		const days = this.index.all("day").map((e) => e.note);
-		const workouts = this.index.all("workout").map((e) => e.note);
-		const measured = days
-			.filter((d) => d.date <= date && d.body.body_fat_pct !== undefined)
-			.sort((a, b) => b.date.localeCompare(a.date))[0];
-		return {
-			sex: p.sex,
-			age: ageFromBirthYear(p.birthYear, date),
-			heightCm: p.heightCm,
-			weightKg: this.bodyweightKg() ?? null,
-			bodyFatPct: measured?.body.body_fat_pct ?? p.bodyFatPct,
-			activity: p.activity,
-			// Po konci fáze hubnutí nebo nabírání platí udržování.
-			goal: effectiveGoal(p.goal, p.goalUntil, date),
-			trainingHoursPerWeek: weeklyTrainingHours(workouts, date, daysBetween),
-			steps: stepsActivity(days, workouts, date, daysBetween),
-		};
-	}
-
-	/** Doporučený příjem pro den (SPEC kap. 11); null, když v profilu chybí údaje. */
-	nutritionPlan(date: string, loadOverride?: DayLoad, workouts?: WorkoutNote[], withPlan = true): NutritionPlan | null {
-		return nutritionPlan({
-			planned: withPlan ? this.plans.plannedWorkouts(date, toIsoDate(new Date())) : [],
-			profile: this.nutritionProfile(date),
-			settings: this.settings.nutrition,
-			eaMin: this.settings.thresholds.eaMinKcalPerKgFfm,
-			workouts: workouts ?? this.index.all("workout").map((e) => e.note).filter((w) => w.date === date),
-			loadOverride,
-		});
 	}
 
 	/**
@@ -493,72 +223,6 @@ export default class BetterFormPlugin extends Plugin {
 		return true;
 	}
 
-	/** Export tréninků, sérií a denních dat do CSV (SPEC 5.12). */
-	async exportCsv(): Promise<void> {
-		try {
-			const result = await this.exporter.exportCsv();
-			new Notice(t("Export done – workouts: {workouts}, days: {days}, folder “{folder}”.", { workouts: result.workouts, days: result.days, folder: result.folder }), 8000);
-		} catch (err) {
-			this.fail(t("Export failed"), err);
-		}
-	}
-
-	/** Plán týdne jako soubor .ics do složky exportů – jde importovat do kalendáře. */
-	async exportPlanCalendar(week: string): Promise<void> {
-		try {
-			const events = planEvents(this.plans.view(week, toIsoDate(new Date())).days);
-			if (events.length === 0) {
-				new Notice(t("Nothing is planned this week."));
-				return;
-			}
-			const path = await this.exporter.saveText(t("Plan {week}.ics", { week }), toIcs(events, new Date()));
-			new Notice(t("Saved “{path}” – import it into your calendar (e.g. Google Calendar: Settings → Import).", { path }), 10000);
-		} catch (err) {
-			this.fail(t("Export failed"), err);
-		}
-	}
-
-	/** Naplánované běhy týdne (od dneška) jako tréninky FIT pro hodinky – jeden soubor na běh. */
-	async exportPlanWorkouts(week: string): Promise<void> {
-		try {
-			const today = toIsoDate(new Date());
-			const runs = this.plans
-				.view(week, today)
-				.days.flatMap((d) => d.entries)
-				.filter((e) => !e.program && e.status === "planned" && e.item.sport === "run" && e.item.date >= today);
-			if (runs.length === 0) {
-				new Notice(t("No upcoming runs are planned this week."));
-				return;
-			}
-			// Cílové tempo podle Danielse z nejnovějšího rekordu (jako v Plánu); bez rekordu bez cíle.
-			const workouts = this.index.all("workout").map((w) => w.note);
-			const record = [...runRecords(workouts)].sort((a, b) => b.date.localeCompare(a.date))[0];
-			const paces = record && this.moduleOn("running.paces") ? trainingPaces(record.distance.km, record.seconds) : null;
-			const paths: string[] = [];
-			for (const { item } of runs) {
-				const title = planItemTitle(item);
-				const duration: FitStep["duration"] = item.distance_km ? { kind: "distance", m: item.distance_km * 1000 } : item.duration_min ? { kind: "time", s: item.duration_min * 60 } : { kind: "open" };
-				const pace = paces ? paceRange(paces, planPaceKind(item.title ?? "", item.intensity)) : undefined;
-				// ponytail: jeden krok na celý běh; intervaly by chtěly strukturu tréninku v plánu.
-				const fit = encodeFitWorkout({ name: title, steps: [{ name: title, duration, pace, intensity: "active" }] }, new Date());
-				paths.push(await this.exporter.saveText(`${item.date} ${title.replace(/[\\/:*?<>|#^[\]"]/g, "")}.fit`, fit));
-			}
-			new Notice(tn(paths.length, ["Saved {n} workout to the exports folder – copy it to the watch (Garmin: the GARMIN/NewFiles folder over USB).", "Saved {n} workouts to the exports folder – copy them to the watch (Garmin: the GARMIN/NewFiles folder over USB)."]), 10000);
-		} catch (err) {
-			this.fail(t("Export failed"), err);
-		}
-	}
-
-	/** Záloha kořenové složky do ZIP (SPEC 5.12). */
-	async backup(): Promise<void> {
-		try {
-			const result = await this.exporter.backup();
-			new Notice(tn(result.files, ["Backup done: {n} file, {v} kB – “{path}”.", "Backup done: {n} files, {v} kB – “{path}”."], { v: Math.max(1, Math.round(result.bytes / 1024)), path: result.path }), 8000);
-		} catch (err) {
-			this.fail(t("Couldn't create the backup"), err);
-		}
-	}
-
 	/**
 	 * Tréninky, které se počítají jako tréninková jednotka (týdenní cíl, odznaky):
 	 * záznamy denního počítadla jen ve dnech, kdy není jiný trénink – a to jednou.
@@ -573,112 +237,6 @@ export default class BetterFormPlugin extends Plugin {
 			regular.push(workout);
 		}
 		return regular;
-	}
-
-	/** Po uložení nového tréninku ohlásí překonané osobní rekordy (SPEC 5.3, 9.1). */
-	private announceRecords(note: WorkoutNote, file: TFile): void {
-		const others = this.index
-			.all("workout")
-			.filter((w) => w.file !== file)
-			.map((w) => w.note);
-		const tests = this.index.all("test").map((t) => t.note);
-		const ctx = this.statsContext();
-		const fresh = newRecords(allRecords(others, tests, ctx), allRecords([...others, note], tests, ctx));
-		if (fresh.length === 0) return;
-		const lines = fresh.slice(0, MAX_RECORD_LINES).map((r) => `• ${r.text}`);
-		if (fresh.length > MAX_RECORD_LINES) lines.push(t("… and {MAX_RECORD_LINES} more", { MAX_RECORD_LINES: fresh.length - MAX_RECORD_LINES }));
-		new Notice(`${tn(fresh.length, ["New personal record", "New personal records"])}\n${lines.join("\n")}`, 12000);
-	}
-
-	/** Souhrn otevřené poznámky se souhrnem, jinak za uplynulý měsíc; otevře ho. */
-	async monthlySummary(): Promise<void> {
-		const active = this.app.workspace.getActiveFile();
-		const month = (active && this.summaries.monthOf(active)) ?? previousMonth(toIsoDate(new Date()).slice(0, 7));
-		try {
-			const file = await this.summaries.generate(month);
-			await this.app.workspace.getLeaf(false).openFile(file);
-		} catch (err) {
-			this.fail(t("Couldn't create the summary"), err);
-		}
-	}
-
-	/** Roční souhrn: pro otevřený roční souhrn ho obnoví, jinak vytvoří souhrn letošního roku. */
-	async yearlySummary(year?: number): Promise<void> {
-		const active = this.app.workspace.getActiveFile();
-		const target = year ?? (active && this.summaries.yearOf(active)) ?? Number(toIsoDate(new Date()).slice(0, 4));
-		try {
-			const file = await this.summaries.generateYear(target);
-			await this.app.workspace.getLeaf(false).openFile(file);
-		} catch (err) {
-			this.fail(t("Couldn't create the yearly summary"), err);
-		}
-	}
-
-	/** Týdenní souhrn: daný týden, jinak týden otevřeného souhrnu, jinak minulý (dokončený) týden. */
-	async weeklySummary(date?: string): Promise<void> {
-		const active = this.app.workspace.getActiveFile();
-		const today = toIsoDate(new Date());
-		const week = startOfWeek(date ?? (active && this.summaries.weekOf(active)) ?? addDays(today, -7));
-		try {
-			const view = this.plans.view(week, today);
-			const file = await this.summaries.generateWeek(week, view.summary, view.outlook.average);
-			await this.app.workspace.getLeaf(false).openFile(file);
-		} catch (err) {
-			this.fail(t("Couldn't create the weekly summary"), err);
-		}
-	}
-
-	private async autoSummary(): Promise<void> {
-		if (!this.index.isReady) return;
-		try {
-			const file = await this.summaries.ensurePrevious(toIsoDate(new Date()));
-			if (file) new Notice(t("Better Form: last month's summary is in the note “{basename}”.", { basename: file.basename }));
-		} catch (err) {
-			console.error(t("Better Form: couldn't create the monthly summary"), err);
-		}
-	}
-
-	/**
-	 * Doplní do knihovny cviky žebříčků dovedností a u vestavěných cviků zapíše
-	 * žebříček a stupeň – jen tam, kde `progression` chybí (nic se nepřepisuje).
-	 */
-	async fillSkillLadders(): Promise<void> {
-		try {
-			const seeded = await seedLibrary(this.writer, this.settings.folders, {
-				hasExercise: (name) => this.index.findExercise(name) !== undefined,
-				hasProgram: () => true,
-				hasTemplate: () => true,
-			});
-			let updated = 0;
-			for (const entry of this.index.all("exercise")) {
-				if (entry.schemaStatus === "newer") continue;
-				const ladder = entry.note.progression?.ladder;
-				if (ladder) {
-					// Starší verze zapisovala žebříček jako odkaz [[…]] na neexistující poznámku – převést na text.
-					await this.writer.updateFrontmatter(entry.file, (fm) => {
-						const p = fm.progression as Record<string, unknown> | undefined;
-						if (p && typeof p.ladder === "string" && p.ladder.trim().startsWith("[[")) p.ladder = ladder;
-					});
-					continue;
-				}
-				const progression = progressionFor(entry.note.name);
-				if (!progression) continue;
-				await this.writer.updateFrontmatter(entry.file, (fm) => {
-					if (fm.progression === undefined || fm.progression === null) {
-						fm.progression = { ladder: progression.ladder, level: progression.level };
-					}
-				});
-				updated++;
-			}
-			new Notice(
-				seeded.exercises + updated > 0
-					? t("Skill ladders added – new exercises: {exercises}, exercises assigned: {updated}.", { exercises: seeded.exercises, updated })
-					: t("The skill ladders are already in the library."),
-			);
-			this.indexVersion.update((n) => n + 1);
-		} catch (err) {
-			this.fail(t("Couldn't add the skill ladders"), err);
-		}
 	}
 
 	/** Přepne jazyk: uloží ho a otevřená view vykreslí znovu (názvy příkazů až po restartu pluginu). */
@@ -705,26 +263,6 @@ export default class BetterFormPlugin extends Plugin {
 
 	openCheckIn(date: string = toIsoDate(new Date())): void {
 		new CheckInModal(this, date).open();
-	}
-
-	/** Nastaví osobní korekci odhadu výdeje (0 = zrušit) a zapamatuje si datum – viz týdenní kontrola výživy. */
-	async setNutritionCorrection(kcal: number): Promise<void> {
-		const next = clampCorrection(kcal);
-		this.settings.nutrition.correctionKcal = next;
-		this.settings.nutrition.correctionDate = next === 0 ? "" : toIsoDate(new Date());
-		await this.saveSettings();
-		new Notice(next === 0 ? t("Expenditure correction removed.") : t("Recommended intake shifted by {v}{v2} kcal a day.", { v: next > 0 ? "+" : "−", v2: Math.abs(next) }));
-	}
-
-	/** Týdenní kontrola výživy pro doporučení: o kolik by šlo odhad výdeje posunout; null = není co řešit. */
-	nutritionCheck(today: string): { stepKcal: number } | null {
-		const plan = this.nutritionPlan(today);
-		if (!plan) return null;
-		const trend = weightTrend(weightPoints(this.index.all("day").map((e) => e.note)), today);
-		if (!trend.ready) return null;
-		const n = this.settings.nutrition;
-		const advice = correctionAdvice(assessBalance(trend, this.settings.profile.goal, plan.goalAdjust), n.correctionKcal, n.correctionDate, today, plan.raisedFor.length > 0);
-		return advice.kind === "offer" ? { stepKcal: advice.stepKcal } : null;
 	}
 
 	/** Přidání nebo úprava položky plánu týdne. */
@@ -772,148 +310,6 @@ export default class BetterFormPlugin extends Plugin {
 		new ProgramEditorModal(this, entry).open();
 	}
 
-	/** Nechá vybrat soubor (.md, .txt, .json, .yaml) a vytvoří z něj vlastní program. */
-	pickProgramFile(): void {
-		pickFiles(PROGRAM_FILE_EXTENSIONS.join(","), false, ([file]) => void this.importProgramFile(file!.name, () => file!.text()));
-	}
-
-	/** Vytvoří program z textu souboru a oznámí, co vzniklo a co zkontrolovat. */
-	async importProgramFile(fileName: string, read: () => Promise<string>): Promise<void> {
-		try {
-			const report = await this.programs.importFile(fileName, await read());
-			this.indexVersion.update((n) => n + 1);
-			new Notice(describeImport(report), 12000);
-		} catch (err) {
-			new Notice(t("Couldn't create a program from the file: {v}", { v: err instanceof Error ? err.message : String(err) }), 10000);
-		}
-	}
-
-	/** Výběr souborů GPX / TCX / FIT s běhy (ze Stravy, MapMyRun, hodinek) a jejich import. */
-	pickRunFiles(): void {
-		pickFiles(RUN_FILE_EXTENSIONS.join(","), true, (files) => void this.importRunFiles(files.map((file) => ({ name: file.name, read: () => file.arrayBuffer() }))));
-	}
-
-	/** Importuje běhy ze souborů jeden po druhém a oznámí, co vzniklo; vadný soubor ostatní nezastaví. */
-	async importRunFiles(files: { name: string; read: () => Promise<ArrayBuffer> }[]): Promise<RunImportCounts> {
-		const counts: RunImportCounts = { created: 0, merged: 0, duplicates: 0, withoutHr: 0, failed: [] };
-		for (const file of files) {
-			try {
-				const result = await this.runImport.importFile(await file.read());
-				if (result.action === "created") counts.created++;
-				else if (result.action === "merged") counts.merged++;
-				else counts.duplicates++;
-				if (result.action !== "duplicate" && result.note.sport === "run" && !result.hasHeartRate) counts.withoutHr++;
-			} catch (err) {
-				counts.failed.push({ name: file.name, reason: err instanceof Error ? err.message : t("couldn't read the file.") });
-			}
-		}
-		this.indexVersion.update((n) => n + 1);
-		new Notice(describeRunImport(counts), 10000);
-		return counts;
-	}
-
-	/** Výběr CSV exportu ze Strong nebo Hevy. `unit` = jednotka váhy v exportu Strong (Hevy ji má v souboru). */
-	pickHistoryFile(unit: WeightUnit): void {
-		pickFiles(".csv", false, ([file]) => void file!.text().then((text) => this.importHistory(text, unit)));
-	}
-
-	/** Ukáže, co v souboru je, a po potvrzení založí tréninky; duplicity přeskočí. */
-	async importHistory(text: string, unit: WeightUnit): Promise<void> {
-		try {
-			const preview = this.historyImport.preview(text, unit);
-			const { fresh, duplicates, unknownExercises, parsed } = preview;
-			if (fresh.length === 0) {
-				new Notice(`${describeHistory(parsed, (iso) => formatCzechDate(iso, false))}${duplicates > 0 ? ` ${t("They're all already in the journal ({duplicates}).", { duplicates })}` : ""}`, 10000);
-				return;
-			}
-			const lines = [
-				describeHistory(parsed, (iso) => formatCzechDate(iso, false)),
-				t("Workouts to create: {fresh_length}{v}. A daily note will be created for each day too.", { fresh_length: fresh.length, v: duplicates > 0 ? t("; already in the journal: {duplicates}", { duplicates }) : "" }),
-				parsed.format === "strong" ? t("Treating weights as {v} – the Strong export doesn't include the unit.", { v: unit === "kg" ? t("kilograms") : t("pounds (converted to kg)") }) : "",
-				parsed.skippedRows > 0 ? t("Rows skipped: {skippedRows} (runs and other cardio, empty sets).", { skippedRows: parsed.skippedRows }) : "",
-				unknownExercises.length > 0
-					? t("Exercises the library doesn't know ({unknownExercises_length}) keep their original name: {v}{v2}.", { unknownExercises_length: unknownExercises.length, v: unknownExercises.slice(0, 8).join(", "), v2: unknownExercises.length > 8 ? "…" : "" })
-					: "",
-				t("These apps don't record RPE for the whole workout – imported workouts count towards load once you add it."),
-			].filter((line) => line !== "");
-			if (!(await confirmAction(this.app, t("Import workout history?"), lines.join("\n\n"), t("Import")))) return;
-			const progress = new Notice(t("Importing… {done} of {total}", { done: 0, total: fresh.length }), 0);
-			try {
-				await this.historyImport.save(fresh, (done) => {
-					if (done % 10 === 0 || done === fresh.length) progress.setMessage(t("Importing… {done} of {total}", { done, total: fresh.length }));
-				});
-			} finally {
-				progress.hide();
-			}
-			this.indexVersion.update((n) => n + 1);
-			new Notice(t("Import done – workouts: {fresh_length}.", { fresh_length: fresh.length }), 8000);
-		} catch (err) {
-			this.fail(t("History import failed"), err);
-		}
-	}
-
-	/** Výběr souboru s denními hodnotami: CSV z hodinek či aplikace, export.xml z Apple Health, JSON z Health Auto Export. */
-	pickDailyFile(): void {
-		pickFiles(".csv,.xml,.json", false, ([file]) => void this.importDaily(file!));
-	}
-
-	/** export.xml mívá stovky MB – čte se po kouscích, ne celý do paměti. */
-	private async readDailyFile(file: File): Promise<ParsedHealth | ReturnType<typeof parseDailyCsv>> {
-		const name = file.name.toLowerCase();
-		if (name.endsWith(".json")) return parseHealthAutoExport(JSON.parse(await file.text()));
-		if (!name.endsWith(".xml")) return parseDailyCsv(await file.text());
-		const reader = appleHealthReader();
-		const stream = file.stream().pipeThrough(new TextDecoderStream()).getReader();
-		for (;;) {
-			const { done, value } = await stream.read();
-			if (done) break;
-			reader.push(value);
-		}
-		return reader.finish();
-	}
-
-	/** Import denních hodnot: ukáže, co se doplní, a po potvrzení zapíše jen chybějící hodnoty. */
-	async importDaily(file: File): Promise<void> {
-		try {
-			const parsed = await this.readDailyFile(file);
-			if (parsed.rows.length === 0) throw new Error(t("I didn't find any steps, sleep, resting heart rate or weight in the file."));
-			const plan = parsed.rows.map((row) => ({ row, missing: missingValues(row, this.index.day(row.date)?.note) })).filter((p) => Object.keys(p.missing).length > 0);
-			const span = parsed.rows.length > 0 ? ` (${formatCzechDate(parsed.rows[0]!.date, false)} – ${formatCzechDate(parsed.rows[parsed.rows.length - 1]!.date, false)})` : "";
-			const found = t("In the file – days: {rows_length}{span}; values: {v}.", { rows_length: parsed.rows.length, span, v: parsed.fields.map((f) => DAILY_FIELD_LABELS[f]).join(", ") });
-			if (plan.length === 0) {
-				new Notice(t("{found} Nothing to add – everything is already in the journal.", { found }), 10000);
-				return;
-			}
-			const perField = DAILY_FIELDS.map((f) => ({ f, n: plan.filter((p) => p.missing[f] !== undefined).length })).filter((x) => x.n > 0);
-			const newNotes = plan.filter((p) => !this.index.day(p.row.date)).length;
-			const lines = [
-				found,
-				tn(plan.length, ["Will fill in {n} day: {v}. Values you've already logged stay.", "Will fill in {n} days: {v}. Values you've already logged stay."], { v: perField.map((x) => `${DAILY_FIELD_LABELS[x.f]} ${x.n}×`).join(", ") }),
-				newNotes > 0 ? t("New daily notes to create: {newNotes}.", { newNotes }) : "",
-				parsed.fields.includes("duration_min") ? t("Sleep duration goes to the day stated in the file – it should be the day you woke up.") : "",
-				parsed.skippedRows > 0 ? t("Rows without a valid date skipped: {skippedRows}.", { skippedRows: parsed.skippedRows }) : "",
-				"sdnnSkipped" in parsed && parsed.sdnnSkipped > 0 ? t("HRV isn't imported: Apple Health measures it as SDNN, which can't be compared with the morning RMSSD the plugin uses.") : "",
-			].filter((line) => line !== "");
-			if (!(await confirmAction(this.app, t("Import daily data?"), lines.join("\n\n"), t("Import")))) return;
-			const progress = new Notice(t("Importing… {done} of {total}", { done: 0, total: plan.length }), 0);
-			let result = { days: 0, values: 0 };
-			try {
-				result = await this.days.fillMissing(
-					plan.map((p) => p.row),
-					(done) => {
-						if (done % 10 === 0 || done === plan.length) progress.setMessage(t("Importing… {done} of {total}", { done, total: plan.length }));
-					},
-				);
-			} finally {
-				progress.hide();
-			}
-			this.indexVersion.update((n) => n + 1);
-			new Notice(t("Import done – values added: {values}, days: {days}.", { values: result.values, days: result.days }), 8000);
-		} catch (err) {
-			this.fail(t("Daily data import failed"), err);
-		}
-	}
-
 	openProgramImport(): void {
 		new ProgramImportModal(this).open();
 	}
@@ -921,177 +317,6 @@ export default class BetterFormPlugin extends Plugin {
 	/** Knihovna cviků: prohlížení, filtr podle partie, detail cviku s panáčkem. */
 	openLibrary(options: LibraryModalOptions): void {
 		new LibraryModal(this, options).open();
-	}
-
-	/**
-	 * Doplní do poznámek cviků popis, provedení a časté chyby z vestavěné knihovny –
-	 * jen tam, kde pole chybí. Existující text se nikdy nepřepíše.
-	 */
-	async fillExerciseTexts(): Promise<void> {
-		let updated = 0;
-		try {
-			for (const entry of this.index.all("exercise")) {
-				if (entry.schemaStatus === "newer") continue;
-				const missing = missingTexts(entry.note);
-				if (Object.keys(missing).length === 0) continue;
-				await this.writer.updateFrontmatter(entry.file, (fm) => {
-					for (const [key, value] of Object.entries(missing)) {
-						if (fm[key] === undefined || fm[key] === null || fm[key] === "") fm[key] = value;
-					}
-				});
-				updated++;
-			}
-			new Notice(updated > 0 ? tn(updated, ["Descriptions added to {n} exercise.", "Descriptions added to {n} exercises."]) : t("All exercises already have descriptions."));
-		} catch (err) {
-			this.fail(t("Couldn't add the descriptions"), err);
-		}
-	}
-
-	/**
-	 * Přepíše předpřipravené programy (builtin: true) aktuální verzí z pluginu.
-	 * Vlastní programy a kopie se nemění; aktivace zůstane. Vyžaduje potvrzení.
-	 */
-	async refreshBuiltinPrograms(): Promise<void> {
-		// Program se obnoví v jazyce, ve kterém je poznámka (podle jejího názvu).
-		const pairs = PROGRAM_DATA.flatMap(({ id }) => {
-			const entry = this.programs.programs().find((p) => p.note.builtin && builtinId("program", p.note.name) === id);
-			if (!entry || entry.schemaStatus === "newer") return [];
-			const language = LANGUAGES.find((l) => builtinName("program", id, l) === entry.note.name) ?? "en";
-			const seed = seedPrograms(language).find((p) => p.id === id)!;
-			return [{ seed, entry }];
-		});
-		if (pairs.length === 0) {
-			new Notice(t("No built-in programs to restore – use “Add to library”."));
-			return;
-		}
-		const ok = await confirmAction(
-			this.app,
-			t("Restore built-in programs?"),
-			t("The description and settings of {pairs_length} built-in programs will be replaced with the current version from the plugin. Your edits in these notes will be lost; your own programs, copies and activations stay.", { pairs_length: pairs.length }),
-			t("Restore"),
-		);
-		if (!ok) return;
-		try {
-			for (const { seed, entry } of pairs) await this.programs.refreshBuiltin(entry, seed.note, seed.description);
-			new Notice(t("Programs restored: {pairs_length}.", { pairs_length: pairs.length }));
-		} catch (err) {
-			this.fail(t("Couldn't restore the programs"), err);
-		}
-	}
-
-	/**
-	 * Přeloží vestavěnou knihovnu založenou v jiném jazyce do jazyka rozhraní: cviky (název, aliasy,
-	 * texty, které uživatel neupravil, žebříček), šablony a programy (název). Poznámky přejmenuje
-	 * a odkazy na ně v trénincích, šablonách, programech, cílech, testech, normách a plánech opraví,
-	 * pokud je neopravil Obsidian. Vlastní poznámky a upravené texty se nemění. Vyžaduje potvrzení.
-	 */
-	async renameBuiltinToLanguage(): Promise<void> {
-		const language = this.settings.language;
-		const frontmatter = (file: TFile) => structuredClone((this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>);
-		// Text, který plugin vložil do těla při založení – v každém jazyce (přeloží se jen beze změny).
-		const seededBody = (kind: BuiltinKind, id: string, l: Language): string | undefined =>
-			kind === "exercise" ? exerciseNoteBody(l) : kind === "template" ? templateNoteBody(l, id) : seedPrograms(l).find((p) => p.id === id)?.description;
-		type Job = { kind: "exercise" | "template" | "program"; id: string; file: TFile; name: string; to: string; body: string | null };
-		const jobs: Job[] = [];
-		for (const kind of ["exercise", "template", "program"] as const) {
-			for (const e of this.index.all(kind)) {
-				const id = builtinId(kind, e.note.name);
-				if (id === undefined || e.schemaStatus === "newer") continue;
-				const to = builtinName(kind, id, language);
-				const target = seededBody(kind, id, language);
-				const seeded = LANGUAGES.map((l) => seededBody(kind, id, l)).filter((x): x is string => x !== undefined);
-				const body = target === undefined ? null : translateSeedBody(await this.app.vault.read(e.file), seeded, target);
-				const frontmatterChanged = kind === "exercise" && translateExerciseFrontmatter(frontmatter(e.file), id, language);
-				if (frontmatterChanged || to !== e.note.name || body !== null) jobs.push({ kind, id, file: e.file, name: e.note.name, to, body: target ?? null });
-			}
-		}
-		const exercises = jobs.filter((job) => job.kind === "exercise");
-		const library =
-			jobs.length === 0
-				? t("The built-in library is already in the interface language.")
-				: `${t("Exercises: {exercises}, templates and programs: {other}.", { exercises: exercises.length, other: jobs.length - exercises.length })} ${t("The notes are renamed and links to them in workouts, templates, programs, goals and plans are updated. Texts you edited and your own exercises, templates and programs stay unchanged.")}`;
-		const ok = await confirmAction(
-			this.app,
-			t("Translate to the interface language?"),
-			`${library} ${t("Texts generated in daily notes, workouts, weekly plans and summaries are rewritten in the interface language; your own text in notes stays.")}`,
-			t("Translate"),
-		);
-		if (!ok) return;
-		const renamed: Record<"exercise" | "template" | "program", Map<string, string>> = { exercise: new Map(), template: new Map(), program: new Map() };
-		try {
-			for (const job of jobs) {
-				const oldNames = [job.file.basename, job.name];
-				await this.app.fileManager.processFrontMatter(job.file, (fm: Record<string, unknown>) => {
-					if (job.kind === "exercise") translateExerciseFrontmatter(fm, job.id, language);
-					else fm.name = job.to;
-				});
-				const target = job.body;
-				if (target !== null) {
-					const seeded = LANGUAGES.map((l) => seededBody(job.kind, job.id, l)).filter((x): x is string => x !== undefined);
-					await this.app.vault.process(job.file, (text) => translateSeedBody(text, seeded, target) ?? text);
-				}
-				const path = joinPath(job.file.parent?.path ?? "", `${sanitizeFileName(job.to)}.md`);
-				if (path !== job.file.path && this.app.vault.getAbstractFileByPath(path) === null) await this.app.fileManager.renameFile(job.file, path);
-				for (const old of oldNames) if (old !== job.file.basename) renamed[job.kind].set(old.toLowerCase(), job.file.basename);
-			}
-			await this.relinkRenamed({ exercise: renamed.exercise, max_from: renamed.exercise, template: renamed.template, program: renamed.program });
-			this.settings.basicExercises = this.settings.basicExercises.map((name) => exerciseNameIn(name, language));
-			if (this.settings.situpAlternative) this.settings.situpAlternative = exerciseNameIn(this.settings.situpAlternative, language);
-			await this.saveSettings();
-			const blocks = await this.refreshGeneratedBlocks();
-			new Notice(t("Translated library notes: {n}; notes with updated texts: {blocks}.", { n: jobs.length, blocks }));
-		} catch (err) {
-			this.fail(t("Translating the library failed"), err);
-		}
-	}
-
-	/**
-	 * Generované bloky (mezi forma:start / forma:end) ve všech poznámkách znovu v jazyce rozhraní:
-	 * tréninky, denní poznámky, plány týdne a souhrny. Zapisuje jen tam, kde se blok liší. Vrací počet
-	 * poznámek, které se změnily.
-	 */
-	async refreshGeneratedBlocks(): Promise<number> {
-		let changed = 0;
-		const count = async (file: TFile, write: () => Promise<unknown>) => {
-			const before = await this.app.vault.read(file);
-			await write();
-			if ((await this.app.vault.read(file)) !== before) changed++;
-		};
-		for (const { file, note, schemaStatus } of this.index.workouts()) {
-			if (schemaStatus === "newer") continue;
-			await count(file, () => this.writer.setGeneratedBlock(file, renderWorkoutBlock(note, (e) => this.workouts.measureOf(e))));
-		}
-		for (const { file, note } of this.index.all("day")) await count(file, () => this.days.refreshBlock(note.date));
-		for (const { file, note } of this.index.all("plan")) await count(file, () => this.plans.refreshBlock(note.week));
-		const today = toIsoDate(new Date());
-		for (const file of this.app.vault.getMarkdownFiles()) {
-			const month = this.summaries.monthOf(file);
-			const year = this.summaries.yearOf(file);
-			const week = this.summaries.weekOf(file);
-			if (month) await count(file, () => this.summaries.generate(month));
-			else if (week) {
-				const view = this.plans.view(week, today);
-				await count(file, () => this.summaries.generateWeek(week, view.summary, view.outlook.average));
-			} else if (year !== null) await count(file, () => this.summaries.generateYear(year));
-		}
-		return changed;
-	}
-
-	/** Odkazy na přejmenované poznámky ve frontmatteru ostatních poznámek (cviky, šablony, programy). */
-	private async relinkRenamed(maps: RenameMaps): Promise<void> {
-		if (Object.values(maps).every((map) => map.size === 0)) return;
-		for (const type of ["workout", "template", "program", "goal", "test", "norm", "plan"] as const) {
-			for (const { file } of this.index.all(type)) {
-				const cached = this.app.metadataCache.getFileCache(file)?.frontmatter;
-				if (!cached || !relinkFrontmatter(cached, maps).changed) continue;
-				await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-					const { value, changed } = relinkFrontmatter(fm, maps);
-					if (!changed) return;
-					for (const key of Object.keys(fm)) delete fm[key];
-					Object.assign(fm, value);
-				});
-			}
-		}
 	}
 
 	openSettings(): void {
@@ -1105,71 +330,9 @@ export default class BetterFormPlugin extends Plugin {
 		}
 	}
 
-	/** Obnoví souhrn v aktivní denní poznámce, jinak v dnešní. */
-	async refreshDayBlock(): Promise<void> {
-		const active = this.app.workspace.getActiveFile();
-		const date = (active && this.days.dateOfDayFile(active)) ?? toIsoDate(new Date());
-		try {
-			const done = await this.days.refreshBlock(date);
-			new Notice(done ? t("Summary in the daily note refreshed.") : t("There's no daily note for this day yet."));
-		} catch (err) {
-			this.fail(t("Can't refresh the summary"), err);
-		}
-	}
-
-	/** Vytvoří chybějící složky podle nastavení. */
-	async createFolders(notify: boolean): Promise<void> {
-		try {
-			const created = await ensureFolders(this.writer, this.settings.folders);
-			if (notify) {
-				new Notice(created > 0 ? t("Folders created: {created}.", { created }) : t("All folders already exist."));
-			}
-		} catch (err) {
-			this.fail(t("Couldn't create the folders"), err);
-		}
-	}
-
-	/** Doplní chybějící cviky, předpřipravené programy a šablony tréninků; nic nepřepisuje. */
-	async seedLibrary(notify: boolean): Promise<void> {
-		try {
-			const sameName = (a: string, b: string) => a.toLocaleLowerCase("cs") === b.toLocaleLowerCase("cs");
-			const result = await seedLibrary(this.writer, this.settings.folders, {
-				hasExercise: (name) => this.index.findExercise(name) !== undefined,
-				hasProgram: (name) => this.index.all("program").some((e) => sameName(e.note.name, name)),
-				hasTemplate: (name) => this.index.all("template").some((e) => sameName(e.note.name, name)),
-			});
-			if (notify) {
-				new Notice(
-					result.exercises + result.programs + result.templates > 0
-						? t("Added – exercises: {exercises}, programs: {programs}, templates: {templates}.", { exercises: result.exercises, programs: result.programs, templates: result.templates })
-						: t("The library is complete, nothing was missing."),
-				);
-			}
-		} catch (err) {
-			this.fail(t("Couldn't fill the library"), err);
-		}
-	}
-
 	fail(message: string, err: unknown): void {
 		console.error(`Better Form: ${message}`, err);
 		new Notice(`${message}: ${err instanceof Error ? err.message : String(err)}`);
-	}
-
-	private async firstRun(): Promise<void> {
-		await this.createFolders(false);
-		await this.seedLibrary(false);
-		this.settings.initialized = true;
-		this.settings.librarySeeded = true;
-		await this.saveSettings();
-		new Notice(t("Better Form: folder “{root}” is ready with a library of exercises, programs and templates.", { root: this.settings.folders.root }));
-		this.openOnboarding(true);
-	}
-
-	/** Vault, kde plugin běžel ještě před zavedením knihovny: naplnit jednou. */
-	private async seedOnce(): Promise<void> {
-		await this.seedLibrary(true);
-		this.settings.librarySeeded = true;
-		await this.saveSettings();
 	}
 
 	async activateView(): Promise<void> {
@@ -1182,17 +345,4 @@ export default class BetterFormPlugin extends Plugin {
 		}
 		await workspace.revealLeaf(leaf);
 	}
-}
-
-/** Otevře výběr souborů; `onFiles` dostane aspoň jeden vybraný soubor. */
-function pickFiles(accept: string, multiple: boolean, onFiles: (files: File[]) => void): void {
-	const input = createEl("input");
-	input.type = "file";
-	input.multiple = multiple;
-	input.accept = accept;
-	input.addEventListener("change", () => {
-		const files = [...(input.files ?? [])];
-		if (files.length > 0) onFiles(files);
-	});
-	input.click();
 }

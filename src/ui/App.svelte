@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { ModuleKey } from "../settings/modules";
 	import { t } from "../i18n";
 	import type { Writable } from "svelte/store";
 	import { icon, tooltip } from "./actions";
 	import { usePlugin } from "./context";
-	import { TABS, type TabId } from "./tabs";
+	import { TABS, resolveView, screenOf, sectionOf, sectionTarget, visibleSections, type SectionId, type TabId, type ViewAvailability } from "./tabs";
 	import { Platform } from "obsidian";
 	import { describeError, recentErrors } from "./errorLog";
 	import BasicTab from "./tabs/BasicTab.svelte";
 	import BodyTab from "./tabs/BodyTab.svelte";
+	import ExercisesTab from "./tabs/ExercisesTab.svelte";
 	import GoalsTab from "./tabs/GoalsTab.svelte";
 	import LogTab from "./tabs/LogTab.svelte";
 	import NutritionTab from "./tabs/NutritionTab.svelte";
@@ -28,23 +28,35 @@
 	const plugin = usePlugin();
 	const settingsVersion = plugin.settingsVersion;
 
-	// Režim Základ ukazuje jen své karty; plný režim všechny ostatní (SPEC 5.11).
-	const basic = $derived.by(() => {
+	// Režim Základ ukazuje jen své karty, plný režim šest sekcí (SPEC 5.11). Pohledy vypnutých modulů
+	// se neukazují (nastavení → Moduly).
+	const availability = $derived.by((): ViewAvailability => {
 		void $settingsVersion;
-		return plugin.settings.mode === "basic";
+		return { basic: plugin.settings.mode === "basic", cycleOn: plugin.cycleOn(), moduleOn: (key) => plugin.moduleOn(key) };
 	});
-	// Karty vypnutých modulů se neukazují (nastavení → Moduly). Karta Tělo zůstává kvůli záznamu bolesti.
-	const TAB_MODULE: Partial<Record<TabId, ModuleKey>> = { nutrition: "nutrition", supplements: "supplements", skills: "skills", goals: "goals", programs: "programs" };
-	const visible = $derived.by(() => {
-		void $settingsVersion;
-		return TABS.filter((x) => (basic ? x.id === "basic" || x.id === "settings" : x.id !== "basic" && (TAB_MODULE[x.id] === undefined || plugin.moduleOn(TAB_MODULE[x.id]!))));
+	const sections = $derived(visibleSections(availability));
+	const active = $derived(resolveView($tab, availability));
+	const activeSection = $derived(sections.find((s) => s.id === sectionOf(active)));
+	const labelOf = (view: TabId) => TABS.find((x) => x.id === view)!.label;
+	const basicTab = $derived(TABS.find((x) => x.id === "basic")!);
+
+	// Sekce si během otevřeného panelu pamatuje poslední podsekci.
+	const lastViews = new Map<SectionId, TabId>();
+	let lastMain: TabId = "today";
+	$effect(() => {
+		const section = sectionOf(active);
+		if (section === null) return;
+		lastViews.set(section, active);
+		lastMain = active;
 	});
-	const active = $derived(visible.find((x) => x.id === $tab) ?? visible[0]!);
+	function toggleSettings() {
+		tab.set(active === "settings" ? (availability.basic ? "basic" : lastMain) : "settings");
+	}
 
 	/** Text chyby pro hlášení: verze pluginu, karta, zařízení, zpráva a začátek výpisu volání. */
 	function errorText(error: unknown): string {
 		const device = `${Platform.isMobile ? "mobile" : "desktop"} · ${navigator.userAgent}`;
-		return [`Better Form ${plugin.manifest.version} · ${active.id}`, device, describeError(error)].join("\n");
+		return [`Better Form ${plugin.manifest.version} · ${active}`, device, describeError(error)].join("\n");
 	}
 
 	// Karta, která zůstala prázdná bez zachycené chyby (např. chyba mimo vykreslování):
@@ -52,7 +64,7 @@
 	let content: HTMLDivElement | undefined = $state();
 	let emptyReport = $state("");
 	$effect(() => {
-		const id = active.id;
+		const id = active;
 		emptyReport = "";
 		const timer = window.setTimeout(() => {
 			if (content && content.childElementCount === 0) {
@@ -69,30 +81,48 @@
 </script>
 
 <div class="bf-app">
-	<nav class="bf-tabbar" aria-label={t("Better Form tabs")} style:grid-template-columns={`repeat(${visible.length}, minmax(0, 1fr))`}>
-		{#each visible as x (x.id)}
+	<nav class="bf-tabbar" aria-label={t("Better Form tabs")} style:grid-template-columns={`repeat(${Math.max(sections.length, 1)}, minmax(0, 1fr))`}>
+		{#if availability.basic}
+			<button type="button" class="bf-tab clickable-icon" class:is-active={active === "basic"} aria-current={active === "basic" ? "page" : undefined} onclick={() => tab.set("basic")}>
+				<span class="bf-tab-icon" use:icon={basicTab.icon}></span>
+				<span class="bf-tab-label">{basicTab.label}</span>
+			</button>
+		{/if}
+		{#each sections as s (s.id)}
 			<button
 				type="button"
 				class="bf-tab clickable-icon"
-				class:is-active={x.id === active.id}
-				aria-label={x.label}
-				aria-current={x.id === active.id ? "page" : undefined}
-				use:tooltip={x.label}
-				onclick={() => tab.set(x.id)}
+				class:is-active={s.id === activeSection?.id}
+				aria-current={s.id === activeSection?.id ? "page" : undefined}
+				onclick={() => tab.set(sectionTarget(s, lastViews.get(s.id)))}
 			>
-				<span class="bf-tab-icon" use:icon={x.icon}></span>
+				<span class="bf-tab-icon" use:icon={s.icon}></span>
+				<span class="bf-tab-label">{s.label}</span>
 			</button>
 		{/each}
 	</nav>
 
-	<!-- Knihovna cviků je potřeba odkudkoli – tlačítko vedle nadpisu na každé kartě. -->
 	<div class="bf-tab-head">
-		<h3 class="bf-tab-title">{active.label}</h3>
-		<button type="button" class="bf-library-button" onclick={() => plugin.openLibrary({})}>
-			<span class="bf-library-icon" use:icon={"book-open"}></span>
-			{t("Exercise library")}
-		</button>
+		<h3 class="bf-tab-title">{activeSection?.label ?? labelOf(active)}</h3>
+		<span class="bf-tab-tools">
+			{#if availability.basic}
+				<button type="button" class="bf-gear clickable-icon" aria-label={t("Exercise library")} use:tooltip={t("Exercise library")} onclick={() => plugin.openLibrary({})}>
+					<span class="bf-tab-icon" use:icon={"book-open"}></span>
+				</button>
+			{/if}
+			<button type="button" class="bf-gear clickable-icon" class:is-active={active === "settings"} aria-label={t("Settings")} aria-pressed={active === "settings"} use:tooltip={t("Settings")} onclick={toggleSettings}>
+				<span class="bf-tab-icon" use:icon={"settings"}></span>
+			</button>
+		</span>
 	</div>
+
+	{#if activeSection && activeSection.views.length > 1}
+		<div class="bf-seg bf-subnav" role="tablist" aria-label={t("Section views")}>
+			{#each activeSection.views as view (view)}
+				<button type="button" role="tab" aria-selected={view === active} class:is-active={view === active} onclick={() => tab.set(view)}>{labelOf(view)}</button>
+			{/each}
+		</div>
+	{/if}
 
 	{#if emptyReport}
 		<div class="bf-card bf-tab-error" role="alert">
@@ -105,31 +135,33 @@
 
 	<div class="bf-tab-content" bind:this={content}>
 		<!-- Chyba při vykreslení karty se ukáže místo prázdné plochy (na telefonu není vidět konzole). -->
-		{#key active.id}
+		{#key screenOf(active)}
 			<svelte:boundary onerror={(error) => console.error("Better Form:", error)}>
-				{#if active.id === "basic"}
+				{#if active === "basic"}
 					<BasicTab />
-				{:else if active.id === "today"}
+				{:else if active === "today"}
 					<TodayTab />
-				{:else if active.id === "log"}
-					<LogTab />
-				{:else if active.id === "plan"}
+				{:else if active === "log" || active === "history"}
+					<LogTab view={active} />
+				{:else if active === "exercises"}
+					<ExercisesTab />
+				{:else if active === "plan"}
 					<PlanTab />
-				{:else if active.id === "overview"}
-					<OverviewTab />
-				{:else if active.id === "programs"}
+				{:else if active === "overview" || active === "charts" || active === "records" || active === "run"}
+					<OverviewTab view={active} />
+				{:else if active === "programs"}
 					<ProgramsTab />
-				{:else if active.id === "body"}
-					<BodyTab />
-				{:else if active.id === "skills"}
+				{:else if active === "body" || active === "measurements" || active === "pain" || active === "cycle"}
+					<BodyTab view={active} />
+				{:else if active === "skills"}
 					<SkillsTab />
-				{:else if active.id === "goals"}
+				{:else if active === "goals"}
 					<GoalsTab />
-				{:else if active.id === "supplements"}
-					<SupplementsTab />
-				{:else if active.id === "nutrition"}
+				{:else if active === "supplements" || active === "supplement-library" || active === "supplement-charts"}
+					<SupplementsTab view={active} />
+				{:else if active === "nutrition"}
 					<NutritionTab />
-				{:else if active.id === "settings"}
+				{:else if active === "settings"}
 					<SettingsTab />
 				{/if}
 				{#snippet failed(error, reset)}
@@ -159,28 +191,55 @@
 		gap: var(--size-4-2);
 	}
 
-	/* Pevná mřížka ikon: v úzkém panelu se nic nezalamuje ani neposouvá. */
+	/* Pevná mřížka sekcí: v úzkém panelu se nic nezalamuje ani neposouvá. */
 	.bf-tabbar {
 		display: grid;
-		grid-template-columns: repeat(9, minmax(0, 1fr));
 		gap: 2px;
 		padding-bottom: var(--size-4-2);
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.bf-tab {
+	.bf-tabbar .bf-tab {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		height: 32px;
+		gap: 2px;
+		width: auto;
+		min-width: 0;
+		height: 48px;
 		padding: 0;
 		border-radius: var(--radius-s);
 	}
 
-	/* Aktivní karta jen barvou pozadí – bez změny rozměrů. */
-	.bf-tab.is-active {
+	.bf-tab-label {
+		font-size: 11px;
+		line-height: 1.1;
+		white-space: nowrap;
+	}
+
+	/* Aktivní volba jen barvou pozadí – bez změny rozměrů. */
+	.bf-tabbar .bf-tab.is-active,
+	.bf-tab-tools .bf-gear.is-active {
 		background-color: var(--interactive-accent);
 		color: var(--text-on-accent);
+	}
+
+	.bf-tab-tools {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: var(--size-4-1);
+	}
+
+	.bf-tab-tools .bf-gear {
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: var(--radius-s);
 	}
 
 	.bf-tab-icon {
@@ -199,12 +258,4 @@
 		min-width: 0;
 	}
 
-	.bf-library-button {
-		flex: none;
-		gap: var(--size-4-1);
-	}
-
-	.bf-library-icon {
-		display: inline-flex;
-	}
 </style>

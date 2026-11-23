@@ -7,7 +7,7 @@
 	import BasisTag from "../components/BasisTag.svelte";
 	import { usePlugin } from "../context";
 
-	let { today, days }: { today: string; days: DayNote[] } = $props();
+	let { today, days, compact = false }: { today: string; days: DayNote[]; compact?: boolean } = $props();
 	const plugin = usePlugin();
 	const settingsVersion = plugin.settingsVersion;
 
@@ -46,14 +46,7 @@
 	const pct = (v: number) => `${v > 0 ? "+" : ""}${Math.round(v)} %`;
 </script>
 
-<section class="bf-card bf-hb">
-	<h4>{t("Yesterday")}</h4>
-	<p class="bf-muted bf-hb-small">{t("Tap what happened yesterday – after a few weeks you'll see how it relates to your mornings.")}</p>
-	<div class="bf-hb-chips">
-		{#each habits as habit (habit)}
-			<button type="button" class="bf-hb-chip" class:is-active={done.includes(habit)} aria-pressed={done.includes(habit)} disabled={saving} onclick={() => void toggle(habit)}>{label(habit)}</button>
-		{/each}
-	</div>
+{#snippet more()}
 	{#if ready.length > 0}
 		<dl class="bf-hb-results">
 			{#each ready as row (row.habit)}
@@ -69,6 +62,24 @@
 		<p class="bf-muted bf-hb-small">{t("collecting data ({v} of {v2} days with, {v3} of {v2} without)", { v: collecting.yes, v2: HABIT_MIN_DAYS, v3: collecting.no })}</p>
 	{/if}
 	<p class="bf-muted bf-hb-small">{t("Association, not cause – on the same day other things happen too. Last 90 days.")} <BasisTag basis={HABIT_BASIS} /></p>
+{/snippet}
+
+<section class="bf-card bf-hb">
+	<h4>{t("Yesterday")}</h4>
+	{#if !compact}<p class="bf-muted bf-hb-small">{t("Tap what happened yesterday – after a few weeks you'll see how it relates to your mornings.")}</p>{/if}
+	<div class="bf-hb-chips">
+		{#each habits as habit (habit)}
+			<button type="button" class="bf-hb-chip" class:is-active={done.includes(habit)} aria-pressed={done.includes(habit)} disabled={saving} onclick={() => void toggle(habit)}>{label(habit)}</button>
+		{/each}
+	</div>
+	{#if compact}
+		<details>
+			<summary>{t("How it relates to your mornings")}</summary>
+			{@render more()}
+		</details>
+	{:else}
+		{@render more()}
+	{/if}
 </section>
 
 <style>

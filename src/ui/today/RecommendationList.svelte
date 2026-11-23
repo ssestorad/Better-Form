@@ -1,10 +1,10 @@
 <script lang="ts">
-	// Doporučení na dnešek (SPEC kap. 10): nejvýš tři hlavní, zbytek rozbalitelný.
+	// Doporučení na dnešek (SPEC kap. 10): všechna varování, jinak jedno hlavní; zbytek rozbalitelný.
 	// U každého důvody, zdroj a štítek úrovně důkazu.
 	import { t } from "../../i18n";
 	import { getSource } from "../../evidence/sources";
 	import { EVIDENCE_LABELS } from "../../model/constants";
-	import { MAX_MAIN_RECOMMENDATIONS } from "../../rules/engine";
+	import { splitRecommendations } from "../../rules/engine";
 	import type { Recommendation, RecommendationLevel } from "../../rules/types";
 	import { icon } from "../actions";
 	import { usePlugin } from "../context";
@@ -19,8 +19,9 @@
 	const ICONS: Record<RecommendationLevel, string> = { warn: "alert-triangle", suggest: "lightbulb", info: "info" };
 	const LEVEL_LABELS: Record<RecommendationLevel, string> = { warn: t("Warning"), suggest: t("Suggestion"), info: t("Info") };
 
-	const main = $derived(recommendations.slice(0, MAX_MAIN_RECOMMENDATIONS));
-	const rest = $derived(recommendations.slice(MAX_MAIN_RECOMMENDATIONS));
+	const split = $derived(splitRecommendations(recommendations));
+	const main = $derived(split.main);
+	const rest = $derived(split.rest);
 
 	function act(rec: Recommendation) {
 		if (!rec.action) return;

@@ -97,7 +97,7 @@ export class DayService {
 	 * Doplní do denních poznámek hodnoty z importu – jen ty, které chybí; zapsané nepřepíše.
 	 * Vrátí počet dnů, kterých se zápis týkal, a počet doplněných hodnot.
 	 */
-	async fillMissing(rows: readonly DailyRow[], onProgress?: (done: number) => void): Promise<{ days: number; values: number }> {
+	async fillMissing(rows: readonly DailyRow[], onProgress?: (done: number) => void, growingSteps = false): Promise<{ days: number; values: number }> {
 		let days = 0;
 		let values = 0;
 		let done = 0;
@@ -105,7 +105,7 @@ export class DayService {
 			onProgress?.(++done);
 			const entry = this.index.day(row.date);
 			if (entry?.schemaStatus === "newer") continue;
-			const { steps, ...missing } = missingValues(row, entry?.note);
+			const { steps, ...missing } = missingValues(row, entry?.note, growingSteps);
 			// Časy spánku jen s délkou – když poznámka nemá ani jedno.
 			const checkIn = missing.duration_min !== undefined && row.sleep_onset && row.wake ? { ...missing, sleep_onset: row.sleep_onset, wake: row.wake } : missing;
 			const count = Object.keys(missing).length + (steps !== undefined ? 1 : 0);

@@ -17,7 +17,7 @@ export type RecommendationLevel = "info" | "suggest" | "warn";
 /** Kam doporučení vede (karta view nebo check-in). */
 export interface RecommendationAction {
 	label: string;
-	target: "body" | "goals" | "overview" | "programs" | "plan" | "nutrition" | "check-in";
+	target: "body" | "pain" | "goals" | "overview" | "charts" | "run" | "programs" | "plan" | "nutrition" | "check-in";
 	/** Místo otevření karty přesune položku plánu týdne na jiný den. */
 	move?: { itemId: string; from: string; to: string };
 }

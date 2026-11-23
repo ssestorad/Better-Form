@@ -178,6 +178,7 @@
 
 	.bf-label-text textarea {
 		width: 100%;
+		box-sizing: border-box;
 		resize: vertical;
 	}
 

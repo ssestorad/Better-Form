@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fillSkillLadders } from "../../plugin/library";
 	// Karta Dovednosti (SPEC 5.6): žebříčky kalistenických progresí z knihovny cviků,
 	// splněné stupně, nejlepší výkon a další krok.
 	import { t, tn } from "../../i18n";
@@ -30,7 +31,7 @@
 	async function fill() {
 		busy = true;
 		try {
-			await plugin.fillSkillLadders();
+			await fillSkillLadders(plugin);
 		} finally {
 			busy = false;
 		}

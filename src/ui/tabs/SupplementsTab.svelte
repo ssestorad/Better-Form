@@ -2,7 +2,7 @@
 	// Karta Suplementy: dnešní odškrtávání, dodržování, moje suplementy a doporučení se zdroji.
 	import { t } from "../../i18n";
 	import { Notice } from "obsidian";
-	import { CAFFEINE_EXCESS_MG_PER_KG, caffeineIsExcessive, doseToMg, isTaken, substanceTotals, trackedDays } from "../../calc/supplements";
+	import { substanceTotals, trackedDays } from "../../calc/supplements";
 	import type { LabelPhoto, SupplementDraft, SupplementEntry } from "../../data/SupplementService";
 	import { SUPPLEMENT_TIMING_LABELS } from "../../model/constants";
 	import { toIsoDate } from "../../model/dates";
@@ -11,7 +11,6 @@
 		AREA_LABELS,
 		BENEFIT_AREAS,
 		MATCH_TITLES,
-		caffeineTooLate,
 		NO_FILTER,
 		compareByGoals,
 		isBenefitArea,
@@ -40,6 +39,7 @@
 	import ElectrolyteTable from "../supplements/ElectrolyteTable.svelte";
 	import RecommendationCard from "../supplements/RecommendationCard.svelte";
 	import SafetyWarnings from "../supplements/SafetyWarnings.svelte";
+	import SupplementCheck from "../supplements/SupplementCheck.svelte";
 	import SupplementForm from "../supplements/SupplementForm.svelte";
 	import TrialCard from "../supplements/TrialCard.svelte";
 	import ResearchCard from "../components/ResearchCard.svelte";
@@ -50,15 +50,9 @@
 	const indexVersion = plugin.indexVersion;
 	const settingsVersion = plugin.settingsVersion;
 
-	// Karta má čtyři části – knihovna se 72 látkami a tabulky by jinak odsunuly dnešní odškrtávání o tisíce pixelů.
-	const SECTIONS = [
-		{ id: "today", label: t("Today") },
-		{ id: "mine", label: t("Mine") },
-		{ id: "library", label: t("Library") },
-		{ id: "tables", label: t("Tables") },
-	] as const;
-	type Section = (typeof SECTIONS)[number]["id"];
-	let section = $state<Section>("today");
+	let { view }: { view: "supplements" | "supplement-library" | "supplement-charts" } = $props();
+	// Správa seznamu je sbalená, otevře ji přidání vlastního suplementu.
+	let manageOpen = $state(false);
 	// Podmoduly suplementů (nastavení → Moduly).
 	const safetyOn = $derived.by(() => {
 		void $settingsVersion;
@@ -67,10 +61,6 @@
 	const trialOn = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.moduleOn("supplements.trial");
-	});
-	const tablesOn = $derived.by(() => {
-		void $settingsVersion;
-		return plugin.moduleOn("supplements.tables");
 	});
 
 	const GROUPS: MatchGroup[] = ["fits", "maybe", "other"];
@@ -129,12 +119,6 @@
 		const time = days[0]?.note.sleep.bedtime;
 		return time ? minutesOfDay(time) : null;
 	});
-	let nowMin = $state(new Date().getHours() * 60 + new Date().getMinutes());
-	$effect(() => {
-		const timer = window.setInterval(() => (nowMin = new Date().getHours() * 60 + new Date().getMinutes()), 60_000);
-		return () => window.clearInterval(timer);
-	});
-	const caffeineLate = $derived(bedtime !== null && caffeineTooLate(nowMin, bedtime));
 
 	const today = $derived.by(() => {
 		void $indexVersion;
@@ -164,24 +148,11 @@
 	// Vegani a vegetariáni potřebují B12 – připomenout, když ho nemají v seznamu.
 	const b12Missing = $derived(diet !== "omnivore" && !active.some((e) => e.note.catalog === "vitamin_b" || /b\s?12|multivit/i.test(e.note.name)));
 
-	const taken = $derived.by(() => {
-		void $indexVersion;
-		return plugin.supplements.taken(today);
-	});
-	const trainedToday = $derived.by(() => {
-		void $indexVersion;
-		return plugin.supplements.hasWorkout(today);
-	});
 	const weightKg = $derived.by(() => {
 		void $indexVersion;
 		void $settingsVersion;
 		return plugin.supplements.weightKg();
 	});
-	/** Dávka kofeinu v mg, když jde z jednotky určit, je od 9 mg/kg zbytečně vysoká. */
-	function caffeineOver(dose: number | undefined, unit: string | undefined): boolean {
-		const mg = dose === undefined ? null : doseToMg(dose, unit);
-		return mg !== null && weightKg !== null && caffeineIsExcessive(mg, weightKg);
-	}
 	const medications = $derived.by(() => {
 		void $settingsVersion;
 		return plugin.settings.profile.medications;
@@ -290,20 +261,15 @@
 	}
 </script>
 
-<div class="bf-seg" role="tablist" aria-label={t("Supplements tab sections")}>
-	{#each SECTIONS.filter((s) => s.id !== "tables" || tablesOn) as s (s.id)}
-		<button type="button" role="tab" class:is-active={section === s.id} aria-selected={section === s.id} onclick={() => (section = s.id)}>{s.label}</button>
-	{/each}
-</div>
-
-{#if section === "today"}
+{#if view === "supplements"}
+{#if safetyOn && active.length > 0}<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />{/if}
 <section class="bf-card">
 	<h4>{t("Today")}</h4>
 	{#if active.length === 0}
 		<p class="bf-muted">{t("You don't have any supplements yet. Pick one in the library or add your own.")}</p>
 		<div class="bf-actions">
-			<button type="button" onclick={() => (section = "library")}>{t("Open library")}</button>
-			<button type="button" onclick={() => ((section = "mine"), (editing = "new"))}>{t("Add your own")}</button>
+			<button type="button" onclick={() => plugin.showTab("supplement-library")}>{t("Open library")}</button>
+			<button type="button" onclick={() => ((manageOpen = true), (editing = "new"))}>{t("Add your own")}</button>
 		</div>
 	{:else}
 		<div class="bf-supp-table" role="table">
@@ -315,24 +281,7 @@
 			{#each overview as { entry, cells } (entry.file.path)}
 				<div class="bf-supp-tr" role="row">
 					<div role="cell">
-					<label class="bf-supp-row">
-						<input
-							type="checkbox"
-							checked={isTaken(taken, entry.note.name)}
-							onchange={(e) => void run(() => plugin.supplements.setTaken(today, entry.note.name, e.currentTarget.checked))}
-						/>
-						<span class="bf-supp-name">{entry.note.name}</span>
-						<span class="bf-muted bf-small">{meta(entry)}</span>
-						{#if entry.note.catalog === "caffeine" && caffeineLate && !isTaken(taken, entry.note.name)}
-							<span class="bf-tag bf-tag-warn" title={t("Caffeine even 6 h before bed shortens sleep (Drake 2013, research)")}>{t("less than 6 h before bed")}</span>
-						{/if}
-						{#if entry.note.catalog === "caffeine" && caffeineOver(entry.note.dose, entry.note.unit)}
-							<span class="bf-tag bf-tag-warn" title={t("From {CAFFEINE_EXCESS_MG_PER_KG} mg/kg side effects increase with no further benefit (IOC 2018, consensus)", { CAFFEINE_EXCESS_MG_PER_KG })}>{t("dose above {CAFFEINE_EXCESS_MG_PER_KG} mg/kg", { CAFFEINE_EXCESS_MG_PER_KG })}</span>
-						{/if}
-						{#if entry.note.training_days_only && !trainedToday}
-							<span class="bf-tag" title={t("Taken only on training days; no workout logged today yet")}>{t("no workout today")}</span>
-						{/if}
-					</label>
+					<SupplementCheck {entry} {today} detail={meta(entry)} />
 					</div>
 					{#each cells as cell, i (i)}
 						<!-- „62 % (5 z 8) · sbírám data (8 z 30 dní)“: stav sběru na vlastním řádku. -->
@@ -350,15 +299,11 @@
 </section>
 
 {#if active.length > 0}
-	{#if safetyOn}<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />{/if}
 	<DailyOverview entries={active} {weightKg} />
 {/if}
-{/if}
 
-{#if section === "mine"}
-<section class="bf-section">
-	<h4>{t("My supplements")}</h4>
-	{#if safetyOn}<SafetyWarnings catalogIds={activeCatalog} {medications} namesOf={activeNames} />{/if}
+<details class="bf-section" bind:open={manageOpen}>
+	<summary>{t("Manage my supplements")}</summary>
 	{#each [...active, ...inactive] as entry (entry.file.path)}
 		<div class="bf-card">
 			<div class="bf-supp-head">
@@ -405,14 +350,11 @@
 			<button type="button" title={t("A product with several ingredients: label photo and ingredients text")} onclick={() => (editing = "label")}>{t("Add from label")}</button>
 		</div>
 	{/if}
-</section>
+</details>
 
 {#if trialOn}<TrialCard supplements={active} days={dayNotes} workouts={workoutNotes} ctx={statsContext} {today} />{/if}
-{/if}
-
-{#if section === "library"}
+{:else if view === "supplement-library"}
 <section class="bf-section">
-	<h4>{t("Library")}</h4>
 	<p class="bf-muted bf-small">{t(SUPPLEMENT_DISCLAIMER)}</p>
 	<div class="bf-card">
 		<div class="bf-small"><strong>{t("What do you want from supplements?")}</strong> {t("The library is sorted by the evidence in the areas you choose (by all of them if none are chosen). Click a substance to expand the details.")}</div>
@@ -468,7 +410,7 @@
 	</div>
 	{#if library.length === 0}
 		<p class="bf-muted bf-small">
-			{filtered ? t("Nothing matches the filters – try loosening them.") : t("There's nothing like that in the library. Add your own supplement under Mine.")}
+			{filtered ? t("Nothing matches the filters – try loosening them.") : t("There's nothing like that in the library. Add your own under Mine.")}
 		</p>
 	{/if}
 	{#each library as { group, items } (group)}
@@ -499,9 +441,7 @@
 </section>
 <!-- Trenérská praxe z učebnic sportovní výživy: nejdřív jídlo, důkazy, kontaminace. -->
 {#if researchTopic("supplement_basics")}<ResearchCard topic={researchTopic("supplement_basics")!} />{/if}
-{/if}
-
-{#if section === "tables" && tablesOn}
+{:else}
 <ReferenceTables {sex} {bedtime} {medications} {totals} />
 <ElectrolyteTable {weightKg} {sex} />
 <AminoAcidTable {weightKg} owned={active.map((e) => ({ name: e.note.name, catalog: e.note.catalog }))} />
@@ -575,16 +515,6 @@
 
 	.bf-small {
 		font-size: var(--font-ui-small);
-	}
-
-	/* Pevná výška řádku – odškrtnutí nic neposune. */
-	.bf-supp-row {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--size-4-2);
-		min-height: var(--input-height);
-		cursor: pointer;
 	}
 
 	.bf-supp-name {

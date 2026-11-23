@@ -92,6 +92,8 @@ export interface DayNote extends NoteBase {
 	supplements?: string[];
 	/** Návyky toho dne z deníku návyků (alkohol, pozdní jídlo…) – názvy z nastavení. */
 	habits?: string[];
+	/** Den menstruace (modul Menstruační cyklus); chybí = ne nebo nezapsáno. */
+	period?: boolean;
 	notes?: string;
 }
 

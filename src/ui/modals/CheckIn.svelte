@@ -30,8 +30,10 @@
 		load: (date: string) => Loaded;
 		onSave: (values: CheckInValues, stepsYesterday: number | undefined) => Promise<void>;
 		onCancel: () => void;
+		/** Políčko „Menstruace dnes“ (modul Menstruační cyklus u ženského profilu). */
+		showPeriod?: boolean;
 	}
-	let { initialDate, load, onSave, onCancel }: Props = $props();
+	let { initialDate, load, onSave, onCancel, showPeriod = false }: Props = $props();
 
 	const initial = untrack(() => load(initialDate));
 	let values = $state<CheckInValues>(initial.values);
@@ -172,6 +174,12 @@
 				<NumberField label={t("Steps yesterday")} bind:value={stepsYesterday} error={stepsError} />
 			</div>
 			<p class="bf-note">{t("Steps are optional – nutrition uses them to set your everyday activity outside training. They're saved to yesterday.")}</p>
+			{#if showPeriod}
+				<label class="bf-checkin-period">
+					<input type="checkbox" checked={values.period === true} onchange={(e) => (values.period = e.currentTarget.checked ? true : undefined)} />
+					<span>{t("Period today")}</span>
+				</label>
+			{/if}
 			<details class="bf-measures" open={hasMeasures}>
 				<summary>{t("Body measurements (optional)")}</summary>
 				<div class="bf-grid-3">
@@ -193,6 +201,13 @@
 </form>
 
 <style>
+	.bf-checkin-period {
+		display: flex;
+		align-items: center;
+		gap: var(--size-4-2);
+		margin-bottom: var(--size-4-2);
+	}
+
 	.bf-checkin {
 		display: flex;
 		flex-direction: column;

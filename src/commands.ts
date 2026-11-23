@@ -3,6 +3,10 @@
 import type BetterFormPlugin from "./main";
 import { t } from "./i18n";
 import { toIsoDate } from "./model/dates";
+import { backup, exportCsv, monthlySummary, refreshDayBlock, weeklySummary, yearlySummary } from "./plugin/exports";
+import { pickDailyFile, pickHistoryFile, pickRunFiles } from "./plugin/imports";
+import { createFolders, fillExerciseTexts, fillSkillLadders, refreshBuiltinPrograms, renameBuiltinToLanguage, seedLibrary } from "./plugin/library";
+import { syncGarmin, syncRunnaPlan, syncStrava } from "./plugin/sync";
 
 export function registerCommands(plugin: BetterFormPlugin): void {
 	plugin.addCommand({
@@ -52,17 +56,17 @@ export function registerCommands(plugin: BetterFormPlugin): void {
 	plugin.addCommand({
 		id: "fill-exercise-texts",
 		name: t("Add exercise descriptions from the library"),
-		callback: () => void plugin.fillExerciseTexts(),
+		callback: () => void fillExerciseTexts(plugin),
 	});
 	plugin.addCommand({
 		id: "refresh-builtin-programs",
 		name: t("Restore built-in programs"),
-		callback: () => void plugin.refreshBuiltinPrograms(),
+		callback: () => void refreshBuiltinPrograms(plugin),
 	});
 	plugin.addCommand({
 		id: "rename-builtin-to-language",
 		name: t("Translate the library and generated texts to the interface language"),
-		callback: () => void plugin.renameBuiltinToLanguage(),
+		callback: () => void renameBuiltinToLanguage(plugin),
 	});
 	plugin.addCommand({
 		id: "test-max",
@@ -77,52 +81,52 @@ export function registerCommands(plugin: BetterFormPlugin): void {
 	plugin.addCommand({
 		id: "sync-strava",
 		name: t("Sync Strava"),
-		callback: () => void plugin.syncStrava(),
+		callback: () => void syncStrava(plugin),
 	});
 	plugin.addCommand({
 		id: "sync-garmin",
 		name: t("Sync Garmin Connect"),
-		callback: () => void plugin.syncGarmin(),
+		callback: () => void syncGarmin(plugin),
 	});
 	plugin.addCommand({
 		id: "sync-runna",
 		name: t("Sync plan from Runna"),
-		callback: () => void plugin.syncRunnaPlan(),
+		callback: () => void syncRunnaPlan(plugin),
 	});
 	plugin.addCommand({
 		id: "import-run-file",
 		name: t("Import run from file (GPX, TCX, FIT)"),
-		callback: () => plugin.pickRunFiles(),
+		callback: () => pickRunFiles(plugin),
 	});
 	plugin.addCommand({
 		id: "import-history",
 		name: t("Import history from Strong or Hevy (CSV)"),
-		callback: () => plugin.pickHistoryFile("kg"),
+		callback: () => pickHistoryFile(plugin, "kg"),
 	});
 	plugin.addCommand({
 		id: "import-daily",
 		name: t("Import daily data (steps, sleep, HRV, weight)"),
-		callback: () => plugin.pickDailyFile(),
+		callback: () => pickDailyFile(plugin),
 	});
 	plugin.addCommand({
 		id: "monthly-summary",
 		name: t("Create or refresh monthly summary"),
-		callback: () => void plugin.monthlySummary(),
+		callback: () => void monthlySummary(plugin),
 	});
 	plugin.addCommand({
 		id: "weekly-summary",
 		name: t("Create or refresh weekly summary"),
-		callback: () => void plugin.weeklySummary(),
+		callback: () => void weeklySummary(plugin),
 	});
 	plugin.addCommand({
 		id: "yearly-summary",
 		name: t("Create or refresh yearly summary"),
-		callback: () => void plugin.yearlySummary(),
+		callback: () => void yearlySummary(plugin),
 	});
 	plugin.addCommand({
 		id: "fill-skill-ladders",
 		name: t("Add skill ladders to the library"),
-		callback: () => void plugin.fillSkillLadders(),
+		callback: () => void fillSkillLadders(plugin),
 	});
 	plugin.addCommand({
 		id: "open-today",
@@ -134,7 +138,7 @@ export function registerCommands(plugin: BetterFormPlugin): void {
 	plugin.addCommand({
 		id: "refresh-day-block",
 		name: t("Refresh summary in the daily note"),
-		callback: () => void plugin.refreshDayBlock(),
+		callback: () => void refreshDayBlock(plugin),
 	});
 	plugin.addCommand({
 		id: "onboarding",
@@ -144,25 +148,25 @@ export function registerCommands(plugin: BetterFormPlugin): void {
 	plugin.addCommand({
 		id: "export-csv",
 		name: t("Export workouts and daily data to CSV"),
-		callback: () => void plugin.exportCsv(),
+		callback: () => void exportCsv(plugin),
 	});
 	plugin.addCommand({
 		id: "backup",
 		name: t("Back up folder to ZIP"),
-		callback: () => void plugin.backup(),
+		callback: () => void backup(plugin),
 	});
 	plugin.addCommand({
 		id: "create-folders",
 		name: t("Create missing folders"),
 		callback: () => {
-			void plugin.createFolders(true);
+			void createFolders(plugin, true);
 		},
 	});
 	plugin.addCommand({
 		id: "seed-library",
 		name: t("Add missing exercises, programs and templates to the library"),
 		callback: () => {
-			void plugin.seedLibrary(true);
+			void seedLibrary(plugin, true);
 		},
 	});
 }

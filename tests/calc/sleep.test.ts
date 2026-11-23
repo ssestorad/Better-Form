@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockSpreadMin, minutesBetween, sleepDurationMin, sleepWeek } from "../../src/calc/sleep";
+import { bedtimeAdvice, clockMeanMin, clockSpreadMin, minutesBetween, sleepDurationMin, sleepWeek } from "../../src/calc/sleep";
 import type { DayNote, SleepData } from "../../src/model/types";
 
 describe("spánek", () => {
@@ -82,5 +82,47 @@ describe("týden spánku", () => {
 			night(d, i % 2 === 0 ? { sleep_onset: "23:00" } : { bedtime: "23:00" }),
 		);
 		expect(sleepWeek(days, today, 420).onsetSpreadMin).toBe(0);
+	});
+});
+
+describe("doporučený čas usnutí", () => {
+	const night = (date: string, sleep: SleepData): DayNote => ({ forma: "day", schema: 1, date, sleep, check_in: {}, hrv: {}, body: {} });
+	const today = "2026-11-19";
+	const ago = (n: number) => {
+		const d = new Date(`${today}T00:00:00Z`);
+		d.setUTCDate(d.getUTCDate() - n);
+		return d.toISOString().slice(0, 10);
+	};
+
+	it("kruhový průměr času přes půlnoc", () => {
+		// 23:30 a 0:30 → půlnoc (0 min), 6:20 a 6:40 → 6:30 (390 min)
+		expect(clockMeanMin(["23:30", "00:30"])).toBeCloseTo(0, 6);
+		expect(clockMeanMin(["06:20", "06:40"])).toBeCloseTo(390, 6);
+		expect(clockMeanMin([])).toBeNull();
+	});
+
+	it("vstávání 6:30 v průměru, cíl 7,5 h, usínání 15 min → usnout 23:00, do postele 22:45", () => {
+		// vstávání 6:30, 6:40, 6:20, 6:30 → průměr 6:30; 6:30 − 7 h 30 min = 23:00; 23:00 − 15 min = 22:45
+		const wakes = ["06:30", "06:40", "06:20", "06:30"];
+		const days = wakes.map((wake, i) => night(ago(i), { bedtime: "22:45", sleep_onset: "23:00", wake }));
+		expect(bedtimeAdvice(days, today, 450)).toEqual({ wakeNights: 4, wake: "06:30", onset: "23:00", bed: "22:45", latencyMin: 15 });
+	});
+
+	it("zaokrouhlení na 5 minut a přechod přes půlnoc", () => {
+		// vstávání 6:32 → 392 min; 392 − 420 = −28 → 23:32 → 23:30; vstávání se ukáže jako 6:30
+		const days = [0, 1, 2, 3].map((i) => night(ago(i), { wake: "06:32" }));
+		const advice = bedtimeAdvice(days, today, 420);
+		expect([advice.wake, advice.onset, advice.bed]).toEqual(["06:30", "23:30", null]);
+	});
+
+	it("málo dat: pod 4 vstávání nic, pod 4 nocí s ulehnutím i usnutím jen čas usnutí", () => {
+		const three = [0, 1, 2].map((i) => night(ago(i), { wake: "07:00" }));
+		expect(bedtimeAdvice(three, today, 420)).toEqual({ wakeNights: 3, wake: null, onset: null, bed: null, latencyMin: null });
+		// 4 vstávání 7:00, ulehnutí s usnutím jen 3 noci → usnout 0:00, do postele nevíme
+		const days = [...three.map((d) => ({ ...d, sleep: { ...d.sleep, bedtime: "23:40", sleep_onset: "00:00" } })), night(ago(3), { wake: "07:00" })];
+		expect(bedtimeAdvice(days, today, 420)).toMatchObject({ onset: "00:00", bed: null });
+		// noci starší než 14 dní se nepočítají
+		const old = [14, 15, 16, 17].map((i) => night(ago(i), { wake: "07:00" }));
+		expect(bedtimeAdvice(old, today, 420).wake).toBeNull();
 	});
 });

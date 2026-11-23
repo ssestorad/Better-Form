@@ -9,6 +9,8 @@ import { LOCAL_AUTH_PORT } from "../strava/oauth";
 import { StravaCodeModal } from "../ui/modals/StravaCodeModal";
 import { DEFAULT_SETTINGS, parseTextList } from "./settings";
 import { note, type SettingsHost } from "./settingsUi";
+import { pickDailyFile, pickHistoryFile, pickRunFiles } from "../plugin/imports";
+import { syncGarmin, syncRunnaPlan, syncStrava } from "../plugin/sync";
 
 export function importGroup(host: SettingsHost): SettingDefinitionGroup {
 	return {
@@ -29,7 +31,7 @@ function runImport(host: SettingsHost): SettingGroupItem[] {
 			name: t("Import run from file"),
 			desc: t("A run from a GPX, TCX or FIT file – works without a Strava subscription. The file is read only on this device and isn't sent anywhere."),
 			aliases: ["GPX", "TCX", "FIT"],
-			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose files")).onClick(() => host.plugin.pickRunFiles())),
+			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose files")).onClick(() => pickRunFiles(host.plugin))),
 		},
 		guidePage(t("Guide: where to get the file"), [
 			{ name: "Strava", desc: t("on strava.com, open your activity, click the three dots (More) and choose Export GPX. The mobile app has no export.") },
@@ -47,7 +49,7 @@ function dailyImport(host: SettingsHost): SettingGroupItem[] {
 		{
 			name: t("Import daily data"),
 			desc: t("Steps, sleep duration, HRV, resting heart rate and weight from a watch or app export (CSV), Apple Health (export.xml) or Health Auto Export (JSON). Only fills in values missing from the journal; logged values aren't overwritten. The file is read only on this device."),
-			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickDailyFile())),
+			render: (s) => void s.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => pickDailyFile(host.plugin))),
 		},
 		guidePage(t("Which files it reads"), [
 			{
@@ -79,7 +81,7 @@ function historyImport(host: SettingsHost): SettingGroupItem[] {
 							.setValue(unit)
 							.onChange((v) => (unit = v === "lb" ? "lb" : "kg")),
 					)
-					.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => host.plugin.pickHistoryFile(unit))),
+					.addButton((b) => b.setButtonText(t("Choose file")).onClick(() => pickHistoryFile(host.plugin, unit))),
 		},
 		guidePage(t("Guide: where to get the export and what to expect"), [
 			{ name: "Strong", desc: t("in the app, open Settings and choose Export Workouts (under Data Management). The file doesn't include the weight unit – pick it in the menu above according to what you log in the app.") },
@@ -161,7 +163,7 @@ function garmin(host: SettingsHost): SettingGroupItem {
 								b.setButtonText(t("Sync now")).onClick(async () => {
 									b.setDisabled(true);
 									plugin.requestSaveSettings.run();
-									await plugin.syncGarmin();
+									await syncGarmin(plugin);
 									host.update();
 								}),
 							),
@@ -215,7 +217,7 @@ function runna(host: SettingsHost): SettingGroupItem {
 								b.setButtonText(t("Sync now")).onClick(async () => {
 									b.setDisabled(true);
 									plugin.requestSaveSettings.run();
-									await plugin.syncRunnaPlan();
+									await syncRunnaPlan(plugin);
 									host.update();
 								}),
 							),
@@ -319,7 +321,7 @@ function strava(host: SettingsHost): SettingGroupItem {
 							void s.addButton((b) =>
 								b.setButtonText(t("Sync now")).onClick(async () => {
 									b.setDisabled(true);
-									await plugin.syncStrava();
+									await syncStrava(plugin);
 									host.update();
 								}),
 							),

@@ -72,14 +72,21 @@ export interface SleepWeek {
 export function clockSpreadMin(times: readonly string[]): number | null {
 	const minutes = times.map(minutesOfDay).filter((m): m is number => m !== null);
 	if (minutes.length < 2) return null;
+	const center = clockMeanMin(times)!;
+	const half = DAY_MIN / 2;
+	return sampleSd(minutes.map((m) => ((((m - center + half) % DAY_MIN) + DAY_MIN) % DAY_MIN) - half));
+}
+
+/** Kruhový průměr časů dne v minutách 0–1439 (23:30 a 0:30 → 0:00); prázdný seznam = null. */
+export function clockMeanMin(times: readonly string[]): number | null {
+	const minutes = times.map(minutesOfDay).filter((m): m is number => m !== null);
+	if (minutes.length === 0) return null;
 	const angle = (m: number) => (m / DAY_MIN) * 2 * Math.PI;
 	const meanAngle = Math.atan2(
 		minutes.reduce((sum, m) => sum + Math.sin(angle(m)), 0),
 		minutes.reduce((sum, m) => sum + Math.cos(angle(m)), 0),
 	);
-	const center = (meanAngle / (2 * Math.PI)) * DAY_MIN;
-	const half = DAY_MIN / 2;
-	return sampleSd(minutes.map((m) => ((((m - center + half) % DAY_MIN) + DAY_MIN) % DAY_MIN) - half));
+	return ((((meanAngle / (2 * Math.PI)) * DAY_MIN) % DAY_MIN) + DAY_MIN) % DAY_MIN;
 }
 
 /** Týden spánku k dnešku: dluh proti cíli a pravidelnost časů usnutí a probuzení. */
@@ -104,5 +111,49 @@ export function sleepWeek(days: readonly DayNote[], today: string, targetMin: nu
 		wakeSpreadMin: spread(wakes),
 		onsetNights: onsets.length,
 		wakeNights: wakes.length,
+	};
+}
+
+/** Doporučený čas usnutí: z obvyklého vstávání (14 nocí, aspoň 4) mínus cíl délky spánku. */
+export const BEDTIME_MIN_NIGHTS = 4;
+
+export interface BedtimeAdvice {
+	/** Nocí se zapsaným vstáváním za posledních 14 – pro „sbírám data“. */
+	wakeNights: number;
+	/** Obvyklé vstávání „HH:MM“; null = málo dat. */
+	wake: string | null;
+	/** Usnout nejpozději „HH:MM“; null = málo dat. */
+	onset: string | null;
+	/** Do postele „HH:MM“ podle obvyklé doby usínání; null = málo nocí s ulehnutím i usnutím. */
+	bed: string | null;
+	latencyMin: number | null;
+}
+
+/** „HH:MM“ z minut dne, zaokrouhleno na 5 minut (doporučení nepotřebuje minutovou přesnost). */
+function clockOf(minutes: number): string {
+	const rounded = ((Math.round(minutes / 5) * 5) % DAY_MIN + DAY_MIN) % DAY_MIN;
+	return `${String(Math.floor(rounded / 60)).padStart(2, "0")}:${String(rounded % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Kdy jít dnes spát: obvyklý čas vstávání (kruhový průměr) mínus cíl délky spánku; čas do postele
+ * ještě o obvyklou dobu od ulehnutí do usnutí. Pravidelný čas, žádné splácení dluhu dřívějším
+ * spaním – na to ověřený zdroj nemáme. Základ SLEEP_WEEK_BASIS (cíl délky a pravidelnost).
+ */
+export function bedtimeAdvice(days: readonly DayNote[], today: string, targetMin: number): BedtimeAdvice {
+	const byDate = new Map(days.map((d) => [d.date, d.sleep]));
+	const recent = Array.from({ length: SLEEP_REGULARITY_NIGHTS }, (_, i) => byDate.get(addDays(today, -i))).filter((s): s is SleepData => s !== undefined);
+	const wakes = recent.flatMap((s) => s.wake ?? []);
+	const latencies = recent.flatMap((s) => (s.bedtime && s.sleep_onset ? (minutesBetween(s.bedtime, s.sleep_onset) ?? []) : []));
+	const wakeMin = wakes.length >= BEDTIME_MIN_NIGHTS ? clockMeanMin(wakes) : null;
+	if (wakeMin === null) return { wakeNights: wakes.length, wake: null, onset: null, bed: null, latencyMin: null };
+	const onsetMin = wakeMin - targetMin;
+	const latencyMin = latencies.length >= BEDTIME_MIN_NIGHTS ? Math.round(mean(latencies)!) : null;
+	return {
+		wakeNights: wakes.length,
+		wake: clockOf(wakeMin),
+		onset: clockOf(onsetMin),
+		bed: latencyMin === null ? null : clockOf(onsetMin - latencyMin),
+		latencyMin,
 	};
 }

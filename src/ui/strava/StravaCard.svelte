@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { pickRunFiles } from "../../plugin/imports";
+	import { syncGarmin, syncStrava } from "../../plugin/sync";
 	// Import běhů: ze souboru GPX / TCX / FIT, ruční synchronizace s Garmin Connect a se Stravou a seznam
 	// importovaných běhů k doplnění (SPEC 5.3, 6.1, 6.3).
 	import { t } from "../../i18n";
@@ -62,14 +64,14 @@
 		<header class="bf-strava-head">
 			<h4>{t("Run import")}</h4>
 			<span class="bf-strava-buttons">
-				<button type="button" title={t("A GPX file from Strava, TCX from MapMyRun or FIT from a watch; you can pick several files at once")} onclick={() => plugin.pickRunFiles()}>{t("From file")}</button>
+				<button type="button" title={t("A GPX file from Strava, TCX from MapMyRun or FIT from a watch; you can pick several files at once")} onclick={() => pickRunFiles(plugin)}>{t("From file")}</button>
 				{#if garmin}
-					<button type="button" disabled={$garminBusy} onclick={() => void plugin.syncGarmin()}>
+					<button type="button" disabled={$garminBusy} onclick={() => void syncGarmin(plugin)}>
 						{$garminBusy ? t("Syncing…") : t("Sync Garmin")}
 					</button>
 				{/if}
 				{#if connected}
-					<button type="button" disabled={$stravaBusy} onclick={() => void plugin.syncStrava()}>
+					<button type="button" disabled={$stravaBusy} onclick={() => void syncStrava(plugin)}>
 						{$stravaBusy ? t("Syncing…") : t("Sync Strava")}
 					</button>
 				{/if}

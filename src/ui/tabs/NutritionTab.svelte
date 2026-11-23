@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { nutritionPlanFor, nutritionProfile, setNutritionCorrection, setRmrFormula } from "../../plugin/nutrition";
 	import { researchCardOn } from "../../settings/modules";
 	// Karta Výživa (SPEC 5.9, kap. 11): doporučený denní příjem jako rozsahy, rozpad výpočtu a zdroje.
 	import { t } from "../../i18n";
@@ -59,7 +60,7 @@
 	const profile = $derived.by(() => {
 		void $indexVersion;
 		void $settingsVersion;
-		return plugin.nutritionProfile(date);
+		return nutritionProfile(plugin, date);
 	});
 	// Rovnice, která se k profilu hodí víc než ta zvolená (a kolik by s ní vyšlo); null = zvolená sedí.
 	const better = $derived.by(() => {
@@ -68,6 +69,12 @@
 		const rmr = formula === plugin.settings.nutrition.rmrFormula ? null : restingRmr(profile, formula);
 		return rmr === null ? null : { formula, kcal: rmr.kcal, outside: tenHaafOutOfRange(profile).join(", ") };
 	});
+	// Rozpad se sám otevře, když je k dispozici přesnější rovnice; jinak ho ovládá jen uživatel.
+	let howOpen = $state(false);
+	const betterFormula = $derived(better?.formula ?? null);
+	$effect(() => {
+		if (betterFormula !== null) howOpen = true;
+	});
 	const missing = $derived.by(() => {
 		void $settingsVersion;
 		return missingProfile(profile, plugin.settings.nutrition.rmrFormula);
@@ -75,7 +82,7 @@
 	const plan = $derived.by(() => {
 		void $indexVersion;
 		void $settingsVersion;
-		return plugin.nutritionPlan(date, loadChoice === "" ? undefined : loadChoice);
+		return nutritionPlanFor(plugin, date, loadChoice === "" ? undefined : loadChoice);
 	});
 	const eaMin = $derived.by(() => {
 		void $settingsVersion;
@@ -253,7 +260,7 @@
 						<strong>{t("Weekly check:")}</strong> {t("if you roughly followed the recommendation, your estimated expenditure is about {v} kcal {v2} than it should be. I can shift the recommendation accordingly.", { v: formatWhole(Math.abs(advice.stepKcal)), v2: advice.stepKcal > 0 ? t("lower") : t("higher") })}
 						<BasisTag basis={basis(["practice"], "practice")} />
 					</p>
-					<button type="button" class="mod-cta" onclick={() => void plugin.setNutritionCorrection(advice.totalKcal)}>
+					<button type="button" class="mod-cta" onclick={() => void setNutritionCorrection(plugin, advice.totalKcal)}>
 						{t("Adjust the recommendation by {v}", { v: signedKcal(advice.stepKcal) })}
 					</button>
 				</div>
@@ -277,14 +284,29 @@
 				<p class="bf-small">
 					{t("Personal expenditure correction:")} <strong>{t("{v} a day", { v: signedKcal(correction.kcal) })}</strong>{correction.date ? t(" (since {date})", { date: formatCzechDate(correction.date, false) }) : ""}.
 				</p>
-				<button type="button" onclick={() => void plugin.setNutritionCorrection(0)}>{t("Remove correction")}</button>
+				<button type="button" onclick={() => void setNutritionCorrection(plugin, 0)}>{t("Remove correction")}</button>
 			</div>
 		{/if}
 	</section>
 	{/if}
 
 	<section class="bf-card">
-		<h4>{t("How it was calculated")}</h4>
+		<dl class="bf-nutri-steps">
+		<dt>{t("Daily load")}</dt>
+		<dd>
+			<select value={loadChoice} onchange={(e) => (loadChoice = e.currentTarget.value as DayLoad | "")} aria-label={t("Daily load")}>
+				<option value="">{t("automatic ({v})", { v: DAY_LOAD_LABELS[plan.load] })}</option>
+				{#each DAY_LOADS as l (l)}<option value={l}>{DAY_LOAD_LABELS[l]}</option>{/each}
+			</select>
+			<br /><span class="bf-muted bf-small">
+				{t("Carbohydrates {v}–{v2} g/kg. Chosen automatically from the duration and RPE of logged workouts and unfinished items in the weekly plan (the thresholds are an estimate – practice); without a plan, pick the day's load manually in advance.", { v: CARB_RANGES[plan.load][0], v2: CARB_RANGES[plan.load][1] })}
+			</span>
+		</dd>
+		</dl>
+	</section>
+
+	<details class="bf-card" bind:open={howOpen}>
+		<summary>{t("How it was calculated")}</summary>
 		<dl class="bf-nutri-steps">
 			<dt>{t("Resting expenditure")}</dt>
 			<dd>
@@ -304,7 +326,7 @@
 							{t("Based on your profile and training you belong to the group of regular athletes aged 18–35. In athletes the general-population equation has a systematic bias; ten Haaf & Weijs is more accurate.")}
 						{/if}
 						{t("With it, resting expenditure would come out at {v} kcal instead of {v2}.", { v: formatWhole(better.kcal), v2: formatWhole(plan.rmr.kcal) })}
-						<button type="button" class="bf-link-button" onclick={() => void plugin.setRmrFormula(better.formula)}>{t("Switch")}</button>
+						<button type="button" class="bf-link-button" onclick={() => void setRmrFormula(plugin, better.formula)}>{t("Switch")}</button>
 						<BasisTag basis={basis(["practice"], "practice")} />
 					</span>
 				{/if}
@@ -394,16 +416,6 @@
 					<br /><span class="bf-muted bf-small">{t("Without body fat, your whole body weight is used – a stricter estimate. Enter body fat in the check-in or your profile.")}</span>
 				{/if}
 			</dd>
-			<dt>{t("Daily load")}</dt>
-			<dd>
-				<select value={loadChoice} onchange={(e) => (loadChoice = e.currentTarget.value as DayLoad | "")} aria-label={t("Daily load")}>
-					<option value="">{t("automatic ({v})", { v: DAY_LOAD_LABELS[plan.load] })}</option>
-					{#each DAY_LOADS as l (l)}<option value={l}>{DAY_LOAD_LABELS[l]}</option>{/each}
-				</select>
-				<br /><span class="bf-muted bf-small">
-					{t("Carbohydrates {v}–{v2} g/kg. Chosen automatically from the duration and RPE of logged workouts and unfinished items in the weekly plan (the thresholds are an estimate – practice); without a plan, pick the day's load manually in advance.", { v: CARB_RANGES[plan.load][0], v2: CARB_RANGES[plan.load][1] })}
-				</span>
-			</dd>
 			<dt>{t("Protein")}</dt>
 			<dd class="bf-muted bf-small">
 				{#if profile.goal === "lose" && plan.ffmKg !== null}
@@ -413,7 +425,7 @@
 				{/if}
 			</dd>
 		</dl>
-	</section>
+	</details>
 {/if}
 
 {#if topics.some((topic) => researchCardOn(plugin.settings.modules, topic.evidence))}

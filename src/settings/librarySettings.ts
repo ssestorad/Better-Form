@@ -8,6 +8,9 @@ import { confirmAction } from "../ui/modals/ConfirmModal";
 import { DEFAULT_FOLDERS, DEFAULT_SETTINGS, DEFAULT_THRESHOLDS, type FolderSettings } from "./settings";
 import { note, type SettingsHost } from "./settingsUi";
 import { THRESHOLD_GROUPS } from "./thresholdFields";
+import { backup, exportCsv } from "../plugin/exports";
+import { pickProgramFile } from "../plugin/imports";
+import { createFolders, fillExerciseTexts, refreshBuiltinPrograms, seedLibrary } from "../plugin/library";
 
 const FOLDER_LABELS: Record<Exclude<keyof FolderSettings, "root">, string> = translated({
 	days: "Journal (daily notes)",
@@ -41,10 +44,10 @@ export function libraryGroup(host: SettingsHost): SettingDefinitionGroup {
 		type: "group",
 		heading: t("Library, programs and folders"),
 		items: [
-			button(t("Add to library"), t("Creates missing exercises, built-in programs and workout templates. Existing notes aren't changed."), t("Add", undefined, "missing"), () => void plugin.seedLibrary(true)),
-			button(t("Add exercise descriptions"), t("Adds the description, technique and common mistakes where they're missing in an exercise note. Existing text isn't overwritten."), t("Add", undefined, "missing"), () => void plugin.fillExerciseTexts()),
-			button(t("Restore built-in programs"), t("Replaces the description and settings of the built-in programs with the current version from the plugin (after confirmation). Your own programs aren't changed."), t("Restore"), () => void plugin.refreshBuiltinPrograms()),
-			button(t("Program from file"), t("Choose an .md, .txt, .json or .yaml file – it becomes your own program in the library (inactive). The file stays on your computer and isn't sent anywhere."), t("Choose file"), () => plugin.pickProgramFile()),
+			button(t("Add to library"), t("Creates missing exercises, built-in programs and workout templates. Existing notes aren't changed."), t("Add", undefined, "missing"), () => void seedLibrary(plugin, true)),
+			button(t("Add exercise descriptions"), t("Adds the description, technique and common mistakes where they're missing in an exercise note. Existing text isn't overwritten."), t("Add", undefined, "missing"), () => void fillExerciseTexts(plugin)),
+			button(t("Restore built-in programs"), t("Replaces the description and settings of the built-in programs with the current version from the plugin (after confirmation). Your own programs aren't changed."), t("Restore"), () => void refreshBuiltinPrograms(plugin)),
+			button(t("Program from file"), t("Choose an .md, .txt, .json or .yaml file – it becomes your own program in the library (inactive). The file stays on your computer and isn't sent anywhere."), t("Choose file"), () => pickProgramFile(plugin)),
 			button(t("Program from pasted text"), t("Same formats as the file – handy for text copied from a friend."), t("Paste text"), () => plugin.openProgramImport()),
 			programHelp(),
 			folders(host),
@@ -105,7 +108,7 @@ function folders(host: SettingsHost): SettingGroupItem {
 							control: { type: "folder", key: `folders.${key}`, validate: folderError },
 						}),
 					),
-					button(t("Create missing folders"), "", t("Create"), () => void host.plugin.createFolders(true)),
+					button(t("Create missing folders"), "", t("Create"), () => void createFolders(host.plugin, true)),
 				],
 			},
 		],
@@ -124,7 +127,7 @@ export function backupGroup(host: SettingsHost): SettingDefinitionGroup {
 				render: (s) =>
 					void s
 						.setDesc(t("Saves workouts and daily data as CSV (semicolon separator, decimal comma – opens in Excel) to the folder {root}/{exports}.", { root: settings.folders.root, exports: settings.folders.exports }))
-						.addButton((b) => b.setButtonText(t("Export", undefined, "action")).onClick(() => void plugin.exportCsv())),
+						.addButton((b) => b.setButtonText(t("Export", undefined, "action")).onClick(() => void exportCsv(plugin))),
 			},
 			{
 				name: t("Backup folder"),
@@ -140,7 +143,7 @@ export function backupGroup(host: SettingsHost): SettingDefinitionGroup {
 					},
 				},
 			},
-			button(t("Back up"), t("Packs the whole root folder into one .zip file in the backup folder."), t("Back up"), () => void plugin.backup()),
+			button(t("Back up"), t("Packs the whole root folder into one .zip file in the backup folder."), t("Back up"), () => void backup(plugin)),
 		],
 	};
 }

@@ -50,7 +50,7 @@ export type CheckInTimeField = (typeof CHECK_IN_TIMES)[number];
  * když chybí, délka se dopočítá z časů (viz finalizeCheckIn).
  * NaN v čísle = uživatel napsal něco, co není číslo.
  */
-export type CheckInValues = { date: string } & Partial<Record<CheckInNumberField, number>> &
+export type CheckInValues = { date: string; period?: boolean } & Partial<Record<CheckInNumberField, number>> &
 	Partial<Record<CheckInTimeField, string>>;
 
 export type CheckInHints = Partial<Record<CheckInNumberField, number> & Record<CheckInTimeField, string>>;
@@ -133,17 +133,21 @@ export function applyCheckIn(frontmatter: Record<string, unknown>, values: Check
 		if (Object.keys(section).length > 0) frontmatter[group] = section;
 		else delete frontmatter[group];
 	}
+	// Menstruace je klíč nejvyšší úrovně; nezaškrtnuto = klíč pryč.
+	if (values.period === true) frontmatter.period = true;
+	else delete frontmatter.period;
 }
 
 /** Vyplnil už uživatel pro tento den check-in (cokoli ze spánku, pocitů, HRV, váhy)? */
 export function hasCheckIn(day: DayNote | undefined): boolean {
 	if (!day) return false;
-	return [day.sleep, day.check_in, day.hrv, day.body].some((section) => Object.keys(section).length > 0);
+	return day.period === true || [day.sleep, day.check_in, day.hrv, day.body].some((section) => Object.keys(section).length > 0);
 }
 
 /** Hodnoty z existující denní poznámky (pro úpravu check-inu). */
 export function checkInFromDay(day: DayNote): CheckInValues {
 	const values: CheckInValues = { date: day.date, ...day.sleep, ...day.check_in, ...day.hrv, ...day.body };
+	if (day.period) values.period = true;
 	// Délka rovná dopočtu z časů není ruční přepsání.
 	if (values.duration_min !== undefined && values.duration_min === sleepDurationMin(values)) {
 		delete values.duration_min;

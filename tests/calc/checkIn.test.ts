@@ -85,6 +85,20 @@ describe("délka spánku", () => {
 });
 
 describe("zápis do frontmatteru", () => {
+	it("menstruace: zaškrtnuto zapíše period: true, odškrtnuto klíč smaže; parse i úprava ji zachovají", () => {
+		const fm: Record<string, unknown> = {};
+		applyCheckIn(fm, { date: "2026-11-19", period: true });
+		expect(fm.period).toBe(true);
+		const day = parseDay(structuredClone(fm))!;
+		expect(day.period).toBe(true);
+		expect(hasCheckIn(day)).toBe(true);
+		expect(checkInFromDay(day).period).toBe(true);
+		applyCheckIn(fm, { date: "2026-11-19" });
+		expect("period" in fm).toBe(false);
+		// Jiná hodnota než true se nečte jako menstruace.
+		expect(parseDay({ ...structuredClone(fm), period: "yes" })!.period).toBeUndefined();
+	});
+
 	it("nová poznámka: doplní forma, schema, date a sekce podle SPEC 4.1", () => {
 		const fm: Record<string, unknown> = {};
 		applyCheckIn(

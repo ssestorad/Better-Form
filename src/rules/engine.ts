@@ -22,8 +22,12 @@ import type { Recommendation, RecommendationLevel, Rule, RuleContext, RuleGoal, 
 
 const LEVEL_ORDER: Record<RecommendationLevel, number> = { warn: 0, suggest: 1, info: 2 };
 
-/** Kolik doporučení se ukáže na kartě Dnes hned; zbytek je rozbalitelný. */
-export const MAX_MAIN_RECOMMENDATIONS = 3;
+/** Na Dnes jsou vždy vidět všechna varování; bez varování jedno doporučení, zbytek je rozbalitelný. */
+export function splitRecommendations<T extends { level: RecommendationLevel }>(all: T[]): { main: T[]; rest: T[] } {
+	const warnings = all.filter((r) => r.level === "warn");
+	const main = warnings.length > 0 ? warnings : all.slice(0, 1);
+	return { main, rest: all.filter((r) => !main.includes(r)) };
+}
 
 /**
  * Vyhodnotí pravidla a seřadí doporučení podle závažnosti (varování, návrhy,

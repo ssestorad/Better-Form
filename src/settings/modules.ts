@@ -14,6 +14,7 @@ export const MODULE_TREE = {
 	goals: ["norms"],
 	body: [],
 	habits: [],
+	cycle: [],
 	badges: ["badges", "streaks"],
 	research: ["research", "practice"],
 } as const satisfies Record<string, readonly string[]>;
@@ -31,6 +32,7 @@ export const MODULE_LABELS: Record<ModuleKey, { label: string; desc: string }> =
 	"nutrition.weight_check": { label: "Weekly check against your weight", desc: "Compares the suggestion with your weight trend and offers a correction." },
 	"nutrition.day_note": { label: "Nutrition in the daily note and on Today", desc: "The line with the suggested intake in the daily note and on the Today tab." },
 	habits: { label: "Habit journal", desc: "Tick yesterday's habits (alcohol, late meal…) on Today and see how they relate to your mornings." },
+	cycle: { label: "Menstrual cycle", desc: "Log period days in the check-in; Today shows the cycle day and average cycle length. Only with a female profile." },
 	supplements: { label: "Supplements", desc: "What you take, the catalog with evidence grades, the Supplements tab." },
 	"supplements.safety": { label: "Medication and combination warnings", desc: "Interactions with the medication you take and combinations that don't go together." },
 	"supplements.trial": { label: "Personal test", desc: "Compares the weeks before a supplement with the weeks while taking it." },

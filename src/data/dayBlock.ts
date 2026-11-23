@@ -93,6 +93,7 @@ export function renderDayBlock(day: DayNote | undefined, workouts: BlockWorkout[
 	if (summary.hrv) lines.push(`**HRV:** ${summary.hrv}`);
 	if (summary.weight) lines.push(t("**Weight:** {weight}", { weight: summary.weight }));
 	if (day?.steps !== undefined) lines.push(t("**Steps:** {v}", { v: formatNumber(day.steps, 0) }));
+	if (day?.period) lines.push(t("**Period:** yes"));
 	if (lines.length === 0) lines.push(t("The check-in isn't filled in yet."));
 	// Řádky oddělit tvrdým zalomením, aby se v náhledu nespojily do jednoho odstavce.
 	if (day?.supplements && day.supplements.length > 0) lines.push(t("**Supplements:** {v}", { v: day.supplements.join(", ") }));

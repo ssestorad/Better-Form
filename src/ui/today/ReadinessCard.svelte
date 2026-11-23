@@ -11,8 +11,10 @@
 		/** Skóre posledních 14 dní od nejstaršího (pro trend). */
 		history?: ReadinessDay[];
 		onCheckIn: () => void;
+		/** Složky a trend sbalené (karta Dnes). */
+		compact?: boolean;
 	}
-	let { readiness, history = [], onCheckIn }: Props = $props();
+	let { readiness, history = [], onCheckIn, compact = false }: Props = $props();
 
 	const trend = $derived(readinessTrend(history));
 	const levelOf = (score: number): ReadinessLevel => (score >= READINESS_LEVELS.ready ? "ready" : score >= READINESS_LEVELS.caution ? "caution" : "rest");
@@ -24,19 +26,8 @@
 	};
 </script>
 
-<section class="bf-card">
-	<header class="bf-rd-head">
-		<h4>{t("Readiness")}</h4>
-		<BasisTag basis={READINESS_BASIS} />
-	</header>
+{#snippet more()}
 	{#if readiness}
-		<div class="bf-rd-main">
-			<div class={`bf-rd-score is-${readiness.level}`}>{readiness.score}</div>
-			<div>
-				<div class="bf-rd-level">{LEVEL_TEXT[readiness.level]}</div>
-				<div class="bf-muted bf-rd-small">{tn(readiness.parts.length, ["score 0–100 from {n} component", "score 0–100 from {n} components"])}</div>
-			</div>
-		</div>
 		<div class="bf-rd-parts">
 			{#each readiness.parts as part (part.id)}
 				<div class="bf-rd-part">
@@ -56,9 +47,6 @@
 			<p class="bf-muted bf-rd-small">{t("Missing today: {v}. The weights of the other components were recalculated.", { v: readiness.missing.join(", ") })}</p>
 		{/if}
 		<p class="bf-muted bf-rd-small">{t("The individual components are backed by research; their scoring and weights are an estimate, not a measurement. Treat the score as an aid.")}</p>
-	{:else}
-		<p class="bf-muted">{t("Collecting data – readiness is calculated from sleep, how you feel and HRV in the morning check-in, and from training load.")}</p>
-		<div class="bf-actions"><button type="button" onclick={onCheckIn}>{t("Morning check-in")}</button></div>
 	{/if}
 	{#if history.length > 0}
 		<div class="bf-rd-trend">
@@ -85,6 +73,33 @@
 			</div>
 			<p class="bf-muted bf-rd-small">{t("One day doesn't say much – look at where the score heads over several days.")} <BasisTag basis={READINESS_BASIS} /></p>
 		</div>
+	{/if}
+{/snippet}
+
+<section class="bf-card">
+	<header class="bf-rd-head">
+		<h4>{t("Readiness")}</h4>
+		<BasisTag basis={READINESS_BASIS} />
+	</header>
+	{#if readiness}
+		<div class="bf-rd-main">
+			<div class={`bf-rd-score is-${readiness.level}`}>{readiness.score}</div>
+			<div>
+				<div class="bf-rd-level">{LEVEL_TEXT[readiness.level]}</div>
+				<div class="bf-muted bf-rd-small">{tn(readiness.parts.length, ["score 0–100 from {n} component", "score 0–100 from {n} components"])}</div>
+			</div>
+		</div>
+	{:else}
+		<p class="bf-muted">{t("Collecting data – readiness is calculated from sleep, how you feel and HRV in the morning check-in, and from training load.")}</p>
+		<div class="bf-actions"><button type="button" onclick={onCheckIn}>{t("Morning check-in")}</button></div>
+	{/if}
+	{#if compact && (readiness || history.length > 0)}
+		<details class="bf-rd-more">
+			<summary>{t("Breakdown and trend")}</summary>
+			{@render more()}
+		</details>
+	{:else}
+		{@render more()}
 	{/if}
 </section>
 

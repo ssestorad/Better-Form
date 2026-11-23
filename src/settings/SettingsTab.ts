@@ -14,6 +14,7 @@ import { importGroup } from "./importSettings";
 import { dailyMirrorPage, modulesPage, quickLinksPage } from "./modulesSettings";
 import { advancedGroup, backupGroup, libraryGroup } from "./librarySettings";
 import { getPath, note, optionalNumber, setPath, type SettingsHost } from "./settingsUi";
+import { renameBuiltinToLanguage } from "../plugin/library";
 
 export class BetterFormSettingTab extends PluginSettingTab implements SettingsHost {
 	constructor(
@@ -75,7 +76,7 @@ export class BetterFormSettingTab extends PluginSettingTab implements SettingsHo
 						});
 					})
 					// Knihovnu a texty v poznámkách z dřívějška převede do zvoleného jazyka (s potvrzením).
-					.addButton((b) => b.setButtonText(t("Translate notes")).onClick(() => void this.plugin.renameBuiltinToLanguage())),
+					.addButton((b) => b.setButtonText(t("Translate notes")).onClick(() => void renameBuiltinToLanguage(this.plugin))),
 		};
 	}
 

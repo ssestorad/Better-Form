@@ -6,6 +6,7 @@ import type BetterFormPlugin from "../../main";
 import { applyOnboarding, onboardingFromSettings, type OnboardingValues } from "../../settings/onboarding";
 import Onboarding from "./Onboarding.svelte";
 import { t } from "../../i18n";
+import { nutritionProfile } from "../../plugin/nutrition";
 
 /** Úvodní průvodce nastavením; `first` = otevřený automaticky po prvním spuštění. */
 export class OnboardingModal extends Modal {
@@ -29,7 +30,7 @@ export class OnboardingModal extends Modal {
 				onSave: async (values: OnboardingValues) => {
 					applyOnboarding(this.plugin.settings, values);
 					// Při prvním nastavení se rovnice klidového výdeje vybere podle profilu; později ji mění jen uživatel.
-					if (this.first) this.plugin.settings.nutrition.rmrFormula = recommendedRmrFormula(this.plugin.nutritionProfile(toIsoDate(new Date())));
+					if (this.first) this.plugin.settings.nutrition.rmrFormula = recommendedRmrFormula(nutritionProfile(this.plugin, toIsoDate(new Date())));
 					await this.plugin.saveSettings();
 					new Notice(t("Settings saved."));
 					this.close();

@@ -10,8 +10,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(here, "dist");
 const browsers = [
 	process.env.PREVIEW_BROWSER,
-	"C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
 	"C:/Program Files/Google/Chrome/Application/chrome.exe",
+	"C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
 	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 	"/usr/bin/google-chrome",
 	"/usr/bin/chromium",
@@ -30,7 +30,7 @@ if (!existsSync(page)) throw new Error(`Šířka ${width} není sestavená (inde
 mkdirSync(path.join(dist, "shots"), { recursive: true });
 for (const view of views) {
 	for (const lang of langs) {
-		const out = path.join(dist, "shots", `${view}-${lang}.png`);
+		const out = path.join(dist, "shots", `${view.replace(/\W+/g, "-")}-${lang}.png`);
 		execFileSync(browser, [
 			"--headless=new",
 			"--disable-gpu",

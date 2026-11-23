@@ -43,6 +43,15 @@
 	const byName = $derived(new Map(exercises.map((e) => [e.name, e])));
 	const current = $derived(selected ? byName.get(selected) : undefined);
 
+	// Po klepnutí na cvik níž v seznamu zůstávalo okno posunuté a začátek detailu nebyl vidět
+	// (na telefonu to vypadalo, že se karta neotevřela) – detail se posune nahoru.
+	let detail: HTMLDivElement | undefined = $state();
+	const currentName = $derived(current?.name);
+	$effect(() => {
+		void currentName;
+		detail?.scrollIntoView({ block: "start" });
+	});
+
 	const results = $derived.by(() => {
 		const matches = searchExercises(exercises, query, [], exercises.length).map((m) => byName.get(m.option.name)!);
 		const filtered = matches.filter(
@@ -59,7 +68,7 @@
 </script>
 
 {#if current}
-	<div class="bf-library">
+	<div class="bf-library" bind:this={detail}>
 		<button type="button" class="bf-link-button" onclick={() => (selected = null)}>{t("← Back to the list")}</button>
 		{#key current.name}
 			<ExerciseDetail exercise={current} last={lastText(current.name)} history={history?.(current)} onOpenNote={() => onOpenNote(current.name)} library={exercises} onSelect={(name) => (selected = name)} />

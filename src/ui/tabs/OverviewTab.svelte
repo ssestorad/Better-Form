@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Karta Přehled (SPEC 5.4): čísla za období, heatmapa, série a odznaky, grafy,
 	// rekordy s odhadem závodu a běh (zóny, rozložení intenzit, boty).
-	import { t } from "../../i18n";
 	import { dailyLoads } from "../../calc/load";
 	import { toIsoDate } from "../../model/dates";
 	import { usePlugin } from "../context";
@@ -12,23 +11,11 @@
 	import RunSection from "../overview/RunSection.svelte";
 	import StreaksCard from "../overview/StreaksCard.svelte";
 
+	let { view }: { view: "overview" | "charts" | "records" | "run" } = $props();
+
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
 	const settingsVersion = plugin.settingsVersion;
-
-	const VIEWS = [
-		{ id: "summary", label: t("Summary") },
-		{ id: "charts", label: t("Charts") },
-		{ id: "records", label: t("Records") },
-		{ id: "run", label: t("Run") },
-	] as const;
-	type ViewId = (typeof VIEWS)[number]["id"];
-	let view = $state<ViewId>("summary");
-	// Část Běh jen se zapnutým modulem (nastavení → Moduly).
-	const showRun = $derived.by(() => {
-		void $settingsVersion;
-		return plugin.moduleOn("running.analysis");
-	});
 
 	const today = $derived.by(() => {
 		void $indexVersion;
@@ -63,13 +50,7 @@
 	const workoutDates = $derived(new Set(workouts.map((w) => w.date)));
 </script>
 
-<div class="bf-seg" role="tablist" aria-label={t("Overview sections")}>
-	{#each VIEWS.filter((v) => v.id !== "run" || showRun) as v (v.id)}
-		<button type="button" role="tab" aria-selected={view === v.id} class:is-active={view === v.id} onclick={() => (view = v.id)}>{v.label}</button>
-	{/each}
-</div>
-
-{#if view === "summary"}
+{#if view === "overview"}
 	<NumbersCard {workouts} {ctx} {today} />
 	<HeatmapCard {byDate} {workoutDates} {today} />
 	<StreaksCard {workouts} {sessions} {today} />
@@ -77,6 +58,6 @@
 	<ChartsSection {workouts} {days} {byDate} {ctx} {thresholds} {today} />
 {:else if view === "records"}
 	<RecordsSection {workouts} {tests} {ctx} />
-{:else if showRun}
+{:else}
 	<RunSection />
 {/if}

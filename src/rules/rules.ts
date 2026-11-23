@@ -109,7 +109,7 @@ export const acwrRule: Rule = {
 				t("Load over the last {acwrAcuteDays} days is {v}× higher than long-term (threshold {v2}).", { acwrAcuteDays: ctx.thresholds.acwrAcuteDays, v: formatNumber(ctx.acwr.ratio, 2), v2: formatNumber(ctx.thresholds.acwrWarn, 2) }),
 				t("The acute:chronic workload ratio is a disputed method (Impellizzeri 2020) – treat it only as a warning about a jump, not as an injury prediction."),
 			],
-			action: { label: t("Load chart"), target: "overview" },
+			action: { label: t("Load chart"), target: "charts" },
 		};
 	},
 };
@@ -202,7 +202,7 @@ export const intensityRule: Rule = {
 			reasons: [
 				tn(ctx.intensity.runs, ["Over the last 4 weeks {v} % of your time was in zones 3–5 (threshold {intenseShareWarnPct} %); calculated from {n} run with heart rate.", "Over the last 4 weeks {v} % of your time was in zones 3–5 (threshold {intenseShareWarnPct} %); calculated from {n} runs with heart rate."], { v: formatNumber(pct, 0), intenseShareWarnPct: ctx.thresholds.intenseShareWarnPct }),
 			],
-			action: { label: t("Intensity distribution"), target: "overview" },
+			action: { label: t("Intensity distribution"), target: "run" },
 		};
 	},
 };
@@ -223,7 +223,7 @@ export const painRule: Rule = {
 			return `${base}, ${p.days === 0 ? "from today" : formatDays(p.days)}${p.improving ? ", improving" : ""}.`;
 		};
 		const reasons = pains.map(describe);
-		const action = { label: t("Pain on the Body tab"), target: "body" } as const;
+		const action = { label: t("Pain on the Body tab"), target: "pain" } as const;
 		if (pains.some((p) => p.seeProfessional)) {
 			return {
 				level: "warn",

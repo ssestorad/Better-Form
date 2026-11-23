@@ -25,7 +25,30 @@ import GoalsTab from "../../src/ui/tabs/GoalsTab.svelte";
 import SkillsTab from "../../src/ui/tabs/SkillsTab.svelte";
 import { GoalService } from "../../src/data/GoalService";
 import { seedExercises } from "../../src/seed/exercises";
+import { withBuiltinTexts } from "../../src/seed/lookup";
+import { exerciseHistory } from "../../src/calc/exerciseHistory";
+import ExerciseDetail from "../../src/ui/library/ExerciseDetail.svelte";
+import LibraryBrowser from "../../src/ui/library/LibraryBrowser.svelte";
+import WorkoutForm from "../../src/ui/workout/WorkoutForm.svelte";
+import CheckIn from "../../src/ui/modals/CheckIn.svelte";
+import EntryTest from "../../src/ui/basic/EntryTest.svelte";
+import PlanItemForm from "../../src/ui/plan/PlanItemForm.svelte";
+import ProgramEditor from "../../src/ui/program/ProgramEditor.svelte";
+import TestForm from "../../src/ui/program/TestForm.svelte";
+import PainCard from "../../src/ui/body/PainCard.svelte";
+import GoalForm from "../../src/ui/goals/GoalForm.svelte";
+import NormForm from "../../src/ui/goals/NormForm.svelte";
+import LabelForm from "../../src/ui/supplements/LabelForm.svelte";
+import SupplementForm from "../../src/ui/supplements/SupplementForm.svelte";
+import { emptyBlock, emptyDraft, emptyItem } from "../../src/ui/workout/draft";
+import { BLOCK_TYPES } from "../../src/model/constants";
+import { initialCheckIn, lastValues } from "../../src/calc/checkIn";
+import { seedPrograms } from "../../src/seed/programs";
 import { nutritionPlan } from "../../src/calc/nutrition";
+import BetterFormPlugin from "../../src/main";
+import { createServices } from "../../src/plugin/services";
+import App from "../../src/ui/App.svelte";
+import { TABS } from "../../src/ui/tabs";
 
 const params = new URLSearchParams(location.search);
 const lang = params.get("lang") === "cs" ? "cs" : "en";
@@ -144,6 +167,41 @@ plugin.goals = new GoalService(index, writer, () => settings, () => ({ info: () 
 plugin.plans = new PlanService(app, index, writer, () => settings, () => indexVersion.update((n) => n + 1));
 
 const context = createContext(plugin);
+// Sonda rozvržení: prvky s textem a ovládací prvky, které přetékají rámeček nebo se překrývají,
+// a vodorovné posouvání. Vrací popisy problémů (prázdné pole = v pořádku).
+const PROBED = "input, select, textarea, button, label, span, strong, em, b, a, p, li, td, th, dt, dd, h2, h3, h4, h5, legend, small, div";
+function layoutProblems(box, name) {
+	const describe = (el) => `${el.tagName.toLowerCase()}${el.type ? "[" + el.type + "]" : ""}@${Math.round(el.getBoundingClientRect().top)}${el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""}"${(el.value || el.textContent || el.placeholder || "").trim().slice(0, 18)}"`;
+	const visible = (el) => {
+		const r = el.getBoundingClientRect();
+		const cs = getComputedStyle(el);
+		return el.checkVisibility() && r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none";
+	};
+	const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+	// SVG (panáček, grafy) má vlastní souřadnice – kontroluje se jen jako celek.
+	const inSvg = (el) => el.closest("svg") !== null;
+	const problems = [];
+	const frame = box.getBoundingClientRect();
+	const els = [...box.querySelectorAll(PROBED)].filter((el) => !inSvg(el) && visible(el) && (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(el.tagName) || ownText(el)));
+	const rects = els.map((el) => el.getBoundingClientRect());
+	// Zalomený řádkový text má rámeček přes celé řádky – porovnávají se jednotlivé řádky (getClientRects).
+	const lines = els.map((el) => [...el.getClientRects()].filter((r) => r.width > 0 && r.height > 0));
+	const overlap = (a, b) => [Math.min(a.right, b.right) - Math.max(a.left, b.left), Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)];
+	for (let i = 0; i < els.length; i++) {
+		const a = rects[i];
+		if (a.right > frame.right + 1 || a.left < frame.left - 1) problems.push(`OVERFLOW ${name}: ${describe(els[i])} ${Math.round(a.left - frame.left)}..${Math.round(a.right - frame.left)} / ${Math.round(frame.width)}`);
+		for (let j = i + 1; j < els.length; j++) {
+			if (els[i].contains(els[j]) || els[j].contains(els[i])) continue;
+			const [bw, bh] = overlap(a, rects[j]);
+			if (bw <= 2 || bh <= 2) continue;
+			const hit = lines[i].flatMap((x) => lines[j].map((y) => overlap(x, y))).find(([w, h]) => w > 2 && h > 2);
+			if (hit) problems.push(`OVERLAP ${name}: ${describe(els[i])} × ${describe(els[j])} (${Math.round(hit[0])}×${Math.round(hit[1])})`);
+		}
+	}
+	if (box.scrollWidth > box.clientWidth + 1) problems.push(`HSCROLL ${name}: ${box.scrollWidth} > ${box.clientWidth}`);
+	return problems;
+}
+
 const views = {
 	onboarding: (target) => {
 		const initial = onboardingFromSettings(settings);
@@ -167,6 +225,182 @@ const views = {
 		mount(ReferenceTables, { target: box(), context, props: { sex: "male", bedtime: null, totals: [], medications: [] } });
 		mount(ElectrolyteTable, { target: box(), context, props: { weightKg: 80, sex: "male" } });
 	},
+	// Detail každého cviku z knihovny – chyby vykreslení se vypíšou do #errors (node … library cs 640).
+	library: (target) => {
+		const library = index.all("exercise").map((e) => withBuiltinTexts(e.note));
+		const workouts = index.all("workout").map((w) => w.note);
+		let ok = 0;
+		for (const exercise of library) {
+			const box = target.appendChild(document.createElement("section"));
+			try {
+				const history = exerciseHistory(workouts, exercise.name, exercise.measure, { info: () => undefined, bodyweightKg: 80 });
+				mount(ExerciseDetail, { target: box, context, props: { exercise, history, library, onOpenNote: () => {}, onSelect: () => {} } });
+				if (box.childElementCount === 0) throw new Error("empty");
+				ok++;
+			} catch (err) {
+				document.getElementById("errors").textContent += `FAIL ${exercise.name}: ${err?.message ?? err}
+`;
+			}
+		}
+		document.getElementById("errors").textContent += `OK ${ok} / ${library.length}
+`;
+	},
+	// Knihovna v posuvném okně jako modal na telefonu (kontrola, že detail cviku je po klepnutí vidět).
+	browser: (target) => {
+		const box = target.appendChild(Object.assign(document.createElement("div"), { className: "modal" }));
+		box.style.cssText = "height: 400px; overflow: auto";
+		const exercises = index.all("exercise").map((e) => withBuiltinTexts(e.note)).sort((a, b) => a.name.localeCompare(b.name, "cs"));
+		mount(LibraryBrowser, { target: box, context, props: { exercises, lastText: () => undefined, onOpenNote: () => {} } });
+		// Sonda: posun na konec seznamu, klepnutí na viditelný cvik – je nadpis detailu vidět?
+		setTimeout(() => {
+			box.scrollTop = 1e6;
+			const list = box.querySelector(".bf-library-list");
+			list.scrollTop = 1e6;
+			document.getElementById("errors").textContent += `BEFORE h=${box.clientHeight} sh=${box.scrollHeight} st=${box.scrollTop} items=${box.querySelectorAll(".bf-library-item").length}
+`;
+			const top = box.getBoundingClientRect().top;
+			const item = [...box.querySelectorAll(".bf-library-item")].find((i) => i.getBoundingClientRect().top > Math.max(top, list.getBoundingClientRect().top) + 20);
+			item.click();
+			setTimeout(() => {
+				const h = box.querySelector(".bf-exercise h3").getBoundingClientRect();
+				const r = box.getBoundingClientRect();
+				document.getElementById("errors").textContent += `PROBE ${item.textContent.trim().slice(0, 30)} scrollTop=${box.scrollTop} visible=${h.bottom > r.top && h.top < r.bottom}
+`;
+			}, 100);
+		}, 100);
+	},
+	// Všechny formuláře v okně jako na telefonu; sonda hlásí překryvy a přetékání (node … forms cs 340).
+	forms: (target) => {
+		const noop = () => {};
+		const save = async () => {};
+		const options = index.all("exercise").map((e) => ({ name: e.note.name, aliases: e.note.aliases, category: e.note.category }));
+		const strength = emptyDraft(today, "strength");
+		strength.blocks = BLOCK_TYPES.map((type) => {
+			const block = emptyBlock(type, options[0].name);
+			block.sets = [{ reps: 8, kg: 60 }, { reps: 8, kg: 60 }];
+			block.items = [emptyItem(options[1].name), emptyItem(options[2].name)];
+			block.steps = [1, 2, 3];
+			return block;
+		});
+		const api = {
+			exercises: () => options,
+			info: () => undefined,
+			lastText: () => "út 29. 9.: 3×6 × 80 kg",
+			newBlock: (exercise) => emptyBlock("sets", exercise),
+			createExercise: save,
+			showExercise: noop,
+			shoes: () => ["Pegasus 41"],
+			pains: () => [{ name: "Koleno", level: 3 }],
+			save,
+			saveTemplate: save,
+			cancel: noop,
+			remove: save,
+			setDirty: noop,
+		};
+		const days = index.all("day").map((e) => e.note);
+		const program = seedPrograms(lang)[0].note;
+		const forms = [
+			["workout strength", WorkoutForm, { initial: strength, sports: ["strength", "run", "swim", "rope"], bells: [16, 24], barbell: { barKg: 20, platesKg: [20, 10, 5, 2.5, 1.25] }, api }],
+			["workout run", WorkoutForm, { initial: emptyDraft(today, "run"), sports: ["strength", "run", "swim", "rope"], bells: [16], api }],
+			["workout swim", WorkoutForm, { initial: emptyDraft(today, "swim"), sports: ["strength", "run", "swim", "rope"], bells: [16], api }],
+			["workout rope", WorkoutForm, { initial: emptyDraft(today, "rope"), sports: ["strength", "run", "swim", "rope"], bells: [16], api }],
+			["check-in", CheckIn, { initialDate: today, load: (date) => ({ values: initialCheckIn(date, undefined, days), hints: lastValues(days, date), existing: false, stepsYesterday: 8000 }), onSave: save, onCancel: noop, showPeriod: true }],
+			["entry test", EntryTest, { date: today, items: [{ exercise: options[0].name, unit: "reps", last: "minule 30 (út 29. 9.)" }, { exercise: options[1].name, unit: "sec" }], offerProgram: program.name, onSave: save, onCancel: noop }],
+			["plan item", PlanItemForm, { date: today, sports: ["strength", "run", "swim"], templates: [{ name: "Push A", sport: "strength" }], onSave: save, onDelete: save, onCancel: noop }],
+			["program", ProgramEditor, { initial: program, options, onSave: save, onCancel: noop }],
+			["test", TestForm, { date: today, exercise: options[0].name, options, lastText: () => "minule 28 (20. 9.)", onSave: save, onCancel: noop }],
+			["goal", GoalForm, { onSave: save, onCancel: noop }],
+			["norm", NormForm, { onSave: save, onCancel: noop }],
+			["label", LabelForm, { onSave: noop, onCancel: noop }],
+			["supplement", SupplementForm, { initial: { name: "", timing: "any", trainingDaysOnly: false }, nameEditable: true, onSave: noop, onCancel: noop }],
+		];
+		const report = (text) => (document.getElementById("errors").textContent += `${text}\n`);
+		const boxes = [];
+		for (const [name, component, props] of forms) {
+			// Mimo kořen .better-form – okna v Obsidianu nejsou uvnitř panelu pluginu.
+			const box = document.body.appendChild(Object.assign(document.createElement("div"), { className: "modal bf-modal" }));
+			box.style.width = getComputedStyle(target).width;
+			box.dataset.form = name;
+			const content = box.appendChild(Object.assign(document.createElement("div"), { className: "modal-content" }));
+			try {
+				mount(component, { target: content, context, props });
+				boxes.push(box);
+			} catch (err) {
+				report(`FAIL ${name}: ${err?.message ?? err}`);
+			}
+		}
+		// ?open=1 rozbalí sbalené oddíly (tělesné míry, zóny tepu…), ať se zkontrolují taky.
+		if (params.get("open")) setTimeout(() => document.querySelectorAll(".bf-modal details").forEach((d) => (d.open = true)), 100);
+		setTimeout(() => {
+			const problems = boxes.flatMap((box) => layoutProblems(box, box.dataset.form));
+			problems.forEach(report);
+			report(`FORMS ${boxes.length}/${forms.length} problems=${problems.length}`);
+		}, 500);
+	},
+	// Všechny karty skutečného pluginu (skutečné služby nad ukázkovými poznámkami). Karta, která spadne
+	// nebo zůstane prázdná, se vypíše jako FAIL (node tools/preview/check.mjs, CI).
+	tabs: (target) => {
+		const report = (text) => (document.getElementById("errors").textContent += `${text}
+`);
+		const files = entries.map((e) => e.file);
+		const vault = {
+			getMarkdownFiles: () => files,
+			getAbstractFileByPath: (path) => files.find((f) => f.path === path) ?? null,
+			read: async () => "",
+			cachedRead: async () => "",
+			on: () => ({}),
+		};
+		const fakeApp = {
+			vault,
+			metadataCache: { getFileCache: (file) => ({ frontmatter: entries.find((e) => e.file === file)?.note }), on: () => ({}), offref: () => {} },
+			fileManager: { processFrontMatter: async () => {}, trashFile: async () => {} },
+			workspace: { getLeaf: () => ({ openFile: async () => {} }), getActiveFile: () => null, getLeavesOfType: () => [], onLayoutReady: () => {}, requestSaveLayout: () => {} },
+		};
+		const real = new BetterFormPlugin();
+		real.app = fakeApp;
+		real.manifest = { id: "better-form", version: "preview" };
+		real.settings = settings;
+		real.saveData = async () => {};
+		createServices(real);
+		real.index.rebuild();
+		const tab = writable("today");
+		mount(App, { target, context: createContext(real), props: { tab } });
+		const content = () => target.querySelector(".bf-tab-content");
+		const ids = TABS.map((x) => x.id).filter((id) => id !== "basic");
+		const check = (id) => {
+			const box = content();
+			const failed = target.querySelector(".bf-tab-error");
+			if (failed) report(`FAIL tab ${id}: ${failed.textContent.trim().slice(0, 400)}`);
+			else if (!box || box.childElementCount === 0) report(`FAIL tab ${id}: empty`);
+			else {
+				const nav = [target.querySelector(".bf-tabbar"), target.querySelector(".bf-subnav")].filter(Boolean);
+				const problems = [...nav.flatMap((el) => layoutProblems(el, `nav ${id}`)), ...layoutProblems(box, `tab ${id}`)];
+				problems.forEach(report);
+				if (problems.length === 0) report(`OK tab ${id}`);
+			}
+		};
+		// ?tab=<id> ukáže jediný pohled (snímky obrazovky přes shots.mjs).
+		if (params.get("tab")) {
+			tab.set(params.get("tab"));
+			return;
+		}
+		// Karty jedna po druhé; nakonec režim Základ (jeho karta je vidět jen v něm).
+		let i = 0;
+		const next = () => {
+			if (i < ids.length) {
+				const id = ids[i++];
+				tab.set(id);
+				setTimeout(() => (check(id), next()), 200);
+			} else if (i === ids.length) {
+				i++;
+				settings.mode = "basic";
+				real.settingsVersion.update((n) => n + 1);
+				tab.set("basic");
+				setTimeout(() => (check("basic"), report(`TABS ${ids.length + 1}`)), 200);
+			}
+		};
+		setTimeout(next, 100);
+	},
 	records: (target) =>
 		mount(RecordsSection, {
 			target,
@@ -175,9 +409,15 @@ const views = {
 		}),
 };
 const root = document.getElementById("root");
-window.addEventListener("error", (e) => {
-	document.getElementById("errors").textContent += `${e.message}\n`;
-});
+const report = (text) => (document.getElementById("errors").textContent += `${text}\n`);
+window.addEventListener("error", (e) => report(`ERROR ${e.message}`));
+window.addEventListener("unhandledrejection", (e) => report(`ERROR ${e.reason?.message ?? e.reason}`));
+// Chyby, které komponenty jen zalogují (např. svelte:boundary v App), taky do výpisu.
+const logError = console.error.bind(console);
+console.error = (...args) => {
+	logError(...args);
+	report(`ERROR ${args.map((a) => a?.stack ?? a?.message ?? String(a)).join(" ").slice(0, 600)}`);
+};
 try {
 	views[params.get("view") ?? "plan"](root);
 } catch (err) {

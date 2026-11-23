@@ -1,6 +1,6 @@
 {
   "name": "better-form",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Training log, recovery, recommendations and nutrition in Obsidian.",
   "main": "main.js",
   "private": true,
@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "npm run build && node scripts/deploy.mjs",
-    "preview": "node tools/preview/build.mjs"
+    "preview": "node tools/preview/build.mjs",
+    "check:ui": "node tools/preview/check.mjs"
   },
   "author": "ssestorad",
   "license": "MIT",

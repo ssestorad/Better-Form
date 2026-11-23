@@ -66,6 +66,22 @@ describe("synchronizace Garmin Connect", () => {
 		expect(requestLog.filter((r) => r.url.endsWith(GARMIN_TOKEN_PATH))).toHaveLength(1);
 	});
 
+	it("kroky rozběhnutého dne se při další synchronizaci zvýší, nikdy nesníží; ostatní hodnoty zůstanou", async () => {
+		const answer = (totalSteps: number, restingHeartRate: number) => (r: FakeRequest) =>
+			r.url.includes("dailysummaries") && r.headers?.Authorization === `Bearer ${TOKEN}` ? { status: 200, json: [{ calendarDate: TODAY, totalSteps, restingHeartRate }] } : undefined;
+		// V poledne 4 200 kroků a tep 52.
+		setRequestHandler(server(answer(4200, 52)));
+		await expect(w.sync.sync(TODAY)).resolves.toMatchObject({ days: 1, values: 2 });
+		// Večer 11 350 kroků; už zapsaný klidový tep se nepřepíše.
+		setRequestHandler(server(answer(11350, 60)));
+		await expect(w.sync.sync(TODAY)).resolves.toMatchObject({ days: 1, values: 1 });
+		expect(w.index.day(TODAY)?.note).toMatchObject({ steps: 11350, hrv: { resting_hr: 52 } });
+		// Nižší nebo stejný počet nic nezmění.
+		setRequestHandler(server(answer(9000, 60)));
+		await expect(w.sync.sync(TODAY)).resolves.toMatchObject({ days: 0, values: 0 });
+		expect(w.index.day(TODAY)?.note.steps).toBe(11350);
+	});
+
 	it("při 401 jednou požádá o nový token a pokračuje", async () => {
 		let expired = true;
 		setRequestHandler(

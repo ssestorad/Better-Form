@@ -479,3 +479,11 @@ describe("týdenní kontrola výživy v doporučeních (SPEC 11.6)", () => {
 		expect(nutritionCheckRule.evaluate(ctx({ nutritionCheck: { stepKcal: 200 } }))!.reasons[0]).toContain("200 kcal denně nižší");
 	});
 });
+
+describe("cíle odkazů z doporučení", () => {
+	it("vedou přímo na podsekci", () => {
+		expect(acwrRule.evaluate(ctx({ acwr: { acute: 180, chronic: 100, ratio: 1.8 } }))!.action?.target).toBe("charts");
+		expect(intensityRule.evaluate(ctx({ intensity: { easySec: 6000, hardSec: 4000, share: 0.4, runs: 6 } }))!.action?.target).toBe("run");
+		expect(painRule.evaluate(ctx({ pains: [pain()] }))!.action?.target).toBe("pain");
+	});
+});

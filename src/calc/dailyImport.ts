@@ -35,10 +35,11 @@ export interface ParsedDaily {
 /**
  * Co z řádku importu v denní poznámce ještě chybí. Zapsané hodnoty se nepřepisují;
  * délka spánku se nedoplní ani tehdy, když ji poznámka počítá z časů ulehnutí a vstávání.
+ * `growingSteps`: zdroj hlásí průběžný součet dne (Garmin) – vyšší počet kroků zapsaný nahradí.
  */
-export function missingValues(row: DailyRow, day: DayNote | undefined): Partial<Record<DailyField, number>> {
+export function missingValues(row: DailyRow, day: DayNote | undefined, growingSteps = false): Partial<Record<DailyField, number>> {
 	const has: Record<DailyField, boolean> = {
-		steps: day?.steps !== undefined,
+		steps: day?.steps !== undefined && !(growingSteps && row.steps !== undefined && row.steps > day.steps),
 		duration_min: day !== undefined && Object.keys(day.sleep).some((key) => ["duration_min", "bedtime", "sleep_onset", "wake"].includes(key)),
 		rmssd_ms: day?.hrv.rmssd_ms !== undefined,
 		resting_hr: day?.hrv.resting_hr !== undefined,

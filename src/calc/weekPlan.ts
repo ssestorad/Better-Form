@@ -42,6 +42,11 @@ export type PlanStatus = "done" | "planned" | "missed" | "off";
 
 export const PLAN_STATUS_LABELS: Record<PlanStatus, string> = translated({ done: "done", planned: "planned", missed: "missed", off: "postponed" });
 
+/** Hlavní akce dne: první položka, která je opravdu v plánu (ne splněná, zmeškaná ani odložená). */
+export function nextPlannedEntry<T extends { status: PlanStatus }>(entries: readonly T[]): T | undefined {
+	return entries.find((e) => e.status === "planned");
+}
+
 export interface PlanMatch<W> {
 	item: PlanItem;
 	status: PlanStatus;

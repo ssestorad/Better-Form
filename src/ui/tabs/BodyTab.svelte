@@ -17,6 +17,7 @@
 	} from "../../calc/muscleVolume";
 	import { assessPain, isOpenPain, painCategory, painLevels } from "../../calc/pain";
 	import { bodyMeasureRows } from "../../calc/bodyMeasures";
+	import { CYCLE_BASIS, CYCLE_MIN_CYCLES, cycleState } from "../../calc/cycle";
 	import { MUSCLE_LABELS, MUSCLES, type MuscleId } from "../../model/constants";
 	import { toIsoDate } from "../../model/dates";
 	import MuscleDetail from "../body/MuscleDetail.svelte";
@@ -38,6 +39,8 @@
 	import { researchTopic } from "../../seed/research";
 	import { usePlugin } from "../context";
 	import { formatDays, formatNumber, formatShortDate } from "../format";
+
+	let { view }: { view: "body" | "measurements" | "pain" | "cycle" } = $props();
 
 	const plugin = usePlugin();
 	const indexVersion = plugin.indexVersion;
@@ -165,9 +168,22 @@
 		void $settingsVersion;
 		return plugin.moduleOn("body");
 	});
+	const cycleOn = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.cycleOn();
+	});
+	const cycle = $derived.by(() => {
+		void $indexVersion;
+		return cycleState(plugin.index.all("day").map((d) => d.note), toIsoDate(new Date()));
+	});
+	// Výzkum o cyklu je pro ženský profil dostupný i s vypnutým modulem cyklu.
+	const cycleResearch = $derived.by(() => {
+		void $settingsVersion;
+		return plugin.settings.profile.sex === "female" && plugin.moduleOn("research.research") ? (researchTopic("menstrual_cycle") ?? null) : null;
+	});
 </script>
 
-{#if figureOn}
+{#if view === "body"}
 <section class="bf-card">
 	<div class="bf-body-modes" role="tablist" aria-label={t("Figure coloring")}>
 		{#each MODES as m (m)}
@@ -189,10 +205,8 @@
 		{/each}
 	</div>
 </section>
-{/if}
 
 <section class="bf-card bf-body-panel">
-	{#if figureOn}
 	{#if detail}
 		<MuscleDetail
 			{...detail}
@@ -241,13 +255,25 @@
 			</div>
 		</div>
 	{/if}
-	{/if}
 	{#if researchTopic("recovery_methods")}<ResearchCard topic={researchTopic("recovery_methods")!} />{/if}
-	{#if researchTopic("pain_training")}<ResearchCard topic={researchTopic("pain_training")!} />{/if}
 </section>
 
-<PainCard muscle={pinned} />
-
+{#if uncounted > 0}
+	<p class="bf-muted bf-small">
+		{tn(uncounted, ["{n} working set in the last 7 days wasn't counted because it's missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted.", "{n} working sets in the last 7 days weren't counted because they're missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted."], { effectiveMinPct1rm: thresholds.effectiveMinPct1rm })}
+	</p>
+{/if}
+{#if assumed > 0}
+	<p class="bf-muted bf-small">
+		{tn(assumed, ["For {n} bodyweight set in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate.", "For {n} bodyweight sets in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate."])}
+		<button type="button" class="bf-link-button" onclick={() => plugin.openTest({})}>{t("Max test")}</button>
+		<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
+	</p>
+{/if}
+{#if cycleResearch && !cycleOn}
+	<section class="bf-card"><ResearchCard topic={cycleResearch} /></section>
+{/if}
+{:else if view === "measurements"}
 <section class="bf-card">
 	<h4>{t("Body measurements")}</h4>
 	{#if measures.length === 0}
@@ -276,21 +302,30 @@
 	<div class="bf-actions"><button type="button" onclick={() => plugin.openCheckIn()}>{t("Log measurements in the check-in")}</button></div>
 </section>
 
-{#if uncounted > 0}
-	<p class="bf-muted bf-small">
-		{tn(uncounted, ["{n} working set in the last 7 days wasn't counted because it's missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted.", "{n} working sets in the last 7 days weren't counted because they're missing RIR. Without RIR, gym sets from {effectiveMinPct1rm} % of estimated 1RM and bodyweight sets are counted."], { effectiveMinPct1rm: thresholds.effectiveMinPct1rm })}
-	</p>
+{:else if view === "pain"}
+<PainCard muscle={pinned} />
+{#if researchTopic("pain_training")}<section class="bf-card"><ResearchCard topic={researchTopic("pain_training")!} /></section>{/if}
+{#if !figureOn}
+	{#if researchTopic("recovery_methods")}<section class="bf-card"><ResearchCard topic={researchTopic("recovery_methods")!} /></section>{/if}
+	{#if cycleResearch && !cycleOn}<section class="bf-card"><ResearchCard topic={cycleResearch} /></section>{/if}
 {/if}
-{#if assumed > 0}
-	<p class="bf-muted bf-small">
-		{tn(assumed, ["For {n} bodyweight set in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate.", "For {n} bodyweight sets in the last 7 days the plugin doesn't know your max reps and uses your longest logged set instead. If you train further from your max, volume comes out higher than it really is. A max test, or RIR logged for one set, makes it more accurate."])}
-		<button type="button" class="bf-link-button" onclick={() => plugin.openTest({})}>{t("Max test")}</button>
-		<BasisTag basis={{ sourceIds: ["practice"], evidence: "practice" }} />
-	</p>
+{:else}
+<section class="bf-card">
+	<h4>{t("Menstrual cycle")}</h4>
+	{#if cycle.day === null}
+		<p class="bf-muted">{t("Tick “Period today” in the check-in on the first day of your period – the cycle day is counted from it.")}</p>
+	{:else}
+		<p>{t("Day {day} of the cycle (since {start}).", { day: cycle.day, start: formatShortDate(cycle.start!) })} <BasisTag basis={CYCLE_BASIS} /></p>
+		<p class="bf-small bf-muted">
+			{cycle.averageLength !== null
+				? `${tn(cycle.averageLength, ["Average cycle length: {n} day", "Average cycle length: {n} days"])} ${tn(cycle.cycles, ["({n} cycle).", "({n} cycles)."])}`
+				: t("Average cycle length: collecting data ({v} of {min} cycles).", { v: cycle.cycles, min: CYCLE_MIN_CYCLES })}
+			{t("The plugin doesn't predict ovulation or your next period.")}
+		</p>
+	{/if}
+</section>
+{#if cycleResearch}<section class="bf-card"><ResearchCard topic={cycleResearch} /></section>{/if}
 {/if}
-<div class="bf-actions">
-	<button type="button" onclick={() => plugin.openLibrary({})}>{t("Exercise library")}</button>
-</div>
 
 <style>
 	h4,
